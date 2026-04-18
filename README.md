@@ -33,6 +33,7 @@ Lee et al. (2024) built a deep neural network combining cosmetic ingredient anal
 ## Methodology
 ```
 The system follows a five-stage pipeline. First, the user captures a selfie which is sent to Claude's Vision API for skin analysis, identifying conditions such as acne, oiliness, dryness, uneven tone, and wrinkles. Second, the AI generates a customized follow-up questionnaire covering sensitivity, allergies, lifestyle, age, and skincare goals to enrich the skin profile. Third, the combined inputs produce a structured skin diagnosis. Fourth, SerpAPI queries live e-commerce platforms — such as Amazon, Nykaa, and Flipkart — using diagnosis-derived search terms to fetch real, currently available products. Fifth, results are ranked and filtered against the user's stated budget, presenting the top recommendations with price, platform, and product details.
+
 ```
 
 
