@@ -80,6 +80,7 @@ This project successfully demonstrates an end-to-end AI pipeline for skin diagno
 [3]  Vinit714, "A Recommendation System for Facial Skin Care using Machine Learning Models," IEEE Published, GitHub, 2023. https://github.com/vinit714/A-Recommendation-system-for-Facial-Skin-Care-using-Machine-Learning-Models
 [4]  N. Ramrakhiani and D. Kalbande, "A comprehensive review of AI-powered skincare product recommendation systems," SAGE Journals, 2024. https://journals.sagepub.com/doi/10.1177/20427530241304073
 [5]  PMC / NLM, "Artificial Intelligence in the Evolution of Customized Skincare Regimens," 2024. https://pmc.ncbi.nlm.nih.gov/articles/PMC12085869/
+[6]  Haut.AI, "AI Skin Analysis & Personalized Product Recommendation System," 2025. https://haut.ai/
 [7]  Roots Analysis, "AI in Skincare Market Report 2025–2035," 2025. https://www.rootsanalysis.com/reports/ai-in-skincare-market.html
 [8]  SerpAPI, "Google Search API — Documentation and Pricing," 2026. https://serpapi.com/
 [9]  ALM Corp, "Google Sues SerpAPI: Lawsuit Analysis," December 2025. https://almcorp.com/blog/google-sues-serpapi-lawsuit-analysis/
