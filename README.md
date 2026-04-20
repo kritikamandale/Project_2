@@ -1,6 +1,4 @@
-# AI-Powered Skin Analysis &
-Personalized Skincare Product
-Recommendation System
+# AI-Powered Skin Analysis & Personalized Skincare Product Recommendation System
 
 ```
 Author(s): Kritika Mandale
