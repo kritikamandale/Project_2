@@ -9,7 +9,7 @@ Date: May 2026
 ## Abstract
 ```
 Consumers struggle to find suitable skincare products, often wasting money on mismatched options. This project presents an AI-powered web application that captures a user selfie, analyzes skin conditions via Claude Vision API, asks adaptive follow-up questions, and fetches real, budget-filtered products from live e-commerce platforms using SerpAPI. The system delivers a personalized, dermatologist-like experience without clinical costs.
-- The global AI in skincare market was valued at USD 1.19 billion in 2024 and is projected to reach USD 4.28 billion by 2035 at a CAGR of 12.1%.
+- The global AI in skincare market was valued at USD 1.19 billion in 2024 and is projected to reach USD 4.28 billion by 2035 at a CAGR of 12.1 %.
 
 ```
 
@@ -70,6 +70,7 @@ Future versions will incorporate longitudinal skin tracking via periodic selfies
 ## Conculusion  
 ```
 This project successfully demonstrates an end-to-end AI pipeline for skin diagnosis and budget-aware product recommendation. By combining Claude Vision API, adaptive questioning, and live SerpAPI product fetching, the system delivers an accessible, personalized skincare experience previously available only through expensive dermatological consultations. The commercial viability of this approach is validated by real-world tools like Olay's AI Skin Advisor. Future enhancements will elevate accuracy, legal compliance, and user experience.
+
 ```
 ## References
 ```
