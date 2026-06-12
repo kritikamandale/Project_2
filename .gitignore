@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+*.egg
+
+# Next.js
+.next/
+out/
+build/
+
+# Environment files — NEVER commit real secrets
+.env
+.env.local
+.env.*.local
+apps/api/.env
+
+# Testing
+coverage/
+.coverage
+htmlcov/
+.pytest_cache/
+playwright-report/
+test-results/
+
+# Turbo
+.turbo/
+
+# Misc
+.DS_Store
+Thumbs.db
+*.log
+*.pid
+
+# ML model artifacts — too large for git; use DVC or S3
+apps/api/app/ml/artifacts/*.pkl
+apps/web/public/models/*.bin
+
+# Docker volumes
+postgres_data/
+redis_data/

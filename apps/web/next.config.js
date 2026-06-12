@@ -1,0 +1,123 @@
+/** @type {import('next').NextConfig} */
+const { withSentryConfig } = require("@sentry/nextjs");
+
+// Routes that need camera access (Permissions-Policy: camera=self)
+const SCAN_ROUTES = ["/scan"];
+
+// Trusted script sources — unsafe-eval only on scan page (TF.js requirement)
+const BASE_CSP = [
+  "default-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  // Sentry, PostHog, Vercel analytics
+  "connect-src 'self' https://*.sentry.io https://app.posthog.com https://api.anthropic.com",
+  "worker-src blob:",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+];
+
+// Dev mode needs unsafe-eval for hot reloading / source maps; production drops it
+const IS_DEV = process.env.NODE_ENV !== "production";
+const SCAN_SCRIPT_SRC = "script-src 'self' 'unsafe-eval' 'unsafe-inline'"; // TF.js needs unsafe-eval
+const DEFAULT_SCRIPT_SRC = IS_DEV
+  ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'"  // needed by Next.js HMR
+  : "script-src 'self' 'unsafe-inline'";
+
+function buildCSP(isScanRoute) {
+  return [
+    ...BASE_CSP,
+    isScanRoute ? SCAN_SCRIPT_SRC : DEFAULT_SCRIPT_SRC,
+  ].join("; ");
+}
+
+const nextConfig = {
+  reactStrictMode: true,
+  poweredByHeader: false,  // Remove X-Powered-By: Next.js
+
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "*.amazonaws.com" },
+      { protocol: "https", hostname: "assets.nykaa.com" },
+      { protocol: "https", hostname: "cdn.dermaco.in" },
+      { protocol: "https", hostname: "cdn.theordinary.com" },
+    ],
+  },
+
+  // Proxy API calls to FastAPI backend to avoid CORS in dev
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/v1/:path*`,
+      },
+    ];
+  },
+
+  async headers() {
+    return [
+      // =======================================================================
+      // /scan — camera access enabled, TF.js unsafe-eval allowed
+      // =======================================================================
+      {
+        source: "/scan",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Camera permitted only on this page
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+          { key: "Content-Security-Policy", value: buildCSP(true) },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+        ],
+      },
+      // =======================================================================
+      // All other routes — camera blocked, stricter CSP
+      // =======================================================================
+      {
+        source: "/((?!scan$).*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Camera fully disabled everywhere except /scan
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Content-Security-Policy", value: buildCSP(false) },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          // Prevent browsers auto-completing sensitive admin forms
+          { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+        ],
+      },
+    ];
+  },
+
+  webpack(config, { isServer }) {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      };
+    }
+    return config;
+  },
+
+  experimental: {
+    serverComponentsExternalPackages: ["sharp"],
+  },
+};
+
+module.exports = withSentryConfig(nextConfig, {
+  silent: true,
+  hideSourceMaps: true,
+});
