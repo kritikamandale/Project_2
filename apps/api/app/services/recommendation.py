@@ -18,6 +18,8 @@ import uuid
 from typing import Optional
 
 import numpy as np
+
+from app.core.sanitization import sanitize_text
 from anthropic import AsyncAnthropic
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -171,8 +173,12 @@ def _build_user_prompt(
         }.items() if v]
         current_routine_summary = ", ".join(steps) if steps else "none"
 
-    known_allergens = routine.known_allergens_text if routine else "none"
-    diagnosed = ", ".join(questionnaire.diagnosed_conditions or []) if questionnaire else "none"
+    # Sanitize all free-text fields before inserting into the Claude prompt
+    # to prevent prompt injection attacks.
+    known_allergens = sanitize_text(routine.known_allergens_text) if routine and routine.known_allergens_text else "none"
+    medication_name = sanitize_text(questionnaire.medication_name_text) if questionnaire and hasattr(questionnaire, "medication_name_text") and questionnaire.medication_name_text else ""
+    diagnosed_raw = questionnaire.diagnosed_conditions or [] if questionnaire else []
+    diagnosed = ", ".join(sanitize_text(d) for d in diagnosed_raw) if diagnosed_raw else "none"
 
     return f"""Patient Profile:
 - Skin type: {scan.skin_type}, Fitzpatrick tone: {fitzpatrick}
@@ -182,9 +188,9 @@ def _build_user_prompt(
 - Sleep: {f"{questionnaire.sleep_hours_avg:.1f} hrs" if questionnaire and questionnaire.sleep_hours_avg else 'unknown'}, Stress: {f"{questionnaire.stress_level}/5" if questionnaire and questionnaire.stress_level else 'unknown'}
 - Diet: {questionnaire.diet_type if questionnaire else 'unknown'}, Sugar: {questionnaire.sugar_consumption if questionnaire else 'unknown'}, Dairy: {questionnaire.dairy_consumption if questionnaire else 'unknown'}
 - Current routine: {current_routine_summary}
-- Known allergies: {known_allergens}
-- Diagnosed conditions: {diagnosed}
-- Medication affecting skin: {questionnaire.medication_affects_skin if questionnaire else 'unknown'}
+- Known allergies: <allergens>{known_allergens}</allergens>
+- Diagnosed conditions: <conditions>{diagnosed}</conditions>
+- Medication affecting skin: {questionnaire.medication_affects_skin if questionnaire else 'unknown'}{f' ({medication_name})' if medication_name else ''}
 
 Available products to choose from:
 {json.dumps(candidates, indent=2, ensure_ascii=False)}
@@ -241,7 +247,14 @@ class RecommendationService:
         # 2. Fetch questionnaire + climate + routine
         questionnaire: Optional[QuestionnaireResponse] = None
         if questionnaire_id:
-            questionnaire = await db.get(QuestionnaireResponse, questionnaire_id)
+            questionnaire = await db.scalar(
+                select(QuestionnaireResponse).where(
+                    QuestionnaireResponse.id == questionnaire_id,
+                    QuestionnaireResponse.user_id == user.id,
+                )
+            )
+            if questionnaire is None:
+                raise ValueError(f"Questionnaire {questionnaire_id} not found or not owned by user.")
 
         climate: Optional[EnvironmentProfile] = await db.scalar(
             select(EnvironmentProfile).where(EnvironmentProfile.user_id == user.id)
@@ -263,7 +276,12 @@ class RecommendationService:
 
         # 6. Validate
         allergen_flags = _check_allergens(matched_products, routine)
-        _check_ingredient_conflicts(claude_output.products)
+        ingredient_conflicts = _check_ingredient_conflicts(claude_output.products)
+        if ingredient_conflicts:
+            logger.warning(
+                "Ingredient conflicts detected for user %s — flagging for derm review: %s",
+                user.id, ingredient_conflicts,
+            )
 
         # 7. Compute cost
         monthly_cost = _estimate_monthly_cost(matched_products)
@@ -274,7 +292,12 @@ class RecommendationService:
             claude_output.overall_confidence < 0.75
             or bool(diagnosed and any(d not in ("none", "prefer_not_to_say") for d in diagnosed))
             or bool(allergen_flags)
+            or bool(ingredient_conflicts)  # unsafe combos always require derm review
         )
+
+        # Merge conflict info into allergen_flags so the UI surfaces them
+        if ingredient_conflicts:
+            allergen_flags = list(allergen_flags) + [f"Ingredient conflict: {c}" for c in ingredient_conflicts]
 
         # 9. Build roadmap JSON
         roadmap_dict = generate_roadmap(

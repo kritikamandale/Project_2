@@ -94,6 +94,17 @@ class QuestionnaireSubmitRequest(BaseModel):
     medication_affects_skin: bool
     medication_name_text: Optional[str] = Field(None, max_length=500)
 
+    # Section 8: Lifestyle & Habits (all optional)
+    spicy_food_frequency: Optional[Literal["never", "sometimes", "often", "daily"]] = None
+    junk_food_frequency: Optional[Literal["never", "sometimes", "often", "daily"]] = None
+    fruits_veggies_per_day: Optional[Literal["less_than_1", "1_to_2", "3_to_5", "more_than_5"]] = None
+    bedtime: Optional[Literal["before_10pm", "10pm_to_midnight", "after_midnight"]] = None
+    phone_before_bed: Optional[bool] = None
+    sleep_environment: Optional[Literal["ac", "fan", "natural_air"]] = None
+    daily_sun_exposure: Optional[Literal["minimal", "moderate", "high", "very_high"]] = None
+    smoking_status: Optional[Literal["never", "ex_smoker", "occasionally", "regularly"]] = None
+    alcohol_consumption: Optional[Literal["never", "occasionally", "regularly"]] = None
+
 
 class QuestionnaireSubmitResponse(BaseModel):
     questionnaire_id: str

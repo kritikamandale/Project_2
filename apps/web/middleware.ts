@@ -8,7 +8,6 @@ import type { NextRequest } from "next/server";
 const ROLE_HOME: Record<string, string> = {
   USER: "/dashboard",
   DERMATOLOGIST: "/derm-dashboard",
-  ADMIN: "/admin-dashboard",
 };
 
 // ---------------------------------------------------------------------------
@@ -23,42 +22,31 @@ type RouteRule = {
 const ROUTE_RULES: RouteRule[] = [
   // User routes
   {
-    pattern: /^\/(scan|questionnaire|results|roadmap|progress)(\/|$)/,
-    allowedRoles: ["USER", "DERMATOLOGIST", "ADMIN"],
+    pattern: /^\/(scan|questionnaire|results|roadmap|progress|profile)(\/|$)/,
+    allowedRoles: ["USER"],
     redirectTo: "/login",
   },
   // User dashboard (own)
   {
     pattern: /^\/dashboard(\/|$)/,
-    allowedRoles: ["USER", "DERMATOLOGIST", "ADMIN"],
+    allowedRoles: ["USER", "DERMATOLOGIST"],
     redirectTo: "/login",
   },
   // Dermatologist routes
   {
     pattern: /^\/(derm-dashboard|review-queue|case)(\/|$)/,
-    allowedRoles: ["DERMATOLOGIST", "ADMIN"],
-    redirectTo: "/dashboard",
-  },
-  // Admin routes
-  {
-    pattern: /^\/(admin-dashboard|users|products|analytics|settings)(\/|$)/,
-    allowedRoles: ["ADMIN"],
+    allowedRoles: ["DERMATOLOGIST"],
     redirectTo: "/dashboard",
   },
   // Legacy group-prefixed routes (from Phase 1 scaffold)
   {
     pattern: /^\/(user)\//,
-    allowedRoles: ["USER", "DERMATOLOGIST", "ADMIN"],
+    allowedRoles: ["USER", "DERMATOLOGIST"],
     redirectTo: "/login",
   },
   {
     pattern: /^\/(dermatologist)\//,
-    allowedRoles: ["DERMATOLOGIST", "ADMIN"],
-    redirectTo: "/dashboard",
-  },
-  {
-    pattern: /^\/(admin)\//,
-    allowedRoles: ["ADMIN"],
+    allowedRoles: ["DERMATOLOGIST"],
     redirectTo: "/dashboard",
   },
 ];

@@ -19,6 +19,7 @@ import {
   type RoadmapPhase,
   type ConditionSummary,
 } from "@/lib/api/recommendations";
+import { RoutineSelector } from "@/components/results/routine-selector";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -438,7 +439,7 @@ export default function ResultsPage() {
 
     async function init() {
       const storageKey = `rec_${scanId}_${questionnaireId ?? "none"}`;
-      const cachedId = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
+      const cachedId = typeof window !== "undefined" ? sessionStorage.getItem(storageKey) : null;
 
       try {
         let detail: RecommendationDetail;
@@ -453,7 +454,7 @@ export default function ResultsPage() {
             questionnaire_id: questionnaireId,
           });
           if (typeof window !== "undefined") {
-            localStorage.setItem(storageKey, genRes.recommendation_id);
+            sessionStorage.setItem(storageKey, genRes.recommendation_id);
           }
           detail = await getRecommendation(genRes.recommendation_id);
         }
@@ -567,7 +568,10 @@ export default function ResultsPage() {
           </section>
         )}
 
-        {/* ---- 3. Climate insight ---- */}
+        {/* ---- 3. Routine Recommendations ---- */}
+        <RoutineSelector skinType={rec.skin_type} />
+
+        {/* ---- 4. Climate insight ---- */}
         {meta.climate_insight && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -582,7 +586,7 @@ export default function ResultsPage() {
           </motion.div>
         )}
 
-        {/* ---- 4. Monthly cost estimate ---- */}
+        {/* ---- 5. Monthly cost estimate ---- */}
         {rec.estimated_monthly_cost_inr && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
             <span className="text-2xl">💰</span>

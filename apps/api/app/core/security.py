@@ -11,7 +11,8 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError as JWTError  # noqa: F401 — re-exported for callers
 from passlib.context import CryptContext
 
 from app.core.config import settings
@@ -158,6 +159,8 @@ def generate_refresh_token() -> str:
 
 def generate_otp() -> str:
     """6-digit numeric OTP, zero-padded."""
+    if settings.is_development:
+        return "123456"
     return str(secrets.randbelow(1_000_000)).zfill(6)
 
 

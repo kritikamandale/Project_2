@@ -96,6 +96,9 @@ class QuestionnaireResponse(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     medication_affects_skin: Mapped[Optional[bool]] = mapped_column(Boolean)
     medication_name_text: Mapped[Optional[str]] = mapped_column(Text)
 
+    # ---------- Section 8: Lifestyle & Habits (JSONB — avoids migration for each new field) ----------
+    extra_lifestyle: Mapped[Optional[dict]] = mapped_column(JSONB)
+
     # ---------- Legacy fields (kept for backwards compat) ----------
     alcohol_consumption: Mapped[Optional[str]] = mapped_column(String(50))
     smoking_status: Mapped[Optional[str]] = mapped_column(String(50))

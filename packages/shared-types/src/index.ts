@@ -4,7 +4,7 @@
 // Auth & User
 // ---------------------------------------------------------------------------
 
-export type UserRole = "USER" | "DERMATOLOGIST" | "ADMIN";
+export type UserRole = "USER" | "DERMATOLOGIST";
 
 export interface User {
   id: string;

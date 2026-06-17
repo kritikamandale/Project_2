@@ -134,4 +134,4 @@ class UserWithProfileResponse(UserResponse):
 # ---------------------------------------------------------------------------
 
 class ChangeRoleRequest(BaseModel):
-    role: Literal["USER", "DERMATOLOGIST", "ADMIN"]
+    role: Literal["USER", "DERMATOLOGIST"]

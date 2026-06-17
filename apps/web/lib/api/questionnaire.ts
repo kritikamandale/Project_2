@@ -46,6 +46,16 @@ export type DiagnosedCondition =
   | "acne" | "rosacea" | "eczema" | "psoriasis"
   | "melasma" | "none" | "prefer_not_to_say";
 
+// Section 8 — lifestyle detail types
+export type SpicyFoodFrequency = "never" | "sometimes" | "often" | "daily";
+export type JunkFoodFrequency  = "never" | "sometimes" | "often" | "daily";
+export type FruitsVeggies      = "less_than_1" | "1_to_2" | "3_to_5" | "more_than_5";
+export type Bedtime            = "before_10pm" | "10pm_to_midnight" | "after_midnight";
+export type SleepEnvironment   = "ac" | "fan" | "natural_air";
+export type SunExposure        = "minimal" | "moderate" | "high" | "very_high";
+export type SmokingStatus      = "never" | "ex_smoker" | "occasionally" | "regularly";
+export type AlcoholConsumption = "never" | "occasionally" | "regularly";
+
 export interface QuestionnaireSubmitRequest {
   // Section 1
   sleep_hours_avg: number;
@@ -77,6 +87,16 @@ export interface QuestionnaireSubmitRequest {
   diagnosed_conditions: DiagnosedCondition[];
   medication_affects_skin: boolean;
   medication_name_text?: string;
+  // Section 8 — optional lifestyle details
+  spicy_food_frequency?: SpicyFoodFrequency;
+  junk_food_frequency?: JunkFoodFrequency;
+  fruits_veggies_per_day?: FruitsVeggies;
+  bedtime?: Bedtime;
+  phone_before_bed?: boolean;
+  sleep_environment?: SleepEnvironment;
+  daily_sun_exposure?: SunExposure;
+  smoking_status?: SmokingStatus;
+  alcohol_consumption?: AlcoholConsumption;
 }
 
 export interface ClimateProfile {

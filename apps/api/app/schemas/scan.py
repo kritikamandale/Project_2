@@ -49,6 +49,8 @@ class ConditionInput(BaseModel):
 
 
 class ScanSubmitRequest(BaseModel):
+    model_config = {"protected_namespaces": ()}
+
     skin_type: SkinTypeStr
     skin_type_confidence: float = Field(ge=0.0, le=1.0)
     fitzpatrick_tone: FitzpatrickToneStr

@@ -1,16 +1,15 @@
 """Questionnaire router — lifestyle context for skin analysis recommendations."""
 
-from __future__ import annotations
-
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_verified_user
+from app.core.limiter import limiter
 from app.models.questionnaire import (
     EnvironmentProfile,
     QuestionnaireResponse,
@@ -121,6 +120,18 @@ async def submit_questionnaire(
         diagnosed_conditions=body.diagnosed_conditions,
         medication_affects_skin=body.medication_affects_skin,
         medication_name_text=body.medication_name_text if body.medication_affects_skin else None,
+        # S8 — stored as JSONB so new fields can be added without migrations
+        extra_lifestyle={k: v for k, v in {
+            "spicy_food_frequency":  body.spicy_food_frequency,
+            "junk_food_frequency":   body.junk_food_frequency,
+            "fruits_veggies_per_day": body.fruits_veggies_per_day,
+            "bedtime":               body.bedtime,
+            "phone_before_bed":      body.phone_before_bed,
+            "sleep_environment":     body.sleep_environment,
+            "daily_sun_exposure":    body.daily_sun_exposure,
+            "smoking_status":        body.smoking_status,
+            "alcohol_consumption":   body.alcohol_consumption,
+        }.items() if v is not None} or None,
         questionnaire_version=2,
     )
     db.add(q)
@@ -164,7 +175,9 @@ async def submit_questionnaire(
 # ---------------------------------------------------------------------------
 
 @router.post("/climate-enrich", response_model=ClimateProfileResponse)
+@limiter.limit("20/minute")
 async def climate_enrich(
+    request: Request,
     body: ClimateEnrichRequest,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_verified_user),

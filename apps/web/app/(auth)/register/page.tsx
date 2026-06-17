@@ -101,18 +101,18 @@ function StepHeader({
           <div
             key={i}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              i < step ? "w-6 bg-violet-500" : i === step - 1 ? "w-6 bg-violet-500" : "w-2 bg-slate-200"
+              i < step ? "w-6 bg-skin-500" : i === step - 1 ? "w-6 bg-skin-500" : "w-2 bg-skin-100"
             }`}
           />
         ))}
       </div>
-      <p className="text-xs text-center text-slate-400 uppercase tracking-wide">
+      <p className="text-xs text-center text-gray-400 uppercase tracking-wide">
         Step {step} of {total}
       </p>
-      <h2 className="text-xl font-bold text-center text-slate-900 dark:text-white">
+      <h2 className="text-xl font-bold font-heading text-center text-gray-900">
         {title}
       </h2>
-      <p className="text-sm text-center text-slate-500">{subtitle}</p>
+      <p className="text-sm text-center text-gray-500">{subtitle}</p>
     </div>
   );
 }
@@ -202,19 +202,22 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-skin-50 via-white to-skin-100/40 p-4">
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-500 mb-3 shadow-lg">
-            <span className="text-xl">✨</span>
-          </div>
-          <h1 className="text-xl font-bold font-heading text-slate-900 dark:text-white">
+          <Link href="/" className="inline-flex items-center gap-2 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
+              <span className="text-white text-sm font-bold">S</span>
+            </div>
+            <span className="font-heading font-bold text-xl text-skin-800">SkinAI</span>
+          </Link>
+          <h1 className="text-xl font-bold font-heading text-gray-900">
             Create your SkinAI account
           </h1>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-skin-100 p-8">
           <AnimatePresence mode="wait">
 
             {/* ---- STEP 1: Email + Password ---- */}
@@ -265,15 +268,15 @@ export default function RegisterPage() {
                       </FormItem>
                     )} />
 
-                    <Button type="submit" className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white">
+                    <Button type="submit" className="w-full bg-skin-500 hover:bg-skin-600 text-white">
                       Continue
                     </Button>
                   </form>
                 </Form>
 
-                <p className="text-center text-sm text-slate-500 mt-4">
+                <p className="text-center text-sm text-gray-500 mt-4">
                   Already have an account?{" "}
-                  <Link href="/login" className="text-violet-600 font-medium hover:underline">Sign in</Link>
+                  <Link href="/login" className="text-skin-600 font-medium hover:underline">Sign in</Link>
                 </p>
               </motion.div>
             )}
@@ -328,7 +331,7 @@ export default function RegisterPage() {
 
                     <div className="flex gap-2 pt-2">
                       <Button type="button" variant="outline" className="flex-1" onClick={goPrev}>Back</Button>
-                      <Button type="submit" className="flex-1 bg-gradient-to-r from-violet-500 to-indigo-500 text-white">Continue</Button>
+                      <Button type="submit" className="flex-1 bg-skin-500 hover:bg-skin-600 text-white">Continue</Button>
                     </div>
                   </form>
                 </Form>
@@ -359,27 +362,27 @@ export default function RegisterPage() {
                       onClick={() => setSelectedTone(f.value)}
                       className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all ${
                         selectedTone === f.value
-                          ? "border-violet-500 shadow-md scale-105"
-                          : "border-transparent hover:border-slate-200"
+                          ? "border-skin-500 shadow-md scale-105"
+                          : "border-transparent hover:border-skin-200"
                       }`}
                     >
                       <div
                         className="w-10 h-10 rounded-full mb-2 shadow-inner"
                         style={{ backgroundColor: f.bg }}
                       />
-                      <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{f.label}</span>
-                      <span className="text-xs text-slate-400">{f.desc}</span>
+                      <span className="text-xs font-medium text-gray-700">{f.label}</span>
+                      <span className="text-xs text-gray-400">{f.desc}</span>
                     </button>
                   ))}
                 </div>
 
-                <p className="text-xs text-slate-400 text-center mb-4">
+                <p className="text-xs text-gray-400 text-center mb-4">
                   This helps us fine-tune sunscreen SPF and ingredient recommendations.
                 </p>
 
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" className="flex-1" onClick={goPrev}>Back</Button>
-                  <Button type="button" className="flex-1 bg-gradient-to-r from-violet-500 to-indigo-500 text-white" onClick={onStep3}>
+                  <Button type="button" className="flex-1 bg-skin-500 hover:bg-skin-600 text-white" onClick={onStep3}>
                     {selectedTone ? "Continue" : "Skip for now"}
                   </Button>
                 </div>
@@ -402,7 +405,7 @@ export default function RegisterPage() {
                   subtitle="Your skin images are processed ephemerally and never stored"
                 />
 
-                <div className="space-y-4 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl p-4 mb-6">
+                <div className="space-y-4 text-sm text-gray-600 bg-skin-50 rounded-xl p-4 mb-6">
                   <p>🔒 <strong>Image privacy:</strong> Camera images are analysed on-device first. If server analysis is needed, images are uploaded via a 60-second presigned URL and permanently deleted after analysis.</p>
                   <p>🩺 <strong>Dermatologist review:</strong> Anonymised skin analysis data may be reviewed by verified dermatologists to improve recommendations.</p>
                   <p>📍 <strong>Location data:</strong> Your city is used only for climate-based product recommendations and is never sold to third parties.</p>
@@ -434,9 +437,9 @@ export default function RegisterPage() {
                           <div className="text-sm leading-tight">
                             <FormLabel className="font-normal cursor-pointer">
                               I have read and agree to the{" "}
-                              <Link href="/privacy" className="text-violet-600 hover:underline" target="_blank">Privacy Policy</Link>{" "}
+                              <Link href="/privacy" className="text-skin-600 hover:underline" target="_blank">Privacy Policy</Link>{" "}
                               and{" "}
-                              <Link href="/terms" className="text-violet-600 hover:underline" target="_blank">Terms of Service</Link>.
+                              <Link href="/terms" className="text-skin-600 hover:underline" target="_blank">Terms of Service</Link>.
                               I consent to the use of my skin data as described above.
                             </FormLabel>
                             <FormMessage />
@@ -450,7 +453,7 @@ export default function RegisterPage() {
                       <Button
                         type="submit"
                         disabled={isPending}
-                        className="flex-1 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
+                        className="flex-1 bg-skin-500 hover:bg-skin-600 text-white"
                       >
                         {isPending ? "Creating account…" : "Create account"}
                       </Button>

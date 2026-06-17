@@ -79,7 +79,7 @@ type Action =
   | { type: "DONE"; scanId: string }
   | { type: "ERROR"; message: string }
   | { type: "RETAKE" }
-  | { type: "FALLBACK" }
+  | { type: "FALLBACK"; capturedDataUrl?: string }
   | { type: "SET_MANUAL_SKIN"; value: SkinType }
   | { type: "SET_MANUAL_FITZPATRICK"; value: FitzpatrickTone };
 
@@ -104,10 +104,10 @@ function reducer(state: State, action: Action): State {
     case "CAPTURING": return { ...state, status: "capturing" };
     case "ANALYZING": return { ...state, status: "analyzing", analysisStep: action.step, analysisProgress: action.progress };
     case "PREVIEW": return { ...state, status: "preview", capturedDataUrl: action.dataUrl, result: action.result };
-    case "DONE": return { ...state, status: "done", scanId: action.scanId };
+    case "DONE": return { ...state, status: "done", scanId: action.scanId, capturedDataUrl: "" };
     case "ERROR": return { ...state, status: "error", errorMessage: action.message };
     case "RETAKE": return { ...initialState, status: "active" };
-    case "FALLBACK": return { ...state, status: "fallback" };
+    case "FALLBACK": return { ...state, status: "fallback", capturedDataUrl: action.capturedDataUrl ?? state.capturedDataUrl };
     case "SET_MANUAL_SKIN": return { ...state, manualSkinType: action.value };
     case "SET_MANUAL_FITZPATRICK": return { ...state, manualFitzpatrick: action.value };
     default: return state;
@@ -282,11 +282,12 @@ async function detectFaceGuide(
 
   try {
     const detector = await getFaceDetector();
-    if (!detector) return { isCentered: false, sizeOk: false, instruction: "Center your face in the oval", bounds: null };
+    // If TF model is unavailable, allow capture without face detection
+    if (!detector) return { isCentered: true, sizeOk: true, instruction: "Position your face in the oval", bounds: null };
 
     const faces = await detector.estimateFaces(video);
     if (!faces.length) {
-      return { isCentered: false, sizeOk: false, instruction: "No face detected — look at the camera", bounds: null };
+      return { isCentered: true, sizeOk: true, instruction: "Hold still and look at the camera", bounds: null };
     }
 
     const face = faces[0];
@@ -370,11 +371,10 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   const lightingCanvasRef = useRef<HTMLCanvasElement>(null);
   const countdownRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // Allow capture in good/acceptable lighting; face-detection is advisory only
   const canCapture =
     state.status === "active" &&
-    lighting.quality === "good" &&
-    faceGuide.isCentered &&
-    faceGuide.sizeOk;
+    lighting.quality !== "poor";
 
   // ---------------------------------------------------------------------------
   // Real-time lighting analysis loop (every animation frame)
@@ -505,7 +505,8 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
     } catch (err) {
       const msg = (err as Error).message ?? "Analysis failed";
       if (msg.includes("unavailable")) {
-        dispatch({ type: "FALLBACK" });
+        // Model not available — go to manual mode and keep the captured photo for reference
+        dispatch({ type: "FALLBACK", capturedDataUrl: dataUrl });
       } else {
         dispatch({ type: "ERROR", message: msg });
       }
@@ -761,9 +762,9 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                 </Alert>
               )}
 
-              {/* Privacy confirmation */}
+              {/* Privacy confirmation — photo is still in memory until Confirm is clicked */}
               <p className="text-green-400 text-xs text-center max-w-xs">
-                ✓ Your photo has been deleted from memory. Only skin characteristics were extracted.
+                ✓ Your photo stays on this device and will be deleted once you confirm.
               </p>
 
               <div className="flex gap-3 w-full max-w-xs">
@@ -871,7 +872,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
         )}
       </AnimatePresence>
 
-      {/* ── Manual fallback ─────────────────────────────────────────────── */}
+      {/* ── Manual skin-type selection (shown after capture when AI model is unavailable) ── */}
       <AnimatePresence>
         {state.status === "fallback" && (
           <motion.div
@@ -881,14 +882,38 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           >
             <div className="max-w-lg mx-auto space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-white font-semibold text-xl">Select your skin type</h2>
+                <h2 className="text-white font-semibold text-xl">Tell us about your skin</h2>
                 <button onClick={onCancel} className="text-white/40 hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <p className="text-white/60 text-sm">
-                Camera analysis unavailable. Choose the description that best matches your skin.
+              {/* Show blurred captured photo as reference */}
+              {state.capturedDataUrl && (
+                <div className="flex items-center gap-4 bg-white/5 rounded-2xl p-4">
+                  <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={state.capturedDataUrl}
+                      alt="Your captured photo"
+                      className="w-full h-full object-cover"
+                      style={{ filter: "blur(12px)", transform: "scale(1.15)" }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-white text-lg">📸</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-white font-medium text-sm">Photo captured!</p>
+                    <p className="text-white/50 text-xs mt-0.5">
+                      Use your photo as reference to select your skin type below.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <p className="text-white/70 text-sm">
+                Choose the description that best matches your skin:
               </p>
 
               <div className="grid gap-3">

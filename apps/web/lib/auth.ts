@@ -78,9 +78,8 @@ const authConfig: NextAuthConfig = {
         });
 
         if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
           // Return null (triggers CredentialsSignin error) — caller sees generic message
-          throw new Error(body.detail ?? "Invalid credentials");
+          return null;
         }
 
         const data = await res.json();

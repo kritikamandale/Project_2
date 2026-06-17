@@ -7,7 +7,7 @@ from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
 # Import all models so Alembic detects them
-from app.models import User, Scan, Recommendation, Product  # noqa: F401
+from app.models import User, SkinScan, Recommendation, Product  # noqa: F401
 from app.core.config import settings
 from app.core.database import Base
 

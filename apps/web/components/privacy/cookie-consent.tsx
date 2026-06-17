@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cookie, X, ShieldCheck, ExternalLink } from "lucide-react";
+import { initPostHog } from "@/components/shared/posthog-provider";
 
 const CONSENT_KEY = "skinai_cookie_consent";
 const CONSENT_VERSION = "1";
@@ -33,10 +34,10 @@ function storeConsent(decision: "accepted" | "declined") {
 function applyConsent(decision: "accepted" | "declined") {
   if (typeof window === "undefined") return;
   if (decision === "accepted") {
-    // PostHog opt-in
-    if ((window as any).__posthog) {
-      (window as any).__posthog.opt_in_capturing();
-    }
+    // Initialise PostHog for the first time (no-op if already loaded)
+    initPostHog();
+    // Also store decision key used by posthog-provider on future page loads
+    localStorage.setItem("cookie-consent", "accepted");
   } else {
     // PostHog opt-out
     if ((window as any).__posthog) {

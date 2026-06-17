@@ -9,11 +9,11 @@ from app.schemas.user import (  # noqa: F401
     ForgotPasswordRequest, ResetPasswordRequest, ChangeRoleRequest,
 )
 from app.schemas.scan import (  # noqa: F401
-    UploadUrlResponse, TFJSResult, ScanAnalyzeRequest,
-    ScanResponse, ScanListResponse, SkinConditionResponse,
+    UploadUrlResponse, ScanSubmitRequest, ScanSubmitResponse,
+    ScanResponse, ScanListResponse, SkinConditionResponse, PaginatedScans,
 )
 from app.schemas.questionnaire import (  # noqa: F401
-    QuestionnaireCreate, QuestionnaireResponse,
+    QuestionnaireCreate, QuestionnaireDetailResponse,
     EnvironmentProfileCreate, EnvironmentProfileResponse,
     SkincareRoutineCreate, SkincareRoutineResponse,
 )
@@ -26,11 +26,5 @@ from app.schemas.recommendation import (  # noqa: F401
 )
 from app.schemas.progress import (  # noqa: F401
     ProgressScanCreate, ProgressScanResponse,
-    ProgressMetricResponse, ProgressTimelineResponse,
-)
-from app.schemas.admin import (  # noqa: F401
-    DermatologistProfileCreate, DermatologistProfileResponse,
-    ReviewQueueItemResponse, ReviewQueueAssignRequest, ReviewQueueUpdateRequest,
-    PlatformSettingResponse, PlatformSettingUpdate,
-    PlatformStatsResponse, ScanAnalyticsEntry, TopProductEntry,
+    ProgressMetricResponse, TimelineResponse,
 )

@@ -6,8 +6,13 @@ Pydantic Settings validates types and raises on missing required values at start
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyHttpUrl, PostgresDsn, RedisDsn, field_validator
+from pydantic import AnyHttpUrl, Field, PostgresDsn, RedisDsn, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_WEAK_SECRETS = frozenset({
+    "change-me-dev", "change-me-in-production", "secret", "dev-secret",
+    "changeme", "your-secret-key", "supersecret",
+})
 
 
 class Settings(BaseSettings):
@@ -16,6 +21,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
+        env_ignore_empty=True,  # treat VAR= as unset (use field default)
     )
 
     # -------------------------------------------------------------------------
@@ -23,9 +29,11 @@ class Settings(BaseSettings):
     # -------------------------------------------------------------------------
     app_name: str = "AI Skin Analysis API"
     app_version: str = "0.1.0"
+    # ENVIRONMENT must be set explicitly — defaults to "development" so local
+    # dev works without extra config, but production deployments must set it.
     environment: Literal["development", "staging", "production"] = "development"
     debug: bool = False
-    secret_key: str = "change-me-dev"
+    secret_key: str = Field(..., min_length=32)          # required — no default
     allowed_origins: list[str] = ["http://localhost:3000"]
     frontend_url: str = "http://localhost:3000"
     trusted_hosts: list[str] = ["localhost", "127.0.0.1"]
@@ -48,7 +56,7 @@ class Settings(BaseSettings):
     # JWT — RS256 in production, HS256 in development
     # Set jwt_private_key / jwt_public_key (PEM, \n-escaped) to enable RS256.
     # -------------------------------------------------------------------------
-    jwt_secret_key: str = "change-me-in-production"   # HS256 dev fallback
+    jwt_secret_key: str = Field(..., min_length=32)    # required — no default
     jwt_private_key: str = ""   # RSA private key PEM (production)
     jwt_public_key: str = ""    # RSA public key PEM (production)
     access_token_expire_minutes: int = 15
@@ -166,6 +174,21 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         return self.environment == "development"
+
+    @model_validator(mode="after")
+    def _enforce_strong_secrets_in_production(self) -> "Settings":
+        if self.environment in ("production", "staging"):
+            if self.secret_key in _WEAK_SECRETS:
+                raise ValueError(
+                    "SECRET_KEY must be a strong random value in production/staging. "
+                    "Generate one with: openssl rand -hex 32"
+                )
+            if self.jwt_secret_key in _WEAK_SECRETS:
+                raise ValueError(
+                    "JWT_SECRET_KEY must be a strong random value in production/staging. "
+                    "Generate one with: openssl rand -hex 32"
+                )
+        return self
 
 
 @lru_cache

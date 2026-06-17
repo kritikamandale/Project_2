@@ -102,7 +102,7 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-skin-50 via-white to-skin-100/40 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -110,19 +110,25 @@ export default function VerifyEmailPage() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-500 mb-3 shadow-lg">
+          <Link href="/" className="inline-flex items-center gap-2 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
+              <span className="text-white text-sm font-bold">S</span>
+            </div>
+            <span className="font-heading font-bold text-xl text-skin-800">SkinAI</span>
+          </Link>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-skin-400 to-skin-600 mb-3 shadow-lg">
             <span className="text-xl">📧</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-2xl font-bold font-heading text-gray-900">
             Verify your email
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Enter the 6-digit code sent to{" "}
-            <strong className="text-slate-700 dark:text-slate-300">{email || "your email"}</strong>
+            <strong className="text-gray-700">{email || "your email"}</strong>
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-skin-100 p-8">
           <AnimatePresence mode="wait">
             {success ? (
               <motion.div
@@ -132,10 +138,10 @@ export default function VerifyEmailPage() {
                 className="text-center py-4 space-y-3"
               >
                 <div className="text-5xl">✅</div>
-                <h3 className="font-semibold text-green-700 dark:text-green-400 text-lg">
+                <h3 className="font-semibold text-green-700 text-lg">
                   Email verified!
                 </h3>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-gray-500">
                   {isDerm
                     ? "Your email is verified. Your account is now pending admin approval — you'll receive an email when activated."
                     : "Redirecting you to login…"}
@@ -159,9 +165,9 @@ export default function VerifyEmailPage() {
                       onChange={(e) => handleChange(i, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(i, e)}
                       className={`w-12 h-14 text-center text-xl font-bold rounded-xl border-2 outline-none transition-all
-                        bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white
-                        ${digit ? "border-violet-500" : "border-slate-200 dark:border-slate-700"}
-                        focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900`}
+                        bg-skin-50 text-gray-900
+                        ${digit ? "border-skin-500" : "border-skin-200"}
+                        focus:border-skin-500 focus:ring-2 focus:ring-skin-200`}
                       aria-label={`Digit ${i + 1}`}
                     />
                   ))}
@@ -196,32 +202,32 @@ export default function VerifyEmailPage() {
                 <Button
                   onClick={() => handleVerify(digits.join(""))}
                   disabled={isPending || digits.join("").length < OTP_LENGTH}
-                  className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white mb-4"
+                  className="w-full bg-skin-500 hover:bg-skin-600 text-white mb-4"
                 >
                   {isPending ? "Verifying…" : "Verify"}
                 </Button>
 
                 {/* Resend */}
-                <p className="text-center text-sm text-slate-500">
+                <p className="text-center text-sm text-gray-500">
                   Didn&apos;t receive a code?{" "}
                   <button
                     type="button"
                     onClick={handleResend}
                     disabled={isResending}
-                    className="text-violet-600 hover:underline font-medium disabled:opacity-50"
+                    className="text-skin-600 hover:underline font-medium disabled:opacity-50"
                   >
                     {isResending ? "Sending…" : "Resend"}
                   </button>
                 </p>
-                <p className="text-center text-xs text-slate-400 mt-1">
+                <p className="text-center text-xs text-gray-400 mt-1">
                   Code expires in 10 minutes · Max 3 attempts
                 </p>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="text-center mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <Link href="/login" className="text-sm text-violet-600 hover:underline">
+          <div className="text-center mt-4 pt-4 border-t border-skin-100">
+            <Link href="/login" className="text-sm text-skin-600 hover:underline">
               ← Back to sign in
             </Link>
           </div>

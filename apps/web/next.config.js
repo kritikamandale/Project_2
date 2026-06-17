@@ -21,14 +21,26 @@ const BASE_CSP = [
 
 // Dev mode needs unsafe-eval for hot reloading / source maps; production drops it
 const IS_DEV = process.env.NODE_ENV !== "production";
+
+// In dev, allow the local FastAPI backend (8000) and the Next.js app itself (3010)
+// so NextAuth redirects and internal fetch calls are never blocked by CSP.
+const DEV_API_ORIGIN = IS_DEV
+  ? " http://localhost:8000 ws://localhost:8000 http://localhost:3010"
+  : "";
+
 const SCAN_SCRIPT_SRC = "script-src 'self' 'unsafe-eval' 'unsafe-inline'"; // TF.js needs unsafe-eval
 const DEFAULT_SCRIPT_SRC = IS_DEV
   ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'"  // needed by Next.js HMR
   : "script-src 'self' 'unsafe-inline'";
 
 function buildCSP(isScanRoute) {
+  const base = BASE_CSP.map((directive) =>
+    directive.startsWith("connect-src ")
+      ? directive + DEV_API_ORIGIN
+      : directive
+  );
   return [
-    ...BASE_CSP,
+    ...base,
     isScanRoute ? SCAN_SCRIPT_SRC : DEFAULT_SCRIPT_SRC,
   ].join("; ");
 }
@@ -43,6 +55,7 @@ const nextConfig = {
       { protocol: "https", hostname: "assets.nykaa.com" },
       { protocol: "https", hostname: "cdn.dermaco.in" },
       { protocol: "https", hostname: "cdn.theordinary.com" },
+      { protocol: "https", hostname: "images.pexels.com" },
     ],
   },
 

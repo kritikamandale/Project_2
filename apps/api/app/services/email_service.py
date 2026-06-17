@@ -80,7 +80,7 @@ async def send_verification_otp(to_email: str, full_name: str, otp: str) -> None
 # ---------------------------------------------------------------------------
 
 async def send_password_reset(to_email: str, full_name: str, reset_token: str) -> None:
-    reset_url = f"{settings.frontend_url}/reset-password?token={reset_token}&email={to_email}"
+    reset_url = f"{settings.frontend_url}/reset-password?token={reset_token}"
     subject = "Reset your SkinAI password"
     html = f"""
     <!DOCTYPE html>

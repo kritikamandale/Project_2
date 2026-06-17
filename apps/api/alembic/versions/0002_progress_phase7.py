@@ -35,7 +35,7 @@ def upgrade() -> None:
         sa.Column("checkin_date", sa.Date, nullable=False),
         sa.Column(
             "adherence",
-            sa.Enum("yes", "mostly", "no", name="adherence_level_enum", create_constraint=False),
+            postgresql.ENUM("yes", "mostly", "no", name="adherence_level_enum", create_type=False),
             nullable=False,
         ),
         sa.Column("notes", sa.Text),
@@ -68,7 +68,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "rating",
-            sa.Enum("working", "unsure", "not_working", name="product_rating_enum", create_constraint=False),
+            postgresql.ENUM("working", "unsure", "not_working", name="product_rating_enum", create_type=False),
             nullable=False,
         ),
         sa.Column("notes", sa.Text),
@@ -98,9 +98,9 @@ def upgrade() -> None:
         ),
         sa.Column(
             "type",
-            sa.Enum(
+            postgresql.ENUM(
                 "scan_reminder", "derm_review_complete", "new_product_suggestion", "routine_tip",
-                name="notification_type_enum", create_constraint=False,
+                name="notification_type_enum", create_type=False,
             ),
             nullable=False,
         ),

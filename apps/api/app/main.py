@@ -8,10 +8,9 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
@@ -25,7 +24,6 @@ from app.routers import (
     products,
     progress,
     dermatologist,
-    admin,
     privacy,
 )
 
@@ -41,9 +39,9 @@ if settings.sentry_dsn:
     )
 
 # ---------------------------------------------------------------------------
-# slowapi rate limiter (shared instance — routers import from app.state)
+# slowapi rate limiter (shared instance — routers import from app.core.limiter)
 # ---------------------------------------------------------------------------
-limiter = Limiter(key_func=get_remote_address)
+from app.core.limiter import limiter
 
 
 # ---------------------------------------------------------------------------
@@ -72,8 +70,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if settings.is_development:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+        except Exception as exc:
+            # Allow server to start without a database in local dev (useful for UI dev)
+            import logging
+            logging.getLogger("uvicorn.error").warning(
+                "Database unavailable on startup (dev mode) — %s. "
+                "API endpoints requiring DB will fail until PostgreSQL is running.", exc
+            )
     yield
     await engine.dispose()
 
@@ -104,7 +110,7 @@ app.add_middleware(
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-TOTP-Code", "X-CSRF-Token", "Accept"],
+    allow_headers=["Authorization", "Content-Type", "X-CSRF-Token", "Accept"],
     expose_headers=["X-Request-ID"],
 )
 
@@ -130,7 +136,6 @@ app.include_router(recommendations.router, prefix=f"{API_PREFIX}/recommendations
 app.include_router(products.router,        prefix=f"{API_PREFIX}/products",        tags=["products"])
 app.include_router(progress.router,        prefix=f"{API_PREFIX}/progress",        tags=["progress"])
 app.include_router(dermatologist.router,   prefix=f"{API_PREFIX}/dermatologist",   tags=["dermatologist"])
-app.include_router(admin.router,           prefix=f"{API_PREFIX}/admin",           tags=["admin"])
 app.include_router(privacy.router,         prefix=f"{API_PREFIX}/users",           tags=["privacy"])
 
 

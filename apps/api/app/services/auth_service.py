@@ -314,6 +314,14 @@ async def register_user(
     db.add(user)
     await db.flush()  # get user.id
 
+    # Record consent timestamp (DPDP Act Section 6 requirement)
+    from app.models.user import UserProfile
+    db.add(UserProfile(
+        user_id=user.id,
+        consent_given_at=datetime.now(timezone.utc),
+        country="India",
+    ))
+
     # Send OTP
     otp = await create_verification_otp(redis, body.email.lower())
     await send_verification_otp(body.email, body.full_name, otp)

@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-skin-50 via-white to-skin-100/40 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -81,18 +81,24 @@ export default function ResetPasswordPage() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-500 mb-3 shadow-lg">
+          <Link href="/" className="inline-flex items-center gap-2 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
+              <span className="text-white text-sm font-bold">S</span>
+            </div>
+            <span className="font-heading font-bold text-xl text-skin-800">SkinAI</span>
+          </Link>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-skin-400 to-skin-600 mb-3 shadow-lg">
             <span className="text-xl">🔑</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-2xl font-bold font-heading text-gray-900">
             Set a new password
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Choose a strong password you haven&apos;t used before
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-skin-100 p-8">
           <AnimatePresence mode="wait">
             {success ? (
               <motion.div
@@ -102,10 +108,10 @@ export default function ResetPasswordPage() {
                 className="text-center py-4 space-y-3"
               >
                 <div className="text-5xl">✅</div>
-                <h3 className="font-semibold text-green-700 dark:text-green-400 text-lg">
+                <h3 className="font-semibold text-green-700 text-lg">
                   Password updated!
                 </h3>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-gray-500">
                   All active sessions have been signed out. Redirecting to login…
                 </p>
               </motion.div>
@@ -147,7 +153,7 @@ export default function ResetPasswordPage() {
                     <Button
                       type="submit"
                       disabled={isPending}
-                      className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
+                      className="w-full bg-skin-500 hover:bg-skin-600 text-white"
                     >
                       {isPending ? "Updating…" : "Update password"}
                     </Button>
@@ -157,8 +163,8 @@ export default function ResetPasswordPage() {
             )}
           </AnimatePresence>
 
-          <div className="text-center mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <Link href="/login" className="text-sm text-violet-600 hover:underline">
+          <div className="text-center mt-4 pt-4 border-t border-skin-100">
+            <Link href="/login" className="text-sm text-skin-600 hover:underline">
               ← Back to sign in
             </Link>
           </div>

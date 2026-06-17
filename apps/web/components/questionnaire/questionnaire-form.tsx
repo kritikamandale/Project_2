@@ -6,16 +6,24 @@ import * as SliderPrimitive from "@radix-ui/react-slider";
 import {
   fetchClimatePreview,
   submitQuestionnaire,
+  type AlcoholConsumption,
+  type Bedtime,
   type ClimateProfile,
   type DairyConsumption,
   type DiagnosedCondition,
   type DietType,
   type ExerciseFrequency,
+  type FruitsVeggies,
+  type JunkFoodFrequency,
   type PollutionExposure,
   type QuestionnaireSubmitRequest,
   type RoutineStep,
+  type SleepEnvironment,
+  type SmokingStatus,
+  type SpicyFoodFrequency,
   type StressSource,
   type SugarConsumption,
+  type SunExposure,
   type SunscreenUse,
   type CleanserFrequency,
   type WaterHardness,
@@ -36,6 +44,7 @@ const SECTIONS = [
   { id: 5, title: "Your Location",         icon: "🌍", shortTitle: "Location"  },
   { id: 6, title: "Skincare Routine",      icon: "✨", shortTitle: "Routine"   },
   { id: 7, title: "Health & Medical",      icon: "🏥", shortTitle: "Health"    },
+  { id: 8, title: "Lifestyle & Habits",    icon: "🍽️", shortTitle: "Lifestyle" },
 ] as const;
 
 const SECTION_WHY: Record<number, string> = {
@@ -46,6 +55,7 @@ const SECTION_WHY: Record<number, string> = {
   5: "UV levels and humidity in your city directly determine your skin's moisture and sun damage risk.",
   6: "Your current routine reveals gaps — we suggest what to add, not replace everything.",
   7: "Medical context helps us avoid recommendations that conflict with your treatment.",
+  8: "Spicy food, alcohol, and late-night habits are among the top hidden drivers of skin inflammation.",
 };
 
 const INDIAN_CITIES = [
@@ -89,6 +99,16 @@ interface Answers {
   diagnosedConditions: DiagnosedCondition[];
   medicationAffectsSkin: boolean | null;
   medicationName: string;
+  // Section 8
+  spicyFood: SpicyFoodFrequency | null;
+  junkFood: JunkFoodFrequency | null;
+  fruitsVeggies: FruitsVeggies | null;
+  bedtime: Bedtime | null;
+  phoneBeforeBed: boolean | null;
+  sleepEnvironment: SleepEnvironment | null;
+  sunExposure: SunExposure | null;
+  smokingStatus: SmokingStatus | null;
+  alcoholConsumption: AlcoholConsumption | null;
 }
 
 const DEFAULT_ANSWERS: Answers = {
@@ -116,6 +136,16 @@ const DEFAULT_ANSWERS: Answers = {
   diagnosedConditions: [],
   medicationAffectsSkin: null,
   medicationName: "",
+  // Section 8
+  spicyFood: null,
+  junkFood: null,
+  fruitsVeggies: null,
+  bedtime: null,
+  phoneBeforeBed: null,
+  sleepEnvironment: null,
+  sunExposure: null,
+  smokingStatus: null,
+  alcoholConsumption: null,
 };
 
 type Phase = "resume-prompt" | "intro" | "section" | "submitting" | "done";
@@ -160,7 +190,7 @@ function ProgressBar({ current, completed }: { current: number; completed: numbe
         <div className="mt-2 h-1 bg-gray-100 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-indigo-500 rounded-full"
-            animate={{ width: `${((current - 1) / 7) * 100}%` }}
+            animate={{ width: `${((current - 1) / 8) * 100}%` }}
             transition={{ duration: 0.4, ease: "easeOut" }}
           />
         </div>
@@ -171,7 +201,7 @@ function ProgressBar({ current, completed }: { current: number; completed: numbe
 
 function TimeEstimate({ section }: { section: number }) {
   const label =
-    section <= 3 ? "About 4 minutes" : section <= 5 ? "About 2 minutes remaining" : "Almost done!";
+    section <= 3 ? "About 5 minutes" : section <= 6 ? "About 2 minutes remaining" : "Almost done!";
   return <span className="text-xs text-gray-400 font-medium">⏱ {label}</span>;
 }
 
@@ -890,6 +920,117 @@ function Section7Health({ answers, update }: { answers: Answers; update: <K exte
   );
 }
 
+function Section8Lifestyle({ answers, update }: { answers: Answers; update: <K extends keyof Answers>(k: K, v: Answers[K]) => void }) {
+  return (
+    <div className="space-y-8">
+      <QuestionBlock label="How often do you eat spicy food?">
+        <SingleSelect<SpicyFoodFrequency>
+          value={answers.spicyFood}
+          onChange={(v) => update("spicyFood", v)}
+          cols={2}
+          options={[
+            { value: "never",     emoji: "🌿", label: "Never"     },
+            { value: "sometimes", emoji: "🌶️", label: "Sometimes", sub: "A few times/week" },
+            { value: "often",     emoji: "🔥", label: "Often",     sub: "Most days" },
+            { value: "daily",     emoji: "🌋", label: "Daily"     },
+          ]}
+        />
+      </QuestionBlock>
+      <QuestionBlock label="How often do you eat junk, fried, or processed food?">
+        <SingleSelect<JunkFoodFrequency>
+          value={answers.junkFood}
+          onChange={(v) => update("junkFood", v)}
+          cols={2}
+          options={[
+            { value: "never",     emoji: "✅", label: "Rarely"    },
+            { value: "sometimes", emoji: "🍟", label: "Sometimes", sub: "1–2x per week" },
+            { value: "often",     emoji: "🍕", label: "Often",     sub: "3–5x per week" },
+            { value: "daily",     emoji: "⚠️", label: "Daily"     },
+          ]}
+        />
+      </QuestionBlock>
+      <QuestionBlock label="How many servings of fruits & vegetables do you eat daily?">
+        <SingleSelect<FruitsVeggies>
+          value={answers.fruitsVeggies}
+          onChange={(v) => update("fruitsVeggies", v)}
+          cols={2}
+          options={[
+            { value: "less_than_1", emoji: "😕", label: "< 1 serving"  },
+            { value: "1_to_2",      emoji: "🥦", label: "1–2 servings" },
+            { value: "3_to_5",      emoji: "🥗", label: "3–5 servings" },
+            { value: "more_than_5", emoji: "🌿", label: "5+ servings"  },
+          ]}
+        />
+      </QuestionBlock>
+      <QuestionBlock label="What time do you usually go to bed?">
+        <SingleSelect<Bedtime>
+          value={answers.bedtime}
+          onChange={(v) => update("bedtime", v)}
+          cols={3}
+          options={[
+            { value: "before_10pm",      emoji: "🌅", label: "Before 10 pm"   },
+            { value: "10pm_to_midnight", emoji: "🌙", label: "10 pm–midnight"  },
+            { value: "after_midnight",   emoji: "🌃", label: "After midnight"  },
+          ]}
+        />
+      </QuestionBlock>
+      <QuestionBlock label="Do you use your phone/screen in the 30 min before sleeping?">
+        <YesNoSelect value={answers.phoneBeforeBed} onChange={(v) => update("phoneBeforeBed", v)} yesLabel="Yes, usually" noLabel="No, I avoid it" />
+      </QuestionBlock>
+      <QuestionBlock label="What's your sleeping environment?">
+        <SingleSelect<SleepEnvironment>
+          value={answers.sleepEnvironment}
+          onChange={(v) => update("sleepEnvironment", v)}
+          cols={3}
+          options={[
+            { value: "ac",          emoji: "❄️", label: "AC",          sub: "Air-conditioned" },
+            { value: "fan",         emoji: "💨", label: "Fan",          sub: "Fan on"          },
+            { value: "natural_air", emoji: "🌿", label: "Natural air",  sub: "Open windows"    },
+          ]}
+        />
+      </QuestionBlock>
+      <QuestionBlock label="How much direct sun exposure do you get daily (without sunscreen)?">
+        <SingleSelect<SunExposure>
+          value={answers.sunExposure}
+          onChange={(v) => update("sunExposure", v)}
+          cols={2}
+          options={[
+            { value: "minimal",   emoji: "🏠", label: "< 15 min",  sub: "Mostly indoors"     },
+            { value: "moderate",  emoji: "🚶", label: "15–30 min", sub: "Brief outdoors"      },
+            { value: "high",      emoji: "☀️", label: "30–60 min", sub: "Regular outdoors"    },
+            { value: "very_high", emoji: "🌞", label: "> 1 hour",  sub: "Often in direct sun" },
+          ]}
+        />
+      </QuestionBlock>
+      <QuestionBlock label="Smoking status">
+        <SingleSelect<SmokingStatus>
+          value={answers.smokingStatus}
+          onChange={(v) => update("smokingStatus", v)}
+          cols={2}
+          options={[
+            { value: "never",        emoji: "✅", label: "Never smoked"  },
+            { value: "ex_smoker",    emoji: "🚭", label: "Ex-smoker"     },
+            { value: "occasionally", emoji: "💭", label: "Occasionally"  },
+            { value: "regularly",    emoji: "🚬", label: "Regularly"     },
+          ]}
+        />
+      </QuestionBlock>
+      <QuestionBlock label="Alcohol consumption">
+        <SingleSelect<AlcoholConsumption>
+          value={answers.alcoholConsumption}
+          onChange={(v) => update("alcoholConsumption", v)}
+          cols={3}
+          options={[
+            { value: "never",        emoji: "✅", label: "Never"        },
+            { value: "occasionally", emoji: "🍷", label: "Occasionally", sub: "Weekends/events" },
+            { value: "regularly",    emoji: "🍺", label: "Regularly"    },
+          ]}
+        />
+      </QuestionBlock>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Section completeness check
 // ---------------------------------------------------------------------------
@@ -903,6 +1044,7 @@ function isSectionComplete(section: number, a: Answers): boolean {
     case 5: return !!(a.city && a.waterHardness);
     case 6: return a.routineSteps.length > 0;
     case 7: return a.diagnosedConditions.length > 0 && a.medicationAffectsSkin !== null;
+    case 8: return true; // Section 8 is optional — user can submit without answering
     default: return false;
   }
 }
@@ -997,7 +1139,7 @@ export function QuestionnaireForm({
 
   const handleNext = () => {
     setCompleted((prev) => (prev.includes(currentSection) ? prev : [...prev, currentSection]));
-    if (currentSection < 7) {
+    if (currentSection < 8) {
       setCurrentSection((s) => s + 1);
       setShowIntro(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1040,6 +1182,16 @@ export function QuestionnaireForm({
       diagnosed_conditions: answers.diagnosedConditions,
       medication_affects_skin: answers.medicationAffectsSkin ?? false,
       medication_name_text: answers.medicationName || undefined,
+      // Section 8 — optional lifestyle details
+      spicy_food_frequency:  answers.spicyFood        ?? undefined,
+      junk_food_frequency:   answers.junkFood         ?? undefined,
+      fruits_veggies_per_day: answers.fruitsVeggies   ?? undefined,
+      bedtime:               answers.bedtime          ?? undefined,
+      phone_before_bed:      answers.phoneBeforeBed   ?? undefined,
+      sleep_environment:     answers.sleepEnvironment ?? undefined,
+      daily_sun_exposure:    answers.sunExposure      ?? undefined,
+      smoking_status:        answers.smokingStatus    ?? undefined,
+      alcohol_consumption:   answers.alcoholConsumption ?? undefined,
     };
     try {
       const result = await submitQuestionnaire(body);
@@ -1157,7 +1309,7 @@ export function QuestionnaireForm({
 
       <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-400 font-medium">Section {currentSection} of 7</span>
+          <span className="text-xs text-gray-400 font-medium">Section {currentSection} of 8</span>
           <TimeEstimate section={currentSection} />
         </div>
 
@@ -1193,6 +1345,7 @@ export function QuestionnaireForm({
               )}
               {currentSection === 6 && <Section6Routine answers={answers} update={update} />}
               {currentSection === 7 && <Section7Health answers={answers} update={update} />}
+              {currentSection === 8 && <Section8Lifestyle answers={answers} update={update} />}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1229,7 +1382,7 @@ export function QuestionnaireForm({
                   : "bg-gray-100 text-gray-400 cursor-not-allowed"
               }`}
             >
-              {currentSection === 7
+              {currentSection === 8
                 ? "Submit & Get My Analysis →"
                 : `Continue to ${SECTIONS[currentSection]?.shortTitle ?? "next"} →`}
             </button>

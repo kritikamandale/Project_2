@@ -73,7 +73,7 @@ function StepDots({ current, total }: { current: number; total: number }) {
         <div
           key={i}
           className={`h-1.5 rounded-full transition-all duration-300 ${
-            i < current ? "w-6 bg-teal-500" : "w-2 bg-slate-200"
+            i < current ? "w-6 bg-skin-700" : "w-2 bg-skin-100"
           }`}
         />
       ))}
@@ -138,30 +138,36 @@ export default function DermatologistRegisterPage() {
   const { title, subtitle } = STEP_CONFIG[step];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-skin-50 via-white to-skin-100/40 p-4">
       <div className="w-full max-w-lg">
         {/* Brand */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 mb-3 shadow-lg">
+          <Link href="/" className="inline-flex items-center gap-2 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
+              <span className="text-white text-sm font-bold">S</span>
+            </div>
+            <span className="font-heading font-bold text-xl text-skin-800">SkinAI</span>
+          </Link>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-skin-700 to-skin-800 mb-3 shadow-lg">
             <span className="text-xl">🩺</span>
           </div>
-          <h1 className="text-xl font-bold font-heading text-slate-900 dark:text-white">
+          <h1 className="text-xl font-bold font-heading text-gray-900">
             Dermatologist Application
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Join SkinAI as a verified dermatologist reviewer
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-skin-100 p-8">
           <StepDots current={step} total={3} />
-          <p className="text-xs text-center text-slate-400 uppercase tracking-wide mb-1">
+          <p className="text-xs text-center text-gray-400 uppercase tracking-wide mb-1">
             Step {step} of 3
           </p>
-          <h2 className="text-lg font-bold text-center text-slate-900 dark:text-white mb-1">
+          <h2 className="text-lg font-bold font-heading text-center text-gray-900 mb-1">
             {title}
           </h2>
-          <p className="text-sm text-center text-slate-500 mb-6">{subtitle}</p>
+          <p className="text-sm text-center text-gray-500 mb-6">{subtitle}</p>
 
           <AnimatePresence>
             {serverError && (
@@ -212,14 +218,14 @@ export default function DermatologistRegisterPage() {
 
                     <Button
                       type="button"
-                      className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
+                      className="w-full bg-skin-700 hover:bg-skin-800 text-white"
                       onClick={() => validateAndAdvance(["full_name", "email", "password", "confirmPassword"])}
                     >
                       Continue
                     </Button>
-                    <p className="text-center text-sm text-slate-500">
+                    <p className="text-center text-sm text-gray-500">
                       Already have an account?{" "}
-                      <Link href="/login" className="text-teal-600 font-medium hover:underline">Sign in</Link>
+                      <Link href="/login" className="text-skin-700 font-medium hover:underline">Sign in</Link>
                     </p>
                   </motion.div>
                 </AnimatePresence>
@@ -265,7 +271,7 @@ export default function DermatologistRegisterPage() {
                       <Button type="button" variant="outline" className="flex-1" onClick={() => setStep(1)}>Back</Button>
                       <Button
                         type="button"
-                        className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
+                        className="flex-1 bg-skin-700 hover:bg-skin-800 text-white"
                         onClick={() => validateAndAdvance(["medical_license_number", "hospital_name"])}
                       >
                         Continue
@@ -280,7 +286,7 @@ export default function DermatologistRegisterPage() {
                 <AnimatePresence mode="wait">
                   <motion.div key="s3" initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }} transition={{ duration: 0.22 }} className="space-y-4">
                     {/* Summary */}
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 space-y-2 text-sm">
+                    <div className="bg-skin-50 rounded-xl p-4 space-y-2 text-sm">
                       {[
                         ["Name", form.getValues("full_name")],
                         ["Email", form.getValues("email")],
@@ -289,14 +295,14 @@ export default function DermatologistRegisterPage() {
                         ["Specialization", form.getValues("specialization") || "—"],
                       ].map(([label, value]) => (
                         <div key={label} className="flex justify-between">
-                          <span className="text-slate-500">{label}</span>
-                          <span className="font-medium text-slate-800 dark:text-slate-200">{value}</span>
+                          <span className="text-gray-500">{label}</span>
+                          <span className="font-medium text-gray-800">{value}</span>
                         </div>
                       ))}
                     </div>
 
                     {/* What happens next */}
-                    <div className="bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800 rounded-xl p-4 text-sm space-y-1.5 text-teal-800 dark:text-teal-300">
+                    <div className="bg-skin-50 border border-skin-200 rounded-xl p-4 text-sm space-y-1.5 text-skin-800">
                       <p className="font-semibold">What happens next?</p>
                       <p>1. Verify your email (code sent after submission)</p>
                       <p>2. Our admin team reviews your credentials (2–3 business days)</p>
@@ -308,7 +314,7 @@ export default function DermatologistRegisterPage() {
                       <Button
                         type="submit"
                         disabled={isPending}
-                        className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
+                        className="flex-1 bg-skin-700 hover:bg-skin-800 text-white"
                       >
                         {isPending ? "Submitting…" : "Submit application"}
                       </Button>

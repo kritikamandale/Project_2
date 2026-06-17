@@ -27,7 +27,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 // Role config
 // ---------------------------------------------------------------------------
 
-type Role = "user" | "dermatologist" | "admin";
+type Role = "user" | "dermatologist";
 
 const ROLE_CONFIG: Record<
   Role,
@@ -36,20 +36,14 @@ const ROLE_CONFIG: Record<
   user: {
     label: "I'm a user",
     emoji: "✨",
-    accent: "from-violet-500 to-indigo-500",
+    accent: "from-skin-400 to-skin-600",
     dashboardPath: "/dashboard",
   },
   dermatologist: {
     label: "Dermatologist",
     emoji: "🩺",
-    accent: "from-teal-500 to-cyan-500",
+    accent: "from-skin-700 to-skin-800",
     dashboardPath: "/derm-dashboard",
-  },
-  admin: {
-    label: "Admin",
-    emoji: "🔑",
-    accent: "from-rose-500 to-pink-500",
-    dashboardPath: "/admin-dashboard",
   },
 };
 
@@ -117,15 +111,18 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirect to callbackUrl or role home
-      const dest = callbackUrl ?? config.dashboardPath;
+      // Validate callbackUrl is a safe relative path to prevent open redirect.
+      // Must start with "/" and not "//" (protocol-relative URLs).
+      const safeCallback =
+        callbackUrl && /^\/(?!\/)/.test(callbackUrl) ? callbackUrl : null;
+      const dest = safeCallback ?? config.dashboardPath;
       router.push(dest);
       router.refresh();
     });
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-skin-50 via-white to-skin-100/40 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -134,21 +131,27 @@ export default function LoginPage() {
       >
         {/* Logo / brand */}
         <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center gap-2 mb-5">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
+              <span className="text-white text-sm font-bold">S</span>
+            </div>
+            <span className="font-heading font-bold text-xl text-skin-800">SkinAI</span>
+          </Link>
           <div
             className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${config.accent} mb-4 shadow-lg transition-all duration-300`}
           >
             <span className="text-2xl">{config.emoji}</span>
           </div>
-          <h1 className="text-2xl font-bold font-heading text-slate-900 dark:text-white">
-            Welcome to SkinAI
+          <h1 className="text-2xl font-bold font-heading text-gray-900">
+            Welcome back
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             AI-powered skincare for India
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-8 space-y-6">
+        <div className="bg-white rounded-2xl shadow-xl border border-skin-100 p-8 space-y-6">
           {/* Role tabs */}
           <Tabs
             value={activeRole}
@@ -157,7 +160,7 @@ export default function LoginPage() {
               setServerError("");
             }}
           >
-            <TabsList className="grid grid-cols-3 w-full">
+            <TabsList className="grid grid-cols-2 w-full">
               {(Object.keys(ROLE_CONFIG) as Role[]).map((role) => (
                 <TabsTrigger key={role} value={role} className="text-xs sm:text-sm">
                   {ROLE_CONFIG[role].emoji} {ROLE_CONFIG[role].label}
@@ -214,7 +217,7 @@ export default function LoginPage() {
                       <FormLabel>Password</FormLabel>
                       <Link
                         href="/forgot-password"
-                        className="text-xs text-violet-600 hover:underline"
+                        className="text-xs text-skin-600 hover:underline"
                       >
                         Forgot password?
                       </Link>
@@ -244,11 +247,11 @@ export default function LoginPage() {
 
           {/* Footer links */}
           {activeRole === "user" && (
-            <p className="text-center text-sm text-slate-500">
+            <p className="text-center text-sm text-gray-500">
               Don&apos;t have an account?{" "}
               <Link
                 href="/register"
-                className="text-violet-600 font-medium hover:underline"
+                className="text-skin-600 font-medium hover:underline"
               >
                 Create one
               </Link>
@@ -256,11 +259,11 @@ export default function LoginPage() {
           )}
 
           {activeRole === "dermatologist" && (
-            <p className="text-center text-sm text-slate-500">
+            <p className="text-center text-sm text-gray-500">
               Apply as a dermatologist?{" "}
               <Link
                 href="/register/dermatologist"
-                className="text-teal-600 font-medium hover:underline"
+                className="text-skin-700 font-medium hover:underline"
               >
                 Submit application
               </Link>
@@ -269,7 +272,7 @@ export default function LoginPage() {
         </div>
 
         {/* Privacy note */}
-        <p className="text-center text-xs text-slate-400 mt-6">
+        <p className="text-center text-xs text-gray-400 mt-6">
           By signing in, you agree to our{" "}
           <Link href="/privacy" className="underline">
             Privacy Policy

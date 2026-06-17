@@ -1,11 +1,12 @@
 /**
  * Typed API client for scan endpoints.
- * All requests are authenticated via the session access token.
+ * All requests route through /api/proxy which attaches the Bearer token
+ * server-side — never calling FastAPI directly from the browser.
  */
 
 import type { SkinAnalysisResult } from "@/lib/ai/skinAnalysis";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE = "/api/proxy";
 
 // ---------------------------------------------------------------------------
 // Response types (mirroring backend schemas)
@@ -65,9 +66,8 @@ export interface ScanHistoryResponse {
 // ---------------------------------------------------------------------------
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API}${path}`, {
+  const res = await fetch(`${BASE}/${path}`, {
     ...init,
-    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(init?.headers ?? {}),
@@ -108,14 +108,14 @@ export async function submitScan(result: SkinAnalysisResult): Promise<ScanSubmit
     analysis_timestamp: result.analysisTimestamp,
   };
 
-  return apiFetch<ScanSubmitResponse>("/api/scan/submit", {
+  return apiFetch<ScanSubmitResponse>("scan/submit", {
     method: "POST",
     body: JSON.stringify(body),
   });
 }
 
 export async function getScan(scanId: string): Promise<ScanDetail> {
-  return apiFetch<ScanDetail>(`/api/scan/${scanId}`);
+  return apiFetch<ScanDetail>(`scan/${scanId}`);
 }
 
 export async function getScanHistory(
@@ -123,6 +123,6 @@ export async function getScanHistory(
   perPage = 10,
 ): Promise<ScanHistoryResponse> {
   return apiFetch<ScanHistoryResponse>(
-    `/api/scan/history?page=${page}&per_page=${perPage}`,
+    `scan/history?page=${page}&per_page=${perPage}`,
   );
 }

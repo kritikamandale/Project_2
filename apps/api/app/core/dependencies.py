@@ -2,12 +2,14 @@
 FastAPI injectable dependencies — auth, DB session, Redis, role guards.
 """
 
+import logging
+import time
 from typing import Annotated
 
 import redis.asyncio as aioredis
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError
+from jwt import InvalidTokenError as JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,23 +17,81 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import decode_access_token
 
+logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 # ---------------------------------------------------------------------------
-# Redis client (shared pool)
+# Redis client (shared pool) — falls back to an in-process fake in dev mode
+# when no real Redis is reachable, so local auth flows (OTP, lockouts) don't
+# require running infrastructure.
 # ---------------------------------------------------------------------------
 
-_redis_pool: aioredis.Redis | None = None
+
+class _FakeRedis:
+    """Minimal in-memory stand-in for the handful of redis-py calls this app uses."""
+
+    def __init__(self) -> None:
+        self._store: dict[str, tuple[str, float | None]] = {}
+
+    def _live(self, key: str) -> str | None:
+        entry = self._store.get(key)
+        if entry is None:
+            return None
+        value, expires_at = entry
+        if expires_at is not None and expires_at < time.monotonic():
+            del self._store[key]
+            return None
+        return value
+
+    async def get(self, key: str) -> str | None:
+        return self._live(key)
+
+    async def set(self, key: str, value: str, ex: int | None = None) -> None:
+        expires_at = time.monotonic() + ex if ex is not None else None
+        self._store[key] = (str(value), expires_at)
+
+    async def incr(self, key: str) -> int:
+        current = int(self._live(key) or 0) + 1
+        _, expires_at = self._store.get(key, (None, None))
+        self._store[key] = (str(current), expires_at)
+        return current
+
+    async def expire(self, key: str, ttl_seconds: int) -> None:
+        entry = self._store.get(key)
+        if entry is not None:
+            self._store[key] = (entry[0], time.monotonic() + ttl_seconds)
+
+    async def delete(self, *keys: str) -> None:
+        for key in keys:
+            self._store.pop(key, None)
+
+    async def keys(self, pattern: str) -> list[str]:
+        prefix = pattern.rstrip("*")
+        return [k for k in self._store if k.startswith(prefix)]
 
 
-async def get_redis() -> aioredis.Redis:
+_redis_pool: aioredis.Redis | _FakeRedis | None = None
+
+
+async def get_redis() -> aioredis.Redis | _FakeRedis:
     global _redis_pool
     if _redis_pool is None:
-        _redis_pool = await aioredis.from_url(
+        candidate = aioredis.from_url(
             str(settings.redis_url),
             encoding="utf-8",
             decode_responses=True,
         )
+        try:
+            await candidate.ping()
+            _redis_pool = candidate
+        except Exception as exc:
+            if not settings.is_development:
+                raise
+            logger.warning(
+                "Redis unavailable on first use (dev mode) — %s. "
+                "Falling back to an in-memory store; OTPs/lockouts won't persist across restarts.", exc
+            )
+            _redis_pool = _FakeRedis()
     return _redis_pool
 
 
@@ -68,7 +128,13 @@ async def get_current_user(
 
     from app.models.user import User
 
-    result = await db.execute(select(User).where(User.id == user_id, User.is_active.is_(True)))
+    result = await db.execute(
+        select(User).where(
+            User.id == user_id,
+            User.is_active.is_(True),
+            User.deleted_at.is_(None),
+        )
+    )
     user = result.scalar_one_or_none()
     if user is None:
         raise credentials_exception
@@ -103,9 +169,8 @@ def require_role(*roles: str):
     return _guard
 
 
-require_user = require_role("USER", "DERMATOLOGIST", "ADMIN")
-require_dermatologist = require_role("DERMATOLOGIST", "ADMIN")
-require_admin = require_role("ADMIN")
+require_user = require_role("USER", "DERMATOLOGIST")
+require_dermatologist = require_role("DERMATOLOGIST")
 
 
 # ---------------------------------------------------------------------------

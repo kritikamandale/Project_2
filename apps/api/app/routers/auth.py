@@ -11,7 +11,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError
+from jwt import InvalidTokenError as JWTError
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +22,7 @@ from app.core.dependencies import (
     get_redis,
     get_user_agent,
 )
+from app.core.limiter import limiter
 from app.core.security import decode_access_token
 from app.schemas.user import (
     DermatologistRegister,
@@ -67,6 +68,7 @@ class MessageResponse(BaseModel):
     status_code=status.HTTP_201_CREATED,
     summary="Register a new end-user account",
 )
+@limiter.limit("5/hour")
 async def register_user(
     request: Request,
     body: UserRegister,
@@ -95,6 +97,7 @@ async def register_user(
     status_code=status.HTTP_201_CREATED,
     summary="Register a dermatologist account (pending admin approval)",
 )
+@limiter.limit("5/hour")
 async def register_dermatologist(
     request: Request,
     body: DermatologistRegister,
@@ -125,6 +128,7 @@ async def register_dermatologist(
     response_model=TokenResponse,
     summary="Login and receive access + refresh tokens",
 )
+@limiter.limit("10/minute")
 async def login(
     request: Request,
     body: UserLogin,
@@ -288,7 +292,9 @@ async def resend_otp(
     response_model=MessageResponse,
     summary="Request a password reset link",
 )
+@limiter.limit("5/hour")
 async def forgot_password(
+    request: Request,
     body: ForgotPasswordRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     redis=Depends(get_redis),

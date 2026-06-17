@@ -1,26 +1,25 @@
-import { type Metadata } from "next";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
 import { QuestionnaireForm } from "@/components/questionnaire/questionnaire-form";
 
-export const metadata: Metadata = {
-  title: "Lifestyle Questionnaire — Skin Analysis",
-  description:
-    "Tell us about your sleep, diet, stress, and environment. Takes 4 minutes. Powers your personalised skin recommendations.",
-};
+export default function QuestionnairePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawRedirect = searchParams.get("redirectTo");
+  // Validate redirect target is a safe relative path (no open-redirect)
+  const redirectTo = rawRedirect && /^\/(?!\/)/.test(rawRedirect) ? rawRedirect : null;
 
-export default function QuestionnairePage({
-  searchParams,
-}: {
-  searchParams: { scan_id?: string };
-}) {
-  function handleComplete(questionnaireId: string) {
-    "use server";
-    redirect(`/results/${searchParams.scan_id ?? ""}?questionnaire_id=${questionnaireId}`);
+  function handleComplete() {
+    // Brief pause so the done-animation plays before navigating
+    setTimeout(() => {
+      router.push(redirectTo ?? "/dashboard");
+    }, 1800);
   }
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <QuestionnaireForm />
+      <QuestionnaireForm onComplete={handleComplete} />
     </main>
   );
 }

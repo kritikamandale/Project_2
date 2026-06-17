@@ -10,18 +10,17 @@ Endpoints:
   POST /{id}/feedback           — user rates recommendation (1–5 + text)
 """
 
-from __future__ import annotations
-
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_verified_user
+from app.core.limiter import limiter
 from app.models.recommendation import Recommendation, RecommendationProduct
 from app.models.scan import SkinScan, SkinCondition
 from app.schemas.recommendation import (
@@ -153,7 +152,9 @@ def _build_detail(rec: Recommendation) -> RecommendationDetailResponse:
 # ---------------------------------------------------------------------------
 
 @router.post("/generate", response_model=RecommendationGenerateResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def generate_recommendation(
+    request: Request,
     body: RecommendationGenerateRequest,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_verified_user),

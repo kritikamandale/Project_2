@@ -148,7 +148,7 @@ async def get_scan(
 ):
     """
     Return a single scan with its conditions.
-    Users can only access their own scans; ADMIN can access any scan.
+    Users can only access their own scans.
     fitzpatrick_tone is injected from the raw_analysis_json JSONB column.
     """
     result = await db.execute(
@@ -161,7 +161,7 @@ async def get_scan(
     if scan is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found")
 
-    if current_user.role != "ADMIN" and scan.user_id != current_user.id:
+    if scan.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     response = ScanResponse.model_validate(scan)

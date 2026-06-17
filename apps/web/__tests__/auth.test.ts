@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Route guard logic (mirrors middleware.ts ROUTE_RULES)
 // ---------------------------------------------------------------------------
 
-type Role = "USER" | "DERMATOLOGIST" | "ADMIN";
+type Role = "USER" | "DERMATOLOGIST";
 
 interface RouteRule {
   pattern: RegExp;
@@ -20,22 +20,17 @@ interface RouteRule {
 const ROUTE_RULES: RouteRule[] = [
   {
     pattern: /^\/(scan|questionnaire|results|roadmap|progress)(\/|$)/,
-    allowedRoles: ["USER", "DERMATOLOGIST", "ADMIN"],
+    allowedRoles: ["USER", "DERMATOLOGIST"],
     redirectTo: "/login",
   },
   {
     pattern: /^\/dashboard(\/|$)/,
-    allowedRoles: ["USER", "DERMATOLOGIST", "ADMIN"],
+    allowedRoles: ["USER", "DERMATOLOGIST"],
     redirectTo: "/login",
   },
   {
     pattern: /^\/(derm-dashboard|review-queue|case)(\/|$)/,
-    allowedRoles: ["DERMATOLOGIST", "ADMIN"],
-    redirectTo: "/dashboard",
-  },
-  {
-    pattern: /^\/(admin-dashboard|users|products|analytics|settings)(\/|$)/,
-    allowedRoles: ["ADMIN"],
+    allowedRoles: ["DERMATOLOGIST"],
     redirectTo: "/dashboard",
   },
 ];
@@ -43,7 +38,6 @@ const ROUTE_RULES: RouteRule[] = [
 const ROLE_HOME: Record<Role, string> = {
   USER: "/dashboard",
   DERMATOLOGIST: "/derm-dashboard",
-  ADMIN: "/admin-dashboard",
 };
 
 const PUBLIC_PREFIXES = [
@@ -149,14 +143,14 @@ describe("Route guard — role-based access", () => {
     ).toBe(true);
   });
 
-  it("blocks USER from /derm-dashboard and redirects to their home", () => {
-    const result = getRouteDecision("/derm-dashboard", { user: { role: "USER" } });
-    expect(result.allow).toBe(false);
-    expect(result.redirectTo).toBe("/dashboard");
+  it("allows USER to access /dashboard", () => {
+    expect(
+      getRouteDecision("/dashboard", { user: { role: "USER" } }).allow
+    ).toBe(true);
   });
 
-  it("blocks USER from /admin-dashboard", () => {
-    const result = getRouteDecision("/admin-dashboard", { user: { role: "USER" } });
+  it("blocks USER from /derm-dashboard and redirects to their home", () => {
+    const result = getRouteDecision("/derm-dashboard", { user: { role: "USER" } });
     expect(result.allow).toBe(false);
     expect(result.redirectTo).toBe("/dashboard");
   });
@@ -167,29 +161,16 @@ describe("Route guard — role-based access", () => {
     ).toBe(true);
   });
 
-  it("blocks DERMATOLOGIST from /admin-dashboard", () => {
-    const result = getRouteDecision("/admin-dashboard", {
-      user: { role: "DERMATOLOGIST" },
-    });
-    expect(result.allow).toBe(false);
-    expect(result.redirectTo).toBe("/derm-dashboard");
+  it("allows DERMATOLOGIST to access /scan", () => {
+    expect(
+      getRouteDecision("/scan", { user: { role: "DERMATOLOGIST" } }).allow
+    ).toBe(true);
   });
 
-  it("allows ADMIN to access all routes", () => {
-    const adminRoutes = [
-      "/scan",
-      "/dashboard",
-      "/derm-dashboard",
-      "/review-queue",
-      "/admin-dashboard",
-      "/users",
-      "/settings",
-    ];
-    adminRoutes.forEach((route) => {
-      expect(
-        getRouteDecision(route, { user: { role: "ADMIN" } }).allow
-      ).toBe(true);
-    });
+  it("allows DERMATOLOGIST to access /derm-dashboard", () => {
+    expect(
+      getRouteDecision("/derm-dashboard", { user: { role: "DERMATOLOGIST" } }).allow
+    ).toBe(true);
   });
 });
 
@@ -215,7 +196,6 @@ describe("Token refresh timing", () => {
   it("refreshes when less than 10% of lifetime left", () => {
     const issuedAt = now - 13 * 60 * 1000;      // 13min ago
     const expiresAt = now + 90 * 1000;           // 1.5min left out of 14.5min total
-    // 1.5/14.5 ≈ 10.3% — NOT yet at threshold
     const percentLeft = 90000 / (14 * 60 * 1000 + 90 * 1000);
     if (percentLeft < 0.1) {
       expect(shouldRefreshToken(issuedAt, expiresAt, now)).toBe(true);
