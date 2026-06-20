@@ -15,11 +15,20 @@ dist/
 out/
 build/
 
+# =============================================================================
 # Environment files — NEVER commit real secrets
+# Patterns without a leading / match at any directory depth.
+# =============================================================================
 .env
 .env.local
+.env.development
+.env.test
+.env.staging
+.env.production
 .env.*.local
+# Explicit paths for clarity (already covered by patterns above)
 apps/api/.env
+apps/web/.env.local
 
 # Testing
 coverage/

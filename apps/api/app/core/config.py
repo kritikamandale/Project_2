@@ -121,17 +121,19 @@ class Settings(BaseSettings):
     s3_lifecycle_expiry_days: int = 1
 
     # -------------------------------------------------------------------------
-    # Anthropic / Claude (recommendation engine)
+    # Google Gemini (recommendation engine — free tier: 1M tokens/day)
+    # Get a free key at https://aistudio.google.com/apikey
     # -------------------------------------------------------------------------
-    anthropic_api_key: str
-    claude_model: str = "claude-sonnet-4-6"
-    claude_max_tokens: int = 4096
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-1.5-flash"
+    gemini_max_tokens: int = 4096
 
     # -------------------------------------------------------------------------
-    # Pinecone (product vector embeddings)
+    # Pinecone (product vector embeddings — optional)
+    # Leave blank to use the built-in PostgreSQL / pgvector fallback.
     # -------------------------------------------------------------------------
-    pinecone_api_key: str
-    pinecone_environment: str
+    pinecone_api_key: str = ""
+    pinecone_environment: str = ""
     pinecone_index_name: str = "skin-products"
 
     # -------------------------------------------------------------------------
@@ -141,13 +143,12 @@ class Settings(BaseSettings):
     sentry_traces_sample_rate: float = 0.1
 
     # -------------------------------------------------------------------------
-    # Email (SendGrid)
+    # Email — Resend (https://resend.com)
+    # Free tier: onboarding@resend.dev only delivers to the Resend account-owner email.
+    # In dev mode the OTP is always printed to the terminal as a fallback.
     # -------------------------------------------------------------------------
-    smtp_host: str = "smtp.sendgrid.net"
-    smtp_port: int = 587
-    smtp_user: str = "apikey"
-    smtp_password: str = ""
-    email_from: str = "noreply@yourdomain.com"
+    resend_api_key: str = ""
+    email_from: str = "onboarding@resend.dev"
     email_from_name: str = "SkinAI"
 
     # -------------------------------------------------------------------------

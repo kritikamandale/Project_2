@@ -61,6 +61,8 @@ const PUBLIC_PREFIXES = [
   "/privacy",
   "/terms",
   "/api/auth",
+  "/api/proxy",  // proxy handles its own Bearer token auth
+  "/api/csrf",
   "/_next",
   "/favicon.ico",
   "/public",

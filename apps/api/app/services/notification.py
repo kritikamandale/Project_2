@@ -1,24 +1,23 @@
 """
-Notification service — transactional email via SendGrid SMTP + in-app notifications.
+Notification service — transactional email via Resend + in-app notifications.
 
 Phase 7 additions:
   - send_rescan_reminder()     — day-28 email to prompt monthly re-scan
-  - send_weekly_routine_tip()  — Claude-powered personalised weekly tip email
+  - send_weekly_routine_tip()  — Gemini-powered personalised weekly tip email
   - create_in_app_notification() — persist in-app bell notification to DB
 """
 
-import smtplib
+import logging
 import uuid
-from datetime import datetime
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from typing import Optional
 
-import anthropic
+import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models.progress import InAppNotification
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationService:
@@ -71,45 +70,55 @@ class NotificationService:
             if last_scan_score is not None
             else ""
         )
-        subject = "Time for your monthly skin check-in 📸"
+        subject = "Time for your monthly skin check-in"
         body = (
             f"Hi {user_name},\n\n"
             f"It's been {days_since_scan} days since your last scan — your 30-day check-in is ready!\n\n"
             f"{score_line}"
             "Regular check-ins help you see exactly how your skin is responding to your routine.\n\n"
-            f"👉 Re-scan now: {settings.frontend_url}/scan\n\n"
+            f"Re-scan now: {settings.frontend_url}/scan\n\n"
             "– The SkinAI Team"
         )
         await self._send(to_email, subject, body)
 
     # ------------------------------------------------------------------
-    # Phase 7: Claude-powered weekly routine tip
+    # Phase 7: Gemini-powered weekly routine tip
     # ------------------------------------------------------------------
 
     async def generate_weekly_tip(
         self, skin_conditions: list[str], skin_score: float
     ) -> str:
-        """Use Claude to generate a personalised weekly skincare tip."""
-        client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+        """Use Gemini to generate a personalised weekly skincare tip."""
+        if not settings.gemini_api_key:
+            logger.warning("GEMINI_API_KEY not set — using static fallback tip")
+            return (
+                "Stay consistent with your routine and always wear SPF 30+ sunscreen daily. "
+                "Consistency is the biggest predictor of skin improvement."
+            )
+
         conditions_text = ", ".join(skin_conditions) if skin_conditions else "general skin health"
-        message = await client.messages.create(
-            model=settings.claude_model,
-            max_tokens=200,
-            messages=[
-                {
-                    "role": "user",
-                    "content": (
-                        f"Generate a single, actionable weekly skincare tip for someone with:\n"
-                        f"- Skin score: {skin_score:.0f}/100\n"
-                        f"- Current conditions to address: {conditions_text}\n\n"
-                        "Keep it to 2–3 sentences. Be warm, specific, and encouraging. "
-                        "Focus on one concrete action they can take this week. "
-                        "Do not use emojis or markdown."
-                    ),
-                }
-            ],
+        prompt = (
+            f"Generate a single, actionable weekly skincare tip for someone with:\n"
+            f"- Skin score: {skin_score:.0f}/100\n"
+            f"- Current conditions to address: {conditions_text}\n\n"
+            "Keep it to 2-3 sentences. Be warm, specific, and encouraging. "
+            "Focus on one concrete action they can take this week. "
+            "Do not use emojis or markdown."
         )
-        return message.content[0].text.strip()
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.gemini_model}:generateContent"
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"maxOutputTokens": 200},
+        }
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(url, params={"key": settings.gemini_api_key}, json=payload)
+            resp.raise_for_status()
+            data = resp.json()
+        candidates = data.get("candidates", [])
+        if not candidates:
+            return "Stay consistent with your routine and always wear SPF 30+ sunscreen daily."
+        return candidates[0]["content"]["parts"][0]["text"].strip()
 
     async def send_weekly_routine_tip(
         self,
@@ -118,7 +127,7 @@ class NotificationService:
         skin_conditions: list[str],
         skin_score: float,
     ) -> None:
-        """Send Claude-generated personalised weekly tip email."""
+        """Send Gemini-generated personalised weekly tip email."""
         tip = await self.generate_weekly_tip(skin_conditions, skin_score)
         subject = "Your weekly skin tip from SkinAI"
         body = (
@@ -194,17 +203,10 @@ class NotificationService:
         )
 
     # ------------------------------------------------------------------
-    # Internal SMTP sender
+    # Internal sender — routes through the Resend email service
     # ------------------------------------------------------------------
 
     async def _send(self, to: str, subject: str, body: str) -> None:
-        msg = MIMEMultipart()
-        msg["From"] = f"{settings.email_from_name} <{settings.email_from}>"
-        msg["To"] = to
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
-            server.starttls()
-            server.login(settings.smtp_user, settings.smtp_password)
-            server.sendmail(settings.email_from, to, msg.as_string())
+        from app.services.email_service import _send as resend_send
+        html = "<br>".join(line for line in body.splitlines())
+        await resend_send(to, subject, f"<div style='font-family:Arial,sans-serif;line-height:1.6'>{html}</div>")

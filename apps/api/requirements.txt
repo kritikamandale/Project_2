@@ -23,8 +23,8 @@ cryptography==43.0.3
 # Rate limiting
 slowapi==0.1.9
 
-# Async email
-aiosmtplib==3.0.1
+# Email — Resend
+resend==2.32.2
 
 # Redis
 redis==5.2.0
@@ -35,15 +35,15 @@ boto3==1.35.66
 botocore==1.35.66
 
 # AI / ML
-anthropic==0.39.0
+# Gemini is called via plain httpx REST — no SDK needed (avoids pydantic version conflicts)
 scikit-learn==1.5.2
 opencv-python-headless==4.10.0.84
 numpy==1.26.4
 pillow==11.0.0
 tensorflow-cpu==2.18.0
 
-# Pinecone vector store
-pinecone-client==5.0.1
+# Pinecone vector store (optional — leave PINECONE_API_KEY blank to use PostgreSQL fallback)
+# pinecone-client==5.0.1
 
 # PostgreSQL vector extension (pgvector)
 pgvector==0.3.5

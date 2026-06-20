@@ -1,46 +1,47 @@
 """
-Async email service — sends OTP verification and password-reset emails via SMTP.
-Uses aiosmtplib so it never blocks the FastAPI event loop.
+Async email service — sends transactional emails via Resend.
+
+Free-tier note: onboarding@resend.dev can only deliver to the Resend account-owner email.
+In development the OTP/reset link is ALWAYS printed to the terminal so any test account works.
 """
 
+import asyncio
 import logging
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
-import aiosmtplib
+import resend
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+
 # ---------------------------------------------------------------------------
-# Internal helpers
+# Internal send helper
 # ---------------------------------------------------------------------------
 
-async def _send(to_email: str, subject: str, html_body: str) -> None:
-    """Build and dispatch a single email. Swallows errors in dev to avoid blocks."""
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = f"{settings.email_from_name} <{settings.email_from}>"
-    msg["To"] = to_email
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
+async def _send(to_email: str, subject: str, html_body: str, plain_body: str = "") -> None:
+    if settings.resend_api_key:
+        resend.api_key = settings.resend_api_key
+        params: resend.Emails.SendParams = {
+            "from": f"{settings.email_from_name} <{settings.email_from}>",
+            "to": [to_email],
+            "subject": subject,
+            "html": html_body,
+        }
+        try:
+            result = await asyncio.to_thread(resend.Emails.send, params)
+            logger.info("Email sent via Resend to %s — id=%s", to_email, result.get("id"))
+            return
+        except Exception as exc:
+            logger.warning("Resend could not deliver to %s: %s", to_email, exc)
 
-    try:
-        await aiosmtplib.send(
-            msg,
-            hostname=settings.smtp_host,
-            port=settings.smtp_port,
-            username=settings.smtp_user,
-            password=settings.smtp_password,
-            start_tls=True,
-        )
-        logger.info("Email sent to %s: %s", to_email, subject)
-    except Exception as exc:
-        # Log but never crash the request — email delivery is best-effort
-        logger.error("Failed to send email to %s: %s", to_email, exc)
-        if settings.is_development:
-            # Print OTP/link to console so dev can test without real SMTP
-            logger.warning("DEV MODE — email body:\n%s", html_body)
+    # Dev fallback — always print so any test email address works locally
+    logger.warning(
+        "\n========== DEV EMAIL (not delivered) ==========\n"
+        "To: %s\nSubject: %s\n%s\n"
+        "================================================",
+        to_email, subject, plain_body or html_body,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -49,13 +50,14 @@ async def _send(to_email: str, subject: str, html_body: str) -> None:
 
 async def send_verification_otp(to_email: str, full_name: str, otp: str) -> None:
     subject = "Verify your SkinAI account"
+    plain = f"Hi {full_name},\n\nYour SkinAI verification OTP is: {otp}\n\nExpires in {settings.otp_expire_minutes} minutes. Never share this code."
     html = f"""
     <!DOCTYPE html>
     <html>
     <body style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 24px;">
       <div style="max-width: 480px; margin: auto; background: #fff;
                   border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,.08);">
-        <h2 style="color: #1a1a2e; margin-bottom: 8px;">Welcome to SkinAI 👋</h2>
+        <h2 style="color: #1a1a2e; margin-bottom: 8px;">Welcome to SkinAI</h2>
         <p style="color: #555;">Hi {full_name},</p>
         <p style="color: #555;">Use the code below to verify your email address.
            It expires in <strong>{settings.otp_expire_minutes} minutes</strong>.</p>
@@ -72,7 +74,7 @@ async def send_verification_otp(to_email: str, full_name: str, otp: str) -> None
     </body>
     </html>
     """
-    await _send(to_email, subject, html)
+    await _send(to_email, subject, html, plain)
 
 
 # ---------------------------------------------------------------------------
@@ -82,6 +84,7 @@ async def send_verification_otp(to_email: str, full_name: str, otp: str) -> None
 async def send_password_reset(to_email: str, full_name: str, reset_token: str) -> None:
     reset_url = f"{settings.frontend_url}/reset-password?token={reset_token}"
     subject = "Reset your SkinAI password"
+    plain = f"Hi {full_name},\n\nReset your password: {reset_url}\n\nExpires in {settings.password_reset_expire_minutes} minutes."
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -90,8 +93,7 @@ async def send_password_reset(to_email: str, full_name: str, reset_token: str) -
                   border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,.08);">
         <h2 style="color: #1a1a2e;">Reset your password</h2>
         <p style="color: #555;">Hi {full_name},</p>
-        <p style="color: #555;">We received a request to reset your password.
-           Click the button below — the link expires in
+        <p style="color: #555;">Click the button below — the link expires in
            <strong>{settings.password_reset_expire_minutes} minutes</strong>.</p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="{reset_url}"
@@ -99,10 +101,6 @@ async def send_password_reset(to_email: str, full_name: str, reset_token: str) -
                     border-radius: 8px; text-decoration: none; font-weight: 600;
                     font-size: 16px;">Reset Password</a>
         </div>
-        <p style="color: #888; font-size: 13px;">
-          If you didn't request a password reset, you can safely ignore this email.
-          This link can only be used once.
-        </p>
         <p style="color: #bbb; font-size: 11px; word-break: break-all;">
           Or copy this link: {reset_url}
         </p>
@@ -110,60 +108,48 @@ async def send_password_reset(to_email: str, full_name: str, reset_token: str) -
     </body>
     </html>
     """
-    await _send(to_email, subject, html)
+    await _send(to_email, subject, html, plain)
 
 
 # ---------------------------------------------------------------------------
-# Dermatologist pending verification notification
+# Dermatologist notifications
 # ---------------------------------------------------------------------------
 
 async def send_derm_pending_notification(to_email: str, full_name: str) -> None:
     subject = "Your SkinAI dermatologist application is under review"
+    plain = f"Dear Dr. {full_name},\n\nYour application is under review. We'll email you within 2-3 business days."
     html = f"""
     <!DOCTYPE html>
     <html>
     <body style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 24px;">
       <div style="max-width: 480px; margin: auto; background: #fff;
                   border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,.08);">
-        <h2 style="color: #1a1a2e;">Application received ✅</h2>
+        <h2 style="color: #1a1a2e;">Application received</h2>
         <p style="color: #555;">Dear Dr. {full_name},</p>
         <p style="color: #555;">
           Thank you for applying as a dermatologist reviewer on SkinAI.
-          Our team will verify your medical license and credentials within
-          <strong>2–3 business days</strong>.
+          Our team will verify your credentials within <strong>2-3 business days</strong>.
         </p>
-        <p style="color: #555;">
-          You will receive an email once your account is activated.
-          Until then, you can log in to view your pending status.
-        </p>
-        <p style="color: #888; font-size: 13px;">
-          Questions? Reply to this email or contact support@skinai.in.
-        </p>
+        <p style="color: #888; font-size: 13px;">Questions? Contact support@skinai.in</p>
       </div>
     </body>
     </html>
     """
-    await _send(to_email, subject, html)
+    await _send(to_email, subject, html, plain)
 
-
-# ---------------------------------------------------------------------------
-# Dermatologist approved notification
-# ---------------------------------------------------------------------------
 
 async def send_derm_approved_notification(to_email: str, full_name: str) -> None:
     subject = "Your SkinAI dermatologist account is now active"
+    plain = f"Dear Dr. {full_name},\n\nYour account is now active. Log in at {settings.frontend_url}/login"
     html = f"""
     <!DOCTYPE html>
     <html>
     <body style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 24px;">
       <div style="max-width: 480px; margin: auto; background: #fff;
                   border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,.08);">
-        <h2 style="color: #1a1a2e;">Account activated 🎉</h2>
+        <h2 style="color: #1a1a2e;">Account activated</h2>
         <p style="color: #555;">Dear Dr. {full_name},</p>
-        <p style="color: #555;">
-          Your dermatologist account on SkinAI has been verified and activated.
-          You can now log in and start reviewing patient recommendations.
-        </p>
+        <p style="color: #555;">Your dermatologist account has been verified and activated.</p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="{settings.frontend_url}/login"
              style="background: #6C63FF; color: #fff; padding: 14px 32px;
@@ -175,4 +161,4 @@ async def send_derm_approved_notification(to_email: str, full_name: str) -> None
     </body>
     </html>
     """
-    await _send(to_email, subject, html)
+    await _send(to_email, subject, html, plain)

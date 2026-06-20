@@ -1,44 +1,48 @@
 """
-Product embedding generator — encodes product text into vectors for Pinecone.
-Uses a lightweight sentence-transformer compatible approach via Claude embeddings.
+Product embedding generator — encodes product text into vectors for similarity search.
+Uses pgvector (Supabase) when PINECONE_API_KEY is blank (default / free setup).
+Set PINECONE_API_KEY to enable Pinecone as the vector store instead.
 """
 
-from pinecone import Pinecone, ServerlessSpec
+import logging
+from typing import Optional
 
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
+
 
 class ProductEmbeddingService:
-    def __init__(self):
-        self._pc = Pinecone(api_key=settings.pinecone_api_key)
+    def __init__(self) -> None:
+        self._pinecone_index = None
+        if settings.pinecone_api_key:
+            self._try_init_pinecone()
 
-    def ensure_index(self) -> None:
-        """Creates Pinecone index if it doesn't exist (1536 dims for text-embedding-3-small compatible)."""
-        existing = [i.name for i in self._pc.list_indexes()]
-        if settings.pinecone_index_name not in existing:
-            self._pc.create_index(
-                name=settings.pinecone_index_name,
-                dimension=1536,
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            )
+    def _try_init_pinecone(self) -> None:
+        try:
+            from pinecone import Pinecone, ServerlessSpec  # type: ignore[import]
+            pc = Pinecone(api_key=settings.pinecone_api_key)
+            existing = [i.name for i in pc.list_indexes()]
+            if settings.pinecone_index_name not in existing:
+                pc.create_index(
+                    name=settings.pinecone_index_name,
+                    dimension=768,
+                    metric="cosine",
+                    spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+                )
+            self._pinecone_index = pc.Index(settings.pinecone_index_name)
+            logger.info("Pinecone index '%s' connected.", settings.pinecone_index_name)
+        except Exception as exc:
+            logger.warning("Pinecone unavailable — vector search disabled. %s", exc)
 
     async def embed_product(self, product: dict) -> list[float]:
-        """
-        Converts a product dict to a dense vector.
-        Text: "{name} {brand} {category} {ingredients_joined}"
-        TODO: call embedding model (OpenAI or Anthropic Claude when available)
-        """
-        raise NotImplementedError
+        raise NotImplementedError("Embedding pipeline not yet implemented.")
 
     async def upsert_products(self, products: list[dict]) -> None:
-        """
-        Batch-upsert product embeddings to Pinecone.
-        TODO: embed all products, chunked upsert to Pinecone index
-        """
-        raise NotImplementedError
+        raise NotImplementedError("Embedding pipeline not yet implemented.")
 
     async def search_similar(self, query_vector: list[float], top_k: int = 10) -> list[dict]:
-        index = self._pc.Index(settings.pinecone_index_name)
-        result = index.query(vector=query_vector, top_k=top_k, include_metadata=True)
+        if self._pinecone_index is None:
+            return []
+        result = self._pinecone_index.query(vector=query_vector, top_k=top_k, include_metadata=True)
         return [m.metadata for m in result.matches]

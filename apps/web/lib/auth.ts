@@ -71,28 +71,34 @@ const authConfig: NextAuthConfig = {
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const res = await fetch(`${API_URL}/api/v1/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(parsed.data),
-        });
+        try {
+          const res = await fetch(`${API_URL}/api/v1/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(parsed.data),
+          });
 
-        if (!res.ok) {
-          // Return null (triggers CredentialsSignin error) — caller sees generic message
+          if (!res.ok) {
+            // Return null (triggers CredentialsSignin error) — caller sees generic message
+            return null;
+          }
+
+          const data = await res.json();
+          return {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.full_name,
+            role: data.user.role,
+            isVerified: data.user.is_verified,
+            accessToken: data.access_token,
+            refreshToken: data.refresh_token,
+            accessTokenExpires: Date.now() + 14 * 60 * 1000,
+          };
+        } catch {
+          // Network error (backend not running) — return null so NextAuth shows
+          // "Invalid credentials" instead of a "Configuration" error page.
           return null;
         }
-
-        const data = await res.json();
-        return {
-          id: data.user.id,
-          email: data.user.email,
-          name: data.user.full_name,
-          role: data.user.role,
-          isVerified: data.user.is_verified,
-          accessToken: data.access_token,
-          refreshToken: data.refresh_token,
-          accessTokenExpires: Date.now() + 14 * 60 * 1000,
-        };
       },
     }),
   ],

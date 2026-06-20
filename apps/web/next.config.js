@@ -25,7 +25,7 @@ const IS_DEV = process.env.NODE_ENV !== "production";
 // In dev, allow the local FastAPI backend (8000) and the Next.js app itself (3010)
 // so NextAuth redirects and internal fetch calls are never blocked by CSP.
 const DEV_API_ORIGIN = IS_DEV
-  ? " http://localhost:8000 ws://localhost:8000 http://localhost:3010"
+  ? ` http://localhost:8000 ws://localhost:8000 ${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}`
   : "";
 
 const SCAN_SCRIPT_SRC = "script-src 'self' 'unsafe-eval' 'unsafe-inline'"; // TF.js needs unsafe-eval

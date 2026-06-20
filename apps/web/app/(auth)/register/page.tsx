@@ -149,7 +149,7 @@ export default function RegisterPage() {
   // ---------- Step 4 ----------
   const form4 = useForm<Step4>({
     resolver: zodResolver(step4Schema),
-    defaultValues: { consent: undefined as any },
+    defaultValues: { consent: false as any },
   });
 
   // ---------- Navigation ----------
