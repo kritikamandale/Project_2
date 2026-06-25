@@ -138,6 +138,20 @@ app.include_router(progress.router,        prefix=f"{API_PREFIX}/progress",     
 app.include_router(dermatologist.router,   prefix=f"{API_PREFIX}/dermatologist",   tags=["dermatologist"])
 app.include_router(privacy.router,         prefix=f"{API_PREFIX}/users",           tags=["privacy"])
 
+import traceback
+from fastapi.responses import JSONResponse
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import sys
+    print(f"GLOBAL EXCEPTION: {exc}", file=sys.stderr)
+    traceback.print_exc(file=sys.stderr)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": str(exc),
+            "traceback": traceback.format_exc()
+        }
+    )
 
 @app.get("/health", tags=["health"])
 async def health_check():

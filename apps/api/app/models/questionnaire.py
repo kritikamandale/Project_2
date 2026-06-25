@@ -65,6 +65,9 @@ class QuestionnaireResponse(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     submitted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    questionnaire_version: Mapped[int] = mapped_column(
+        Integer, default=2, server_default="2", nullable=False
+    )
 
     # ---------- Section 1: Sleep ----------
     sleep_hours_avg: Mapped[Optional[float]] = mapped_column(Float)

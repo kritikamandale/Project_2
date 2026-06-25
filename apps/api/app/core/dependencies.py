@@ -80,6 +80,8 @@ async def get_redis() -> aioredis.Redis | _FakeRedis:
             str(settings.redis_url),
             encoding="utf-8",
             decode_responses=True,
+            socket_connect_timeout=1.0,
+            socket_timeout=1.0,
         )
         try:
             await candidate.ping()
