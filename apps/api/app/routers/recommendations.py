@@ -14,7 +14,7 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -29,11 +29,13 @@ from app.schemas.recommendation import (
     RecommendationDetailResponse,
     RecommendationGenerateRequest,
     RecommendationGenerateResponse,
+    PaginatedRecommendations,
     RecommendationListItem,
     RecommendedProductEntry,
     ProductInRecommendation,
     RoadmapResponse,
 )
+from app.services import onboarding_service
 from app.services.recommendation import RecommendationService
 
 router = APIRouter()
@@ -173,6 +175,12 @@ async def generate_recommendation(
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
 
+    # Step 3 complete: a recommendation now exists and is stored — this is the
+    # only place onboarding is marked `completed`, satisfying the rule that
+    # completion means a real recommendation was generated (not merely viewed).
+    if onboarding_service.advance_onboarding(current_user, "completed"):
+        await db.commit()
+
     return RecommendationGenerateResponse(
         recommendation_id=rec.id,
         message="Recommendation generated successfully.",
@@ -204,6 +212,52 @@ async def get_latest_recommendation(
             detail="No recommendation found. Complete a scan first.",
         )
     return _build_detail(rec)
+
+
+# NOTE: /history must be declared before /{recommendation_id}, otherwise the
+# literal path segment "history" would be captured by the UUID path parameter.
+@router.get("/history", response_model=PaginatedRecommendations)
+async def recommendation_history(
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=10, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_verified_user),
+):
+    """Return paginated recommendation history for the authenticated user, newest first."""
+    offset = (page - 1) * per_page
+
+    total = (
+        await db.execute(
+            select(func.count(Recommendation.id)).where(
+                Recommendation.user_id == current_user.id
+            )
+        )
+    ).scalar_one()
+
+    rows = (
+        await db.execute(
+            select(Recommendation)
+            .options(selectinload(Recommendation.products))
+            .where(Recommendation.user_id == current_user.id)
+            .order_by(Recommendation.generated_at.desc())
+            .offset(offset)
+            .limit(per_page)
+        )
+    ).scalars().all()
+
+    items = []
+    for rec in rows:
+        item = RecommendationListItem.model_validate(rec)
+        item.products_count = len(rec.products)
+        items.append(item)
+
+    return PaginatedRecommendations(
+        items=items,
+        total=total,
+        page=page,
+        per_page=per_page,
+        has_more=(offset + per_page) < total,
+    )
 
 
 @router.get("/{recommendation_id}", response_model=RecommendationDetailResponse)

@@ -153,12 +153,12 @@ function HeroSection() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left — text */}
           <motion.div initial="hidden" animate="visible" variants={stagger}>
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-skin-100 text-skin-700 text-sm font-medium mb-6 border border-skin-200">
-              <span className="w-2 h-2 rounded-full bg-skin-500 animate-pulse" />
+            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-100 text-teal-700 text-sm font-medium mb-6 border border-teal-200">
+              <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
               AI-Powered · Dermatologist-Reviewed · Made for India
             </motion.div>
 
-            <motion.h1 variants={fadeUp} className="font-heading text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
+            <motion.h1 variants={fadeUp} className="font-heading text-6xl md:text-7xl font-bold text-gray-900 leading-[1.05] tracking-tight mb-6">
               Know Your Skin.{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-skin-500 to-skin-700">
                 Transform
@@ -182,10 +182,20 @@ function HeroSection() {
             </motion.div>
 
             <motion.div variants={fadeUp} className="flex items-center gap-6">
+              {/* Trusted-by avatar cluster — more real faces reads as more human,
+                  less purely clinical/AI. */}
               <div className="flex -space-x-3">
                 {[6977987, 3762765, 32707142, 7622743].map((id, i) => (
-                  <div key={id} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden relative" style={{ zIndex: 4 - i }}>
+                  <div key={id} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden relative" style={{ zIndex: 6 - i }}>
                     <Image src={PX(id, 80, 80)} alt="SkinAI user" fill className="object-cover" sizes="40px" />
+                  </div>
+                ))}
+                {/* TODO: replace with real customer photography — pravatar.cc
+                    placeholders used here only because these two extra faces
+                    have no existing sourced photo in this asset pipeline. */}
+                {["skinai-user-5", "skinai-user-6"].map((seed, i) => (
+                  <div key={seed} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden relative" style={{ zIndex: 2 - i }}>
+                    <Image src={`https://i.pravatar.cc/80?u=${seed}`} alt="SkinAI user" fill className="object-cover" sizes="40px" />
                   </div>
                 ))}
               </div>
@@ -223,29 +233,29 @@ function HeroSection() {
               </div>
             </div>
 
-            {/* Floating: Analysis complete */}
+            {/* Floating: Analysis complete — teal tags the AI-analysis output specifically */}
             <motion.div
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9, duration: 0.5 }}
-              className="absolute -bottom-4 -left-4 md:-left-8 bg-white rounded-2xl shadow-xl p-4 border border-skin-100 min-w-[200px]"
+              className="absolute -bottom-4 -left-4 md:-left-8 bg-white rounded-2xl shadow-xl p-4 border border-teal-100 min-w-[200px]"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AI</div>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AI</div>
                 <div>
                   <p className="text-xs text-gray-400">Analysis Complete</p>
-                  <p className="text-sm font-bold text-gray-900">Fitzpatrick Type III</p>
+                  <p className="font-number text-sm font-bold text-gray-900">Fitzpatrick Type III</p>
                 </div>
               </div>
               <div className="flex gap-2">
-                {[["Hydration","78%","bg-skin-100 text-skin-700"],["UV Damage","Low","bg-skin-50 text-skin-600"]].map(([l,v,c]) => (
-                  <div key={l} className={`rounded-lg px-2 py-1 text-xs font-semibold ${c}`}>{l}: {v}</div>
+                {[["Hydration","78%","bg-teal-100 text-teal-700"],["UV Damage","Low","bg-teal-50 text-teal-600"]].map(([l,v,c]) => (
+                  <div key={l} className={`font-number rounded-lg px-2 py-1 text-xs font-semibold ${c}`}>{l}: {v}</div>
                 ))}
               </div>
             </motion.div>
 
-            {/* Floating: Detected conditions */}
+            {/* Floating: Detected conditions — AI output, teal-tagged */}
             <motion.div
               initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1, duration: 0.5 }}
-              className="absolute -top-4 -right-4 md:-right-8 bg-white rounded-2xl shadow-xl p-4 border border-skin-100"
+              className="absolute -top-4 -right-4 md:-right-8 bg-white rounded-2xl shadow-xl p-4 border border-teal-100"
             >
               <p className="text-xs font-bold text-gray-900 mb-2">Conditions Detected</p>
               {[
@@ -254,19 +264,19 @@ function HeroSection() {
                 ["Dehydration", "High"],
               ].map(([c, s]) => (
                 <div key={c} className="flex items-center gap-2 mb-1.5">
-                  <div className="w-2 h-2 rounded-full bg-skin-400 flex-shrink-0" />
+                  <div className="w-2 h-2 rounded-full bg-teal-400 flex-shrink-0" />
                   <span className="text-xs text-gray-700 font-medium">{c}</span>
                   <span className="text-xs text-gray-400 ml-auto">{s}</span>
                 </div>
               ))}
             </motion.div>
 
-            {/* Trust badge */}
+            {/* Trust badge — a confidence percentage, teal-tagged */}
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3, duration: 0.5 }}
-              className="absolute bottom-24 -right-4 md:-right-8 bg-skin-500 text-white rounded-xl shadow-lg px-3 py-2"
+              className="absolute bottom-24 -right-4 md:-right-8 bg-teal-600 text-white rounded-xl shadow-lg px-3 py-2"
             >
-              <p className="text-xs font-bold">95% Accurate</p>
+              <p className="font-number text-xs font-bold">95% Accurate</p>
               <p className="text-xs opacity-80">Dermatologist Verified</p>
             </motion.div>
           </motion.div>
@@ -280,14 +290,17 @@ function HeroSection() {
 
 function StatsSection() {
   return (
-    <section className="bg-skin-700 py-14">
+    // Full-bleed twilight-indigo trust band — the palette's "weightier, more
+    // premium" dark treatment. These are AI-analysis output stats, so the
+    // numbers themselves are teal-tagged (muted-teal = the AI/analysis accent).
+    <section className="bg-gray-900 py-14">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}
           className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[["95%","AI Analysis Accuracy"],["15+","Skin Conditions Detected"],["50+","Expert Dermatologists"],["100%","Privacy Guaranteed"]].map(([n,l]) => (
             <motion.div key={l} variants={fadeUp}>
-              <p className="font-heading text-4xl md:text-5xl font-bold text-skin-100 mb-2">{n}</p>
-              <p className="text-sm text-skin-200 font-medium">{l}</p>
+              <p className="font-number text-4xl md:text-5xl font-bold text-teal-300 mb-2">{n}</p>
+              <p className="text-sm text-gray-300 font-medium">{l}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -314,7 +327,7 @@ function ConditionsSection() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}>
           <motion.div variants={fadeUp} className="text-center mb-14">
             <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">What We Analyse</span>
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mt-3 mb-4">
+            <h2 className="font-heading text-4xl md:text-5xl font-medium text-gray-900 mt-3 mb-4">
               15+ skin attributes. One scan.
             </h2>
             <p className="text-xl text-gray-500 max-w-xl mx-auto">
@@ -383,11 +396,11 @@ function AboutSection() {
           className="max-w-5xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-16">
             <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">About SkinAI</span>
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mt-3 mb-6">
+            <h2 className="font-heading text-4xl md:text-5xl font-medium text-gray-900 mt-3 mb-6">
               What is SkinAI?
             </h2>
             <p className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-              SkinAI combines computer vision, Claude AI, and dermatologist expertise to give you
+              SkinAI combines computer vision, the SkinAI Intelligence Engine, and dermatologist expertise to give you
               <strong className="text-gray-700"> personalised, science-backed skincare advice</strong> — from your phone.
             </p>
           </motion.div>
@@ -422,7 +435,7 @@ function WhyWeBuiltSection() {
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <motion.div variants={fadeUp}>
               <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">Why We Built This</span>
-              <h2 className="font-heading text-4xl font-bold text-gray-900 mt-3 mb-6 leading-tight">
+              <h2 className="font-heading text-4xl font-medium text-gray-900 mt-3 mb-6 leading-tight">
                 Great skin advice shouldn't be a luxury.
               </h2>
               <p className="text-gray-500 leading-relaxed mb-5">
@@ -464,7 +477,7 @@ function WhyWeBuiltSection() {
 const STEPS = [
   { step:"01", title:"Scan Your Skin",           desc:"Open the camera in your browser. Capture your face. Your image is processed instantly and never stored.",          icon:<IconScan />,  imgId:6977987 },
   { step:"02", title:"Tell Us About You",         desc:"Answer a short questionnaire about lifestyle, diet, sleep, and skin concerns for a personalised profile.",         icon:<IconBrain />, imgId:5069473 },
-  { step:"03", title:"AI Analyses Everything",    desc:"Claude AI generates your personalised routine using your full skin profile, with ingredient-level justification.",  icon:<IconStar />,  imgId:3762756 },
+  { step:"03", title:"AI Analyses Everything",    desc:"The SkinAI Intelligence Engine generates your personalised routine using your full skin profile, with ingredient-level justification.",  icon:<IconStar />,  imgId:3762756 },
   { step:"04", title:"Track Your Progress",       desc:"Follow your roadmap, log adherence, and rescan weekly to watch your skin transform over time.",                     icon:<IconChart />, imgId:6706877 },
 ];
 
@@ -475,7 +488,7 @@ function HowItWorksSection() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}>
           <motion.div variants={fadeUp} className="text-center mb-16">
             <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">How It Works</span>
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mt-3 mb-4">
+            <h2 className="font-heading text-4xl md:text-5xl font-medium text-gray-900 mt-3 mb-4">
               From scan to skincare routine in minutes
             </h2>
             <p className="text-xl text-gray-500 max-w-xl mx-auto">Four steps to the most personalised skincare plan you've ever had.</p>
@@ -519,14 +532,23 @@ function HowItWorksSection() {
 
 const FEATURES = [
   { icon:<IconScan />,   title:"Real-Time Skin Scan",         desc:"Browser-based TF.js detection — no app, no delay. 15+ conditions with confidence scores.",              tag:"AI"       },
-  { icon:<IconBrain />,  title:"Claude AI Routines",          desc:"Powered by Anthropic's Claude. Your routine is generated from your full skin profile, not a template.",  tag:"AI"       },
-  { icon:<IconDoctor />, title:"Dermatologist Review",        desc:"Real dermatologists review every AI report. They approve, flag concerns, or add clinical notes.",        tag:"Medical"  },
+  { icon:<IconBrain />,  title:"AI Routine Engine",           desc:"Powered by the SkinAI Intelligence Engine. Your routine is generated from your full skin profile, not a template.",  tag:"AI"       },
+  // This card gets a human photo instead of an icon — dermatologist review is
+  // inherently a human-in-the-loop feature, not a purely AI/icon one.
+  // TODO: replace with real customer/dermatologist photography (stock Pexels photo).
+  { icon:<IconDoctor />, title:"Dermatologist Review",        desc:"Real dermatologists review every AI report. They approve, flag concerns, or add clinical notes.",        tag:"Medical", img: 8783902 },
   { icon:<IconLeaf />,   title:"Indian Product Database",     desc:"Recommendations from Nykaa, Minimalist, Dermaco, Dot & Key. Vetted for Indian climate and skin tones.",  tag:"India"    },
   { icon:<IconChart />,  title:"Progress Tracking",           desc:"Weekly rescans, adherence heatmaps, and a progress timeline show your skin's full journey.",             tag:"Tracking" },
   { icon:<IconShield />, title:"Privacy by Design",           desc:"Images processed ephemerally — never stored. Delete your account and all data instantly.",              tag:"Privacy"  },
   { icon:<IconLock />,   title:"Fitzpatrick-Aware AI",        desc:"Calibrated across all 6 skin tones. No more advice optimised only for lighter complexions.",            tag:"Inclusive"},
   { icon:<IconStar />,   title:"Personalised Roadmap",        desc:"Week-by-week morning & night routine with layering instructions and re-introduction timelines.",         tag:"Routine"  },
 ];
+
+// Tag color: "AI" tags route through muted-teal (the AI/analysis accent per
+// the palette's role mapping); every other category stays in the primary
+// burnt-peach family. Style-only lookup, mirrors existing badge-color maps
+// elsewhere in the app (e.g. severity/brand badges) — no new logic.
+const TAG_COLOR: Record<string, string> = { AI: "text-teal-500" };
 
 function FeaturesSection() {
   return (
@@ -535,20 +557,26 @@ function FeaturesSection() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}>
           <motion.div variants={fadeUp} className="text-center mb-16">
             <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">Features</span>
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mt-3 mb-4">
+            <h2 className="font-heading text-4xl md:text-5xl font-medium text-gray-900 mt-3 mb-4">
               Everything your skin needs.
             </h2>
             <p className="text-xl text-gray-500 max-w-xl mx-auto">SkinAI combines AI, medical expertise, and Indian skincare intelligence.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
-            {FEATURES.map(({ icon, title, desc, tag }) => (
+            {FEATURES.map(({ icon, title, desc, tag, img }) => (
               <motion.div key={title} variants={fadeUp}
                 className="group p-6 rounded-2xl bg-white border border-skin-100 hover:border-skin-300 hover:shadow-lg transition-all duration-300">
-                <div className="w-12 h-12 rounded-xl bg-skin-100 text-skin-600 flex items-center justify-center mb-4 group-hover:bg-skin-500 group-hover:text-white transition-colors">
-                  {icon}
-                </div>
-                <span className="text-xs font-bold text-skin-500 tracking-widest uppercase mb-2 block">{tag}</span>
+                {img ? (
+                  <div className="w-12 h-12 rounded-xl overflow-hidden relative mb-4">
+                    <Image src={PX(img, 96, 96)} alt="" fill className="object-cover" sizes="48px" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-skin-100 text-skin-600 flex items-center justify-center mb-4 group-hover:bg-skin-500 group-hover:text-white transition-colors">
+                    {icon}
+                  </div>
+                )}
+                <span className={`text-xs font-bold tracking-widest uppercase mb-2 block ${TAG_COLOR[tag] ?? "text-skin-500"}`}>{tag}</span>
                 <h3 className="font-heading text-sm font-semibold text-gray-900 mb-2">{title}</h3>
                 <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
               </motion.div>
@@ -570,7 +598,7 @@ function ForEveryoneSection() {
           className="max-w-5xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-16">
             <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">Who It's For</span>
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mt-3">Built for everyone</h2>
+            <h2 className="font-heading text-4xl md:text-5xl font-medium text-gray-900 mt-3">Built for everyone</h2>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -630,6 +658,9 @@ function ForEveryoneSection() {
 
 // ─── Testimonials ─────────────────────────────────────────────────────────────
 
+// TODO: replace with real customer photography — these are stock photos
+// (same free Pexels source used throughout this page), and the names below
+// are illustrative first-name-only placeholders, not real verified users.
 const TESTIMONIALS = [
   {
     imgId: 3762765,
@@ -649,6 +680,24 @@ const TESTIMONIALS = [
     skin: "Dry · Fitzpatrick II",
     quote: "The dermatologist caught that my AI analysis flagged something that turned out to be early-stage seborrheic dermatitis. The AI literally helped catch a condition I'd ignored for years.",
   },
+  {
+    imgId: 6977996,
+    name: "Kavya N.",
+    skin: "Normal · Fitzpatrick V",
+    quote: "Finally, skincare advice that gets my skin tone right instead of defaulting to lighter-skin defaults.",
+  },
+  {
+    imgId: 8783902,
+    name: "Rhea D.",
+    skin: "Sensitive · Fitzpatrick II",
+    quote: "The weekly rescans actually show me progress instead of just guessing if a product is working.",
+  },
+  {
+    imgId: 5253959,
+    name: "Ishaan M.",
+    skin: "Oily · Fitzpatrick IV",
+    quote: "Having a dermatologist review the AI's findings before I saw them made me trust the routine a lot more.",
+  },
 ];
 
 function TestimonialsSection() {
@@ -658,7 +707,7 @@ function TestimonialsSection() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}>
           <motion.div variants={fadeUp} className="text-center mb-14">
             <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">Real Results</span>
-            <h2 className="font-heading text-4xl font-bold text-gray-900 mt-3 mb-3">Trusted by thousands</h2>
+            <h2 className="font-heading text-4xl font-medium text-gray-900 mt-3 mb-3">Trusted by thousands</h2>
             <p className="text-gray-500 max-w-md mx-auto">Real people. Real Indian skin. Real results.</p>
           </motion.div>
 
@@ -692,15 +741,18 @@ function TestimonialsSection() {
 
 function PrivacySection() {
   return (
-    <section className="py-20 bg-gradient-to-br from-skin-800 to-skin-900">
+    // Twilight-indigo dark band — privacy/security is exactly the "weightier,
+    // premium, trustworthy" moment the palette reserves for this treatment.
+    // Teal (clinical/tech/trustworthy) accents the encryption/tech details.
+    <section className="py-20 bg-gradient-to-br from-gray-800 to-gray-900">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}
           className="max-w-4xl mx-auto text-center">
           <motion.div variants={fadeUp}>
-            <div className="w-14 h-14 rounded-2xl bg-skin-700 text-skin-100 flex items-center justify-center mx-auto mb-6"><IconShield /></div>
-            <span className="text-skin-300 font-semibold text-sm tracking-widest uppercase">Privacy First</span>
-            <h2 className="font-heading text-4xl font-bold text-white mt-3 mb-5">Your face is never stored. Ever.</h2>
-            <p className="text-xl text-skin-200 mb-12 max-w-2xl mx-auto leading-relaxed">
+            <div className="w-14 h-14 rounded-2xl bg-teal-700 text-teal-100 flex items-center justify-center mx-auto mb-6"><IconShield /></div>
+            <span className="text-teal-300 font-semibold text-sm tracking-widest uppercase">Privacy First</span>
+            <h2 className="font-heading text-4xl font-medium text-eggshell mt-3 mb-5">Your face is never stored. Ever.</h2>
+            <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
               Skin analysis is deeply personal. Your photos are processed ephemerally and permanently deleted after analysis.
             </p>
           </motion.div>
@@ -710,16 +762,16 @@ function PrivacySection() {
               { icon:"🛡️", title:"End-to-End Encrypted",  desc:"TLS 1.3 in transit. AES-256 at rest. We can't read your data without your keys." },
               { icon:"🗑️", title:"Right to be Forgotten", desc:"Delete your account anytime. All data permanently erased within 24 hours." },
             ].map(({ icon, title, desc }) => (
-              <motion.div key={title} variants={fadeUp} className="p-6 rounded-xl bg-skin-700/40 border border-skin-600/40 text-left">
+              <motion.div key={title} variants={fadeUp} className="p-6 rounded-xl bg-gray-700/40 border border-teal-700/40 text-left">
                 <span className="text-3xl mb-4 block">{icon}</span>
-                <h4 className="font-semibold text-white mb-2">{title}</h4>
-                <p className="text-sm text-skin-200 leading-relaxed">{desc}</p>
+                <h4 className="font-semibold text-eggshell mb-2">{title}</h4>
+                <p className="text-sm text-gray-300 leading-relaxed">{desc}</p>
               </motion.div>
             ))}
           </motion.div>
-          <motion.p variants={fadeUp} className="mt-10 text-sm text-skin-300">
-            Compliant with India's <strong className="text-skin-100">DPDPA 2023</strong> and GDPR.{" "}
-            <Link href="/privacy" className="text-skin-100 hover:underline">Read our Privacy Policy →</Link>
+          <motion.p variants={fadeUp} className="mt-10 text-sm text-gray-300">
+            Compliant with India's <strong className="text-teal-200">DPDPA 2023</strong> and GDPR.{" "}
+            <Link href="/privacy" className="text-teal-200 hover:underline">Read our Privacy Policy →</Link>
           </motion.p>
         </motion.div>
       </div>
@@ -747,7 +799,7 @@ function FAQSection() {
           className="max-w-3xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-14">
             <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">FAQ</span>
-            <h2 className="font-heading text-4xl font-bold text-gray-900 mt-3">Common Questions</h2>
+            <h2 className="font-heading text-4xl font-medium text-gray-900 mt-3">Common Questions</h2>
           </motion.div>
           <div className="space-y-3">
             {FAQS.map(({ q, a }, i) => (
@@ -812,39 +864,41 @@ function CTASection() {
 
 function Footer() {
   return (
-    <footer className="bg-skin-900 text-skin-300 py-16">
+    // Twilight-indigo dark band, per the palette's role mapping — footer is
+    // the one section the spec names explicitly as requiring this treatment.
+    <footer className="bg-gray-900 text-gray-300 py-16">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-skin-400 to-skin-500 flex items-center justify-center">
-                <span className="text-white text-sm font-bold">S</span>
+                <span className="text-eggshell text-sm font-bold">S</span>
               </div>
-              <span className="font-heading font-bold text-xl text-skin-100">SkinAI</span>
+              <span className="font-heading font-bold text-xl text-eggshell">SkinAI</span>
             </div>
-            <p className="text-sm leading-relaxed max-w-xs mb-4 text-skin-300">AI-powered skin analysis for India. Personalised routines reviewed by real dermatologists — free, private, built for Indian skin.</p>
-            <p className="text-xs text-skin-500">Made with care in India 🇮🇳</p>
+            <p className="text-sm leading-relaxed max-w-xs mb-4 text-gray-300">AI-powered skin analysis for India. Personalised routines reviewed by real dermatologists — free, private, built for Indian skin.</p>
+            <p className="text-xs text-gray-500">Made with care in India 🇮🇳</p>
           </div>
           <div>
-            <h5 className="text-skin-100 font-semibold text-sm mb-4">Platform</h5>
+            <h5 className="text-eggshell font-semibold text-sm mb-4">Platform</h5>
             <ul className="space-y-3 text-sm">
               {[["#about","About SkinAI"],["#how-it-works","How It Works"],["#features","Features"],["#faq","FAQ"]].map(([h,l]) => (
-                <li key={h}><a href={h} className="hover:text-skin-100 transition-colors">{l}</a></li>
+                <li key={h}><a href={h} className="hover:text-eggshell transition-colors">{l}</a></li>
               ))}
             </ul>
           </div>
           <div>
-            <h5 className="text-skin-100 font-semibold text-sm mb-4">Account</h5>
+            <h5 className="text-eggshell font-semibold text-sm mb-4">Account</h5>
             <ul className="space-y-3 text-sm">
               {[["/register","Create Account"],["/login","Sign In"],["/register/dermatologist","Join as Dermatologist"],["/privacy","Privacy Policy"]].map(([h,l]) => (
-                <li key={h}><Link href={h} className="hover:text-skin-100 transition-colors">{l}</Link></li>
+                <li key={h}><Link href={h} className="hover:text-eggshell transition-colors">{l}</Link></li>
               ))}
             </ul>
           </div>
         </div>
-        <div className="border-t border-skin-700 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-skin-500">© {new Date().getFullYear()} SkinAI. All rights reserved.</p>
-          <p className="text-xs text-skin-500">Not a substitute for professional medical advice. Always consult a qualified dermatologist for serious conditions.</p>
+        <div className="border-t border-gray-700 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-gray-500">© {new Date().getFullYear()} SkinAI. All rights reserved.</p>
+          <p className="text-xs text-gray-500">Not a substitute for professional medical advice. Always consult a qualified dermatologist for serious conditions.</p>
         </div>
       </div>
     </footer>

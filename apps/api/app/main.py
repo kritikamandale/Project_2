@@ -25,6 +25,7 @@ from app.routers import (
     progress,
     dermatologist,
     privacy,
+    onboarding,
 )
 
 # ---------------------------------------------------------------------------
@@ -132,6 +133,7 @@ app.include_router(auth.router,            prefix=f"{API_PREFIX}/auth",         
 app.include_router(users.router,           prefix=f"{API_PREFIX}/users",           tags=["users"])
 app.include_router(scan.router,            prefix=f"{API_PREFIX}/scan",            tags=["scan"])
 app.include_router(questionnaire.router,   prefix=f"{API_PREFIX}/questionnaire",   tags=["questionnaire"])
+app.include_router(onboarding.router,      prefix=f"{API_PREFIX}/onboarding",      tags=["onboarding"])
 app.include_router(recommendations.router, prefix=f"{API_PREFIX}/recommendations", tags=["recommendations"])
 app.include_router(products.router,        prefix=f"{API_PREFIX}/products",        tags=["products"])
 app.include_router(progress.router,        prefix=f"{API_PREFIX}/progress",        tags=["progress"])

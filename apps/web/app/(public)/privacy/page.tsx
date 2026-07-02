@@ -140,7 +140,7 @@ export default function PrivacyPolicyPage() {
               <span className="text-primary">5.</span> Who We Share Data With
             </h2>
             <DataTable rows={[
-              ["Anthropic (Claude API)", "AI recommendation generation", "No personal data sent — only anonymised skin profile"],
+              ["Groq API", "AI recommendation generation", "No personal data sent — only anonymised skin profile"],
               ["Pinecone", "Product similarity search", "Only product embeddings — no user data"],
               ["AWS S3 (Mumbai region)", "Temporary document storage", "DPA in place; data never leaves ap-south-1"],
               ["SendGrid", "Transactional emails", "Email address only; DPA in place"],

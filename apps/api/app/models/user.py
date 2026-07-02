@@ -31,6 +31,14 @@ FitzpatrickScaleEnum = Enum(
     create_constraint=True,
 )
 
+# First-time onboarding progression for USER-role accounts. Advances only:
+# not_started → questionnaire_done → scan_done → completed.
+OnboardingStatusEnum = Enum(
+    "not_started", "questionnaire_done", "scan_done", "completed",
+    name="onboarding_status_enum",
+    create_constraint=True,
+)
+
 
 # ---------------------------------------------------------------------------
 # User
@@ -47,6 +55,9 @@ class User(UUIDPrimaryKeyMixin, SoftDeleteMixin, TimestampMixin, Base):
     last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     totp_secret: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    onboarding_status: Mapped[str] = mapped_column(
+        OnboardingStatusEnum, default="not_started", server_default="not_started", nullable=False,
+    )
 
     # Relationships
     profile: Mapped[Optional["UserProfile"]] = relationship(

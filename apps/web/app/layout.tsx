@@ -1,19 +1,32 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Poppins } from "next/font/google";
+import { Space_Grotesk, Manrope, Sora } from "next/font/google";
 import { Providers } from "@/components/shared/providers";
 import { Toaster } from "@/components/shared/toaster";
 import "./globals.css";
 
-const inter = Inter({
+// Hero headings, subheadings, and large AI-score numbers (font-heading /
+// font-display / font-number all resolve to this family — see tailwind.config.ts).
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["500", "700"],
+  variable: "--font-space-grotesk",
   display: "swap",
 });
 
-const poppins = Poppins({
+// Body copy — the default reading text everywhere (paragraphs, descriptions,
+// form labels, questionnaire copy, product card text).
+const manrope = Manrope({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
+  weight: ["400", "500"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+// Buttons — all CTAs, form submits, and nav actions app-wide.
+const sora = Sora({
+  subsets: ["latin"],
+  weight: ["600"],
+  variable: "--font-sora",
   display: "swap",
 });
 
@@ -38,8 +51,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f1de" }, // eggshell
+    { media: "(prefers-color-scheme: dark)", color: "#3d405b" },  // twilight-indigo
   ],
 };
 
@@ -50,7 +63,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
+      <body className={`${spaceGrotesk.variable} ${manrope.variable} ${sora.variable} font-sans antialiased`}>
         <Providers>
           {children}
           <Toaster />

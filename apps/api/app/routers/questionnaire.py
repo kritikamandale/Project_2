@@ -2,9 +2,11 @@
 
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -24,7 +26,7 @@ from app.schemas.questionnaire import (
     QuestionnaireUpdateRequest,
     RoutineDetail,
 )
-from app.services import climate_service
+from app.services import climate_service, onboarding_service
 
 router = APIRouter()
 
@@ -157,6 +159,9 @@ async def submit_questionnaire(
         db, current_user.id, body.city, body.water_hardness
     )
 
+    # Step 1 of onboarding complete — advance the gate (advance-only, USER role only).
+    onboarding_service.advance_onboarding(current_user, "questionnaire_done")
+
     await db.flush()
     await db.commit()
     await db.refresh(q)
@@ -263,6 +268,72 @@ async def get_latest_questionnaire(
         medication_affects_skin=q.medication_affects_skin,
         climate_profile=climate_profile,
         routine=RoutineDetail.model_validate(routine) if routine else None,
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /history — paginated questionnaire submissions, newest first
+# ---------------------------------------------------------------------------
+
+class QuestionnaireHistoryItem(BaseModel):
+    id: uuid.UUID
+    submitted_at: datetime
+    # Nullable in the DB (default is applied ORM-side, not as a server default)
+    questionnaire_version: Optional[int] = None
+    # Lightweight lifestyle summary for the history card
+    sleep_hours_avg: Optional[float] = None
+    stress_level: Optional[int] = None
+    water_intake_liters: Optional[float] = None
+    diet_type: Optional[str] = None
+    screen_time_hours: Optional[float] = None
+    sunscreen_use: Optional[str] = None
+    exercise_frequency: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
+class PaginatedQuestionnaires(BaseModel):
+    items: list[QuestionnaireHistoryItem]
+    total: int
+    page: int
+    per_page: int
+    has_more: bool
+
+
+@router.get("/history", response_model=PaginatedQuestionnaires)
+async def questionnaire_history(
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=10, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_verified_user),
+):
+    """Return paginated questionnaire history for the authenticated user, newest first."""
+    offset = (page - 1) * per_page
+
+    total = (
+        await db.execute(
+            select(func.count(QuestionnaireResponse.id)).where(
+                QuestionnaireResponse.user_id == current_user.id
+            )
+        )
+    ).scalar_one()
+
+    rows = (
+        await db.execute(
+            select(QuestionnaireResponse)
+            .where(QuestionnaireResponse.user_id == current_user.id)
+            .order_by(QuestionnaireResponse.submitted_at.desc())
+            .offset(offset)
+            .limit(per_page)
+        )
+    ).scalars().all()
+
+    return PaginatedQuestionnaires(
+        items=[QuestionnaireHistoryItem.model_validate(q) for q in rows],
+        total=total,
+        page=page,
+        per_page=per_page,
+        has_more=(offset + per_page) < total,
     )
 
 

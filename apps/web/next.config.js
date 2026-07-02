@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const { withSentryConfig } = require("@sentry/nextjs");
 
-// Routes that need camera access (Permissions-Policy: camera=self)
-const SCAN_ROUTES = ["/scan"];
+// Routes that need camera access (Permissions-Policy: camera=self).
+// Both the standalone re-scan route and the first-time onboarding scan step.
+const SCAN_ROUTES = ["/scan", "/onboarding/scan"];
 
 // Trusted script sources — unsafe-eval only on scan page (TF.js requirement)
 const BASE_CSP = [
@@ -10,8 +11,10 @@ const BASE_CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  // Sentry, PostHog, Vercel analytics
-  "connect-src 'self' https://*.sentry.io https://app.posthog.com https://api.anthropic.com",
+  // Sentry, PostHog, Vercel analytics — the AI recommendation engine is called
+  // server-side only (via the backend proxy), so no external AI host needs to
+  // be allowed here.
+  "connect-src 'self' https://*.sentry.io https://app.posthog.com",
   "worker-src blob:",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -56,6 +59,9 @@ const nextConfig = {
       { protocol: "https", hostname: "cdn.dermaco.in" },
       { protocol: "https", hostname: "cdn.theordinary.com" },
       { protocol: "https", hostname: "images.pexels.com" },
+      // TODO: replace with real customer photography — placeholder headshot
+      // source for the expanded social-proof avatar cluster (see app/page.tsx).
+      { protocol: "https", hostname: "i.pravatar.cc" },
     ],
   },
 
@@ -72,15 +78,15 @@ const nextConfig = {
   async headers() {
     return [
       // =======================================================================
-      // /scan — camera access enabled, TF.js unsafe-eval allowed
+      // /scan and /onboarding/scan — camera access enabled, TF.js unsafe-eval allowed
       // =======================================================================
-      {
-        source: "/scan",
+      ...SCAN_ROUTES.map((source) => ({
+        source,
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // Camera permitted only on this page
+          // Camera permitted only on the scan pages
           { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
           { key: "Content-Security-Policy", value: buildCSP(true) },
           {
@@ -89,12 +95,12 @@ const nextConfig = {
           },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
         ],
-      },
+      })),
       // =======================================================================
       // All other routes — camera blocked, stricter CSP
       // =======================================================================
       {
-        source: "/((?!scan$).*)",
+        source: "/((?!scan$|onboarding/scan$).*)",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },

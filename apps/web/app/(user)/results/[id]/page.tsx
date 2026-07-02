@@ -55,8 +55,8 @@ const SKIN_TYPE_DESC: Record<string, string> = {
 const GENERATING_STEPS = [
   "Analysing your skin scan results…",
   "Matching products from our catalog…",
-  "Running Indian climate assessment…",
-  "Building your 20-week roadmap with Claude AI…",
+  "Checking your local climate…",
+  "Building your 20-week roadmap…",
   "Finalising personalised recommendations…",
 ];
 
@@ -99,7 +99,7 @@ function SkinScoreDial({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold text-gray-900">{displayed}</span>
+        <span className="font-number text-3xl font-bold text-gray-900">{displayed}</span>
         <span className="text-xs text-gray-500 font-medium">/ 100</span>
       </div>
     </div>
@@ -171,12 +171,12 @@ function ProductCard({ entry, index }: { entry: RecommendedProductEntry; index: 
               </span>
             )}
           </div>
-          <h3 className="font-bold text-gray-900 text-base leading-tight">{p.product_name}</h3>
-          <p className="text-xs text-gray-500 capitalize mt-0.5">{p.category}</p>
+          <h3 className="font-card font-bold text-gray-900 text-base leading-tight">{p.product_name}</h3>
+          <p className="font-card text-xs text-gray-500 capitalize mt-0.5">{p.category}</p>
         </div>
         <div className="text-right shrink-0">
           {p.price_inr && (
-            <p className="text-lg font-bold text-gray-900">₹{p.price_inr.toLocaleString("en-IN")}</p>
+            <p className="font-card text-lg font-bold text-gray-900">₹{p.price_inr.toLocaleString("en-IN")}</p>
           )}
           {p.rating_avg > 0 && (
             <div className="flex items-center gap-1 justify-end mt-0.5">
@@ -385,7 +385,8 @@ function GeneratingState() {
         Building your skin roadmap
       </h2>
       <p className="text-gray-500 text-sm mb-8 text-center max-w-xs">
-        Our AI dermatologist is analysing your results and matching products from the Indian catalog.
+        Generating your personalised routine — this may take up to a minute.
+        Hang tight, it&apos;s worth the wait.
       </p>
       <div className="w-full max-w-sm space-y-3">
         {GENERATING_STEPS.map((label, i) => (
@@ -486,12 +487,23 @@ export default function ResultsPage() {
         <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
         <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
         <p className="text-gray-500 text-sm mb-6 max-w-xs">{errorMsg}</p>
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="px-6 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
-        >
-          Back to Dashboard
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              // Re-run generation from scratch (clears the one-shot init guard)
+              if (typeof window !== "undefined") window.location.reload();
+            }}
+            className="px-6 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
+          >
+            Try again
+          </button>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-6 py-2 bg-white border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:border-gray-300 transition-colors"
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
@@ -852,7 +864,7 @@ export default function ResultsPage() {
               <div>
                 <p className="text-sm font-bold text-gray-700">AI-Generated Recommendation</p>
                 <p className="text-xs text-gray-500">
-                  Powered by Claude AI. For diagnosed conditions, consult a dermatologist.
+                  Powered by the SkinAI Intelligence Engine. For diagnosed conditions, consult a dermatologist.
                 </p>
               </div>
             </>

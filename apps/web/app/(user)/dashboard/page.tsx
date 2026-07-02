@@ -66,7 +66,7 @@ function StatCard({
       </div>
       <div className="min-w-0">
         <p className="text-xs text-zinc-400 font-medium truncate">{label}</p>
-        <p className="text-xl font-bold text-zinc-900 leading-tight">{value}</p>
+        <p className="font-number text-xl font-bold text-zinc-900 leading-tight">{value}</p>
         {sub && <p className="text-xs text-zinc-400 mt-0.5 truncate">{sub}</p>}
       </div>
     </motion.div>
@@ -230,7 +230,7 @@ export default function DashboardPage() {
                 <span className="font-bold text-lg text-skin-800">SkinAI</span>
               </Link>
             </div>
-            <h1 className="text-2xl font-bold text-zinc-900">
+            <h1 className="font-heading text-2xl font-bold text-zinc-900">
               Welcome, {firstName}! 👋
             </h1>
             <p className="text-zinc-500 mt-1 text-sm leading-relaxed">
@@ -291,7 +291,7 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
         >
-          <h1 className="text-2xl font-bold text-zinc-900">
+          <h1 className="font-heading text-2xl font-bold text-zinc-900">
             {greeting()}, {firstName} 👋
           </h1>
           <p className="text-zinc-500 mt-1 text-sm">
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                   ? `${summary.total_improvement > 0 ? "+" : ""}${summary.total_improvement.toFixed(1)} from baseline`
                   : "No scans yet"
               }
-              accent="bg-skin-50"
+              accent="bg-teal-50"
             />
             <StatCard
               icon="🔥"
@@ -380,11 +380,11 @@ export default function DashboardPage() {
               delay={0.1}
             />
             <ActionCard
-              href="/results"
+              href="/history"
               icon="📋"
-              title="My Results"
-              description="View past scan history"
-              gradient="bg-gradient-to-r from-violet-400 to-indigo-500"
+              title="My History"
+              description="Past scans, answers & plans"
+              gradient="bg-gradient-to-r from-gray-400 to-gray-600"
               delay={0.15}
             />
             <ActionCard
@@ -392,7 +392,7 @@ export default function DashboardPage() {
               icon="📈"
               title="Track Progress"
               description="Skin score & routine log"
-              gradient="bg-gradient-to-r from-emerald-400 to-teal-500"
+              gradient="bg-gradient-to-r from-teal-400 to-teal-600"
               delay={0.2}
             />
             <ActionCard
@@ -400,7 +400,7 @@ export default function DashboardPage() {
               icon="🗺️"
               title="My Roadmap"
               description="Personalised care plan"
-              gradient="bg-gradient-to-r from-amber-400 to-orange-500"
+              gradient="bg-gradient-to-r from-cream-400 to-skin-500"
               delay={0.25}
             />
           </div>

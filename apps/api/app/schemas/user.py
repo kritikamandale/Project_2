@@ -78,6 +78,7 @@ class UserResponse(BaseModel):
     role: str
     is_verified: bool
     is_active: bool
+    onboarding_status: str = "not_started"
     created_at: datetime
     last_login: Optional[datetime] = None
 

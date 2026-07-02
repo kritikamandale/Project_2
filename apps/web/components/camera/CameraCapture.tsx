@@ -23,6 +23,10 @@ import {
   type SkinType,
 } from "@/lib/ai/skinAnalysis";
 
+// localStorage flag set after the analysis models load successfully once —
+// used to show "first time takes longer" copy only on genuinely fresh visits.
+const MODELS_CACHED_KEY = "skinai_models_cached_v1";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -374,10 +378,24 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   const lightingCanvasRef = useRef<HTMLCanvasElement>(null);
   const countdownRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Allow capture in good/acceptable lighting; face-detection is advisory only
+  // On-device model readiness. "idle" → loading is kicked off by the effect
+  // below; firstTime differentiates the (slower) first visit copy from
+  // subsequent cached loads.
+  const [modelState, setModelState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [firstTime] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(MODELS_CACHED_KEY) !== "1";
+    } catch {
+      return true;
+    }
+  });
+
+  // Allow capture in good/acceptable lighting once the models are ready;
+  // face-detection is advisory only
   const canCapture =
     state.status === "active" &&
-    lighting.quality !== "poor";
+    lighting.quality !== "poor" &&
+    modelState === "ready";
 
   // ---------------------------------------------------------------------------
   // Real-time lighting analysis loop (every animation frame)
@@ -445,13 +463,25 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   }, [state.status, faceGuide, lighting]);
 
   // ---------------------------------------------------------------------------
-  // Pre-load TF.js model while camera is active
+  // Pre-load the on-device analysis models while the camera is active.
+  // The download + GPU warm-up can take a while (especially on a first visit
+  // when nothing is browser-cached), so surface a visible, reassuring loading
+  // state and hold the shutter disabled until everything is ready.
   // ---------------------------------------------------------------------------
   useEffect(() => {
-    if (state.status === "active") {
-      loadSkinModel().catch(() => {/* handled in analyzeFrame */});
-    }
-  }, [state.status]);
+    if (state.status !== "active" || modelState !== "idle") return;
+    setModelState("loading");
+    loadSkinModel()
+      .then(() => {
+        setModelState("ready");
+        try {
+          localStorage.setItem(MODELS_CACHED_KEY, "1");
+        } catch { /* private mode — treat every visit as first-time */ }
+      })
+      .catch(() => setModelState("error"));
+  }, [state.status, modelState]);
+
+  const retryModelLoad = useCallback(() => setModelState("idle"), []);
 
   // ---------------------------------------------------------------------------
   // Countdown
@@ -494,22 +524,22 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
     // the <video> unmounts as soon as we leave the countdown state.
     const { dataUrl, canvas: frameCanvas } = captureExifStrippedFrame(video);
 
-    dispatch({ type: "ANALYZING", step: "Preprocessing image…", progress: 15 });
+    dispatch({ type: "ANALYZING", step: "Getting your photo ready…", progress: 15 });
     await tick();
 
     try {
-      dispatch({ type: "ANALYZING", step: "Loading AI model…", progress: 30 });
+      dispatch({ type: "ANALYZING", step: "This can take a moment — analysing your skin…", progress: 30 });
       await tick();
 
-      dispatch({ type: "ANALYZING", step: "Detecting skin features…", progress: 55 });
+      dispatch({ type: "ANALYZING", step: "Looking closely at your skin…", progress: 55 });
       const bounds = faceGuide.bounds ?? undefined;
       const lightingScore = lighting.mean / 255;
       const result = await analyzeFrame(frameCanvas, bounds, lightingScore);
 
-      dispatch({ type: "ANALYZING", step: "Classifying skin type…", progress: 75 });
+      dispatch({ type: "ANALYZING", step: "Working out your skin type…", progress: 75 });
       await tick();
 
-      dispatch({ type: "ANALYZING", step: "Mapping conditions…", progress: 90 });
+      dispatch({ type: "ANALYZING", step: "Almost there — summarising what we found…", progress: 90 });
       await tick();
 
       dispatch({ type: "PREVIEW", dataUrl, result });
@@ -590,7 +620,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
         <span>
           Your photo never leaves your device. We analyse your skin locally and only
           send skin characteristics — not your image.{" "}
-          <a href="/DATA_PRIVACY.md" target="_blank" rel="noreferrer" className="underline text-violet-300">
+          <a href="/DATA_PRIVACY.md" target="_blank" rel="noreferrer" className="underline text-teal-300">
             Learn more
           </a>
         </span>
@@ -661,6 +691,39 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           )}
         </AnimatePresence>
 
+        {/* ── Model preparation status (download + warm-up) ──────────── */}
+        <AnimatePresence>
+          {state.status === "active" && modelState !== "ready" && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="absolute top-20 left-0 right-0 flex justify-center px-6"
+            >
+              {modelState === "error" ? (
+                <button
+                  onClick={retryModelLoad}
+                  className="flex items-center gap-2 bg-rose-500/90 rounded-full px-4 py-2 backdrop-blur-sm hover:bg-rose-500 transition-colors"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                  <span className="text-xs text-white font-medium">
+                    Couldn&apos;t get the analysis ready — tap to retry
+                  </span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2.5 bg-black/60 rounded-full px-4 py-2 backdrop-blur-sm">
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-teal-400 border-t-transparent animate-spin shrink-0" />
+                  <span className="text-xs text-white/90">
+                    {firstTime
+                      ? "Setting things up for your first scan — this takes a little longer the first time…"
+                      : "Getting your scan ready — just a moment…"}
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* ── Countdown overlay ──────────────────────────────────────── */}
         <AnimatePresence>
           {state.status === "countdown" && state.countdown > 0 && (
@@ -688,24 +751,24 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               exit={{ opacity: 0 }}
               className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-6"
             >
-              <div className="w-16 h-16 rounded-full border-4 border-violet-500 border-t-transparent animate-spin" />
+              <div className="w-16 h-16 rounded-full border-4 border-teal-500 border-t-transparent animate-spin" />
               <div className="text-center space-y-2">
                 <p className="text-white font-semibold">{state.analysisStep || "Analysing skin…"}</p>
                 <div className="w-64 h-1.5 bg-white/20 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full"
+                    className="h-full bg-gradient-to-r from-teal-500 to-teal-700 rounded-full"
                     style={{ width: `${state.analysisProgress}%` }}
                     transition={{ duration: 0.4 }}
                   />
                 </div>
-                <p className="text-xs text-white/50">{state.analysisProgress}%</p>
+                <p className="font-number text-xs text-white/50">{state.analysisProgress}%</p>
               </div>
               {/* Step indicators */}
               <div className="flex gap-3 text-xs text-white/60">
-                {["Preprocessing", "Inference", "Conditions", "Saving"].map((s, i) => (
+                {["Photo", "Analysis", "Skin check", "Saving"].map((s, i) => (
                   <span
                     key={s}
-                    className={state.analysisProgress > i * 25 ? "text-violet-400" : ""}
+                    className={state.analysisProgress > i * 25 ? "text-teal-400" : ""}
                   >
                     {i > 0 && <span className="mr-3 opacity-30">›</span>}
                     {s}
@@ -745,14 +808,14 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                 <h3 className="text-white font-semibold text-lg">Analysis complete</h3>
                 <p className="text-white/60 text-sm">
                   Skin type:{" "}
-                  <span className="text-violet-300 font-medium capitalize">
+                  <span className="text-teal-300 font-medium capitalize">
                     {state.result.skin_type}
                   </span>{" "}
-                  ({Math.round(state.result.skin_type_confidence * 100)}% confidence)
+                  (<span className="font-number">{Math.round(state.result.skin_type_confidence * 100)}%</span> confidence)
                 </p>
                 <p className="text-white/60 text-sm">
                   Fitzpatrick tone:{" "}
-                  <span className="text-indigo-300 font-medium">
+                  <span className="text-teal-300 font-medium">
                     Type {state.result.fitzpatrick_tone}
                   </span>
                 </p>
@@ -789,7 +852,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                   Retake
                 </Button>
                 <Button
-                  className="flex-1 bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
+                  className="flex-1 bg-skin-500 hover:bg-skin-600 text-white"
                   onClick={handleConfirm}
                 >
                   Confirm
@@ -860,7 +923,13 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           >
             <div className="text-center text-xs text-white/40 w-24">
               {!canCapture && (
-                <span>{lighting.quality === "poor" ? "Need better lighting" : "Position face"}</span>
+                <span>
+                  {modelState !== "ready"
+                    ? "Preparing…"
+                    : lighting.quality === "poor"
+                    ? "Need better lighting"
+                    : "Position face"}
+                </span>
               )}
             </div>
 
@@ -935,14 +1004,14 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                     onClick={() => dispatch({ type: "SET_MANUAL_SKIN", value: opt.type })}
                     className={`text-left p-4 rounded-xl border transition-all ${
                       state.manualSkinType === opt.type
-                        ? "border-violet-500 bg-violet-500/10"
+                        ? "border-skin-500 bg-skin-500/10"
                         : "border-white/10 bg-white/5 hover:border-white/30"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-white font-medium">{opt.label}</span>
                       {state.manualSkinType === opt.type && (
-                        <span className="text-violet-400 text-xs">Selected ✓</span>
+                        <span className="text-skin-400 text-xs">Selected ✓</span>
                       )}
                     </div>
                     <p className="text-white/60 text-sm">{opt.description}</p>
@@ -953,7 +1022,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                         </li>
                       ))}
                     </ul>
-                    <p className="mt-2 text-xs text-indigo-300/70">{opt.fitzpatrickNote}</p>
+                    <p className="mt-2 text-xs text-teal-300/70">{opt.fitzpatrickNote}</p>
                   </button>
                 ))}
               </div>
@@ -988,7 +1057,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               <Button
                 onClick={handleManualSubmit}
                 disabled={!state.manualSkinType || !state.manualFitzpatrick}
-                className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white"
+                className="w-full bg-skin-500 hover:bg-skin-600 text-white"
               >
                 Continue
               </Button>

@@ -24,6 +24,7 @@ from app.schemas.scan import (
     ScanSubmitRequest,
     ScanSubmitResponse,
 )
+from app.services import onboarding_service
 from app.services.skin_analysis import SkinAnalysisService
 
 router = APIRouter()
@@ -92,6 +93,9 @@ async def submit_scan(
             affected_zone=cond.zone,
             confidence_score=cond.confidence,
         ))
+
+    # Step 2 of onboarding complete — advance the gate (advance-only, USER role only).
+    onboarding_service.advance_onboarding(current_user, "scan_done")
 
     await db.commit()
 

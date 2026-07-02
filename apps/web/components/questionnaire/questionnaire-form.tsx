@@ -167,7 +167,7 @@ function ProgressBar({ current, completed }: { current: number; completed: numbe
                 <div
                   className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
                     isCurrent
-                      ? "bg-indigo-600 text-white shadow-md scale-105"
+                      ? "bg-skin-600 text-white shadow-md scale-105"
                       : isDone
                       ? "bg-emerald-100 text-emerald-700"
                       : "bg-gray-100 text-gray-400"
@@ -189,7 +189,7 @@ function ProgressBar({ current, completed }: { current: number; completed: numbe
         </div>
         <div className="mt-2 h-1 bg-gray-100 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-indigo-500 rounded-full"
+            className="h-full bg-skin-500 rounded-full"
             animate={{ width: `${((current - 1) / 8) * 100}%` }}
             transition={{ duration: 0.4, ease: "easeOut" }}
           />
@@ -230,13 +230,13 @@ function SectionIntroCard({
       className="flex flex-col items-center justify-center min-h-[280px] text-center px-6 py-10"
     >
       <div className="text-6xl mb-4">{section.icon}</div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">{section.title}</h2>
+      <h2 className="font-heading text-2xl font-bold text-gray-900 mb-2">{section.title}</h2>
       <p className="text-gray-500 max-w-sm text-sm leading-relaxed mb-6">
         {SECTION_WHY[section.id]}
       </p>
       <button
         onClick={onContinue}
-        className="text-indigo-600 text-sm font-medium underline underline-offset-2"
+        className="text-skin-600 text-sm font-medium underline underline-offset-2"
       >
         Skip intro →
       </button>
@@ -267,9 +267,9 @@ function ClimateCard({ profile }: { profile: ClimateProfile }) {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 280, damping: 22 }}
-      className="mt-6 rounded-2xl bg-gradient-to-br from-sky-50 via-indigo-50 to-violet-50 border border-indigo-100 p-5 shadow-sm"
+      className="mt-6 rounded-2xl bg-gradient-to-br from-teal-50 via-skin-50 to-cream-50 border border-skin-100 p-5 shadow-sm"
     >
-      <p className="text-xs text-indigo-500 font-semibold uppercase tracking-wider mb-2">
+      <p className="text-xs text-skin-500 font-semibold uppercase tracking-wider mb-2">
         Your Climate Profile
       </p>
       <p className="text-xl font-bold text-gray-900 mb-1">
@@ -291,7 +291,7 @@ function ClimateCard({ profile }: { profile: ClimateProfile }) {
             {emoji} {text}
           </span>
         ))}
-        <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-indigo-100 text-indigo-700">
+        <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-skin-100 text-skin-700">
           {zoneLabel[profile.climate_zone] ?? profile.climate_zone}
         </span>
       </div>
@@ -320,7 +320,7 @@ function RangeSlider({
 }) {
   return (
     <div className="space-y-3">
-      <div className="text-center text-3xl font-bold text-indigo-600">{formatLabel(value)}</div>
+      <div className="text-center text-3xl font-bold text-skin-600">{formatLabel(value)}</div>
       <SliderPrimitive.Root
         className="relative flex items-center select-none touch-none w-full h-10"
         value={[value]}
@@ -330,10 +330,10 @@ function RangeSlider({
         step={step}
       >
         <SliderPrimitive.Track className="bg-gray-200 relative grow rounded-full h-2">
-          <SliderPrimitive.Range className="absolute bg-indigo-500 rounded-full h-full" />
+          <SliderPrimitive.Range className="absolute bg-skin-500 rounded-full h-full" />
         </SliderPrimitive.Track>
         <SliderPrimitive.Thumb
-          className="block w-6 h-6 bg-white border-2 border-indigo-500 rounded-full shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-shadow"
+          className="block w-6 h-6 bg-white border-2 border-skin-500 rounded-full shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-skin-400 transition-shadow"
           aria-label="value"
         />
       </SliderPrimitive.Root>
@@ -367,12 +367,12 @@ function CardOption({
       onClick={onClick}
       className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 p-4 text-center transition-all active:scale-95 ${
         selected
-          ? "border-indigo-500 bg-indigo-50 shadow-md"
-          : "border-gray-200 bg-white hover:border-indigo-200"
+          ? "border-skin-500 bg-skin-50 shadow-md"
+          : "border-gray-200 bg-white hover:border-skin-200"
       }`}
     >
       <span className="text-2xl">{emoji}</span>
-      <span className={`text-sm font-semibold ${selected ? "text-indigo-700" : "text-gray-800"}`}>
+      <span className={`text-sm font-semibold ${selected ? "text-skin-700" : "text-gray-800"}`}>
         {label}
       </span>
       {sub && <span className="text-xs text-gray-400 leading-tight">{sub}</span>}
@@ -546,7 +546,7 @@ function CityAutocomplete({ value, onChange }: { value: string; onChange: (city:
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder="Start typing your city…"
-        className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-indigo-400 focus:outline-none transition-colors"
+        className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-skin-400 focus:outline-none transition-colors"
       />
       {open && filtered.length > 0 && (
         <ul className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
@@ -558,7 +558,7 @@ function CityAutocomplete({ value, onChange }: { value: string; onChange: (city:
                 onChange(city);
                 setOpen(false);
               }}
-              className="px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 cursor-pointer"
+              className="px-4 py-2.5 text-sm text-gray-700 hover:bg-skin-50 cursor-pointer"
             >
               📍 {city}
             </li>
@@ -654,8 +654,8 @@ function Section3Stress({ answers, update }: { answers: Answers; update: <K exte
               onClick={() => update("stressLevel", level)}
               className={`rounded-xl py-3 text-sm font-bold transition-all active:scale-95 ${
                 answers.stressLevel === level
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-gray-100 text-gray-600 hover:bg-indigo-50"
+                  ? "bg-skin-600 text-white shadow-md"
+                  : "bg-gray-100 text-gray-600 hover:bg-skin-50"
               }`}
             >
               {level}
@@ -761,7 +761,7 @@ function Section5Location({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center gap-2 text-sm text-indigo-500 py-3"
+          className="flex items-center gap-2 text-sm text-skin-500 py-3"
         >
           <motion.span
             animate={{ rotate: 360 }}
@@ -847,7 +847,7 @@ function Section6Routine({ answers, update }: { answers: Answers; update: <K ext
           onChange={(e) => update("knownAllergens", e.target.value)}
           placeholder="e.g. fragrance, retinol, niacinamide…"
           rows={2}
-          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-indigo-400 focus:outline-none resize-none transition-colors"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-skin-400 focus:outline-none resize-none transition-colors"
         />
       </QuestionBlock>
       <QuestionBlock label="Products you currently use (optional)">
@@ -856,7 +856,7 @@ function Section6Routine({ answers, update }: { answers: Answers; update: <K ext
           onChange={(e) => update("currentProducts", e.target.value)}
           placeholder="e.g. CeraVe Cleanser, Minimalist Niacinamide 10%…"
           rows={2}
-          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-indigo-400 focus:outline-none resize-none transition-colors"
+          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-skin-400 focus:outline-none resize-none transition-colors"
         />
       </QuestionBlock>
     </div>
@@ -910,7 +910,7 @@ function Section7Health({ answers, update }: { answers: Answers; update: <K exte
                 onChange={(e) => update("medicationName", e.target.value)}
                 placeholder="e.g. isotretinoin, doxycycline, topical steroids…"
                 rows={2}
-                className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-indigo-400 focus:outline-none resize-none transition-colors"
+                className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-skin-400 focus:outline-none resize-none transition-colors"
               />
             </QuestionBlock>
           </motion.div>
@@ -1220,7 +1220,7 @@ export function QuestionnaireForm({
         <div className="flex flex-col gap-2 w-full max-w-xs mt-2">
           <button
             onClick={handleResume}
-            className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 transition-colors"
+            className="w-full bg-skin-600 text-white font-semibold py-3 rounded-xl hover:bg-skin-700 transition-colors"
           >
             Resume where I left off
           </button>
@@ -1240,7 +1240,7 @@ export function QuestionnaireForm({
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-6 text-center">
         <div className="text-5xl">🌿</div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Lifestyle Questionnaire</h2>
+          <h2 className="font-heading text-2xl font-bold text-gray-900 mb-2">Lifestyle Questionnaire</h2>
           <p className="text-gray-500 text-sm max-w-sm leading-relaxed">
             7 quick sections about your daily habits. Takes about 4 minutes. Your answers directly
             improve the accuracy of your personalised skin analysis.
@@ -1255,7 +1255,7 @@ export function QuestionnaireForm({
         </div>
         <button
           onClick={() => { setPhase("section"); setShowIntro(true); }}
-          className="bg-indigo-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-indigo-700 active:scale-95 transition-all shadow-md shadow-indigo-200"
+          className="bg-skin-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-skin-700 active:scale-95 transition-all shadow-md shadow-skin-200"
         >
           Begin →
         </button>
@@ -1332,7 +1332,7 @@ export function QuestionnaireForm({
                 <span>{sectionConfig.icon}</span>
                 {sectionConfig.title}
               </h2>
-              <p className="text-xs text-indigo-500 mb-6 leading-relaxed">
+              <p className="text-xs text-skin-500 mb-6 leading-relaxed">
                 {SECTION_WHY[currentSection]}
               </p>
 
@@ -1378,7 +1378,7 @@ export function QuestionnaireForm({
               disabled={!isComplete}
               className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${
                 isComplete
-                  ? "bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95 shadow-md shadow-indigo-200"
+                  ? "bg-skin-600 text-white hover:bg-skin-700 active:scale-95 shadow-md shadow-skin-200"
                   : "bg-gray-100 text-gray-400 cursor-not-allowed"
               }`}
             >

@@ -183,3 +183,38 @@ export async function submitRecommendationFeedback(
     body: JSON.stringify({ rating, text: text ?? null }),
   });
 }
+
+// ---------------------------------------------------------------------------
+// History
+// ---------------------------------------------------------------------------
+
+export interface RecommendationHistoryItem {
+  id: string;
+  scan_id: string | null;
+  questionnaire_id: string | null;
+  generated_at: string;
+  skin_score: number | null;
+  roadmap_weeks: number;
+  estimated_monthly_cost_inr: number | null;
+  products_count: number;
+  is_dermatologist_reviewed: boolean;
+  requires_derm_review: boolean;
+  feedback_rating: number | null;
+}
+
+export interface PaginatedRecommendationHistory {
+  items: RecommendationHistoryItem[];
+  total: number;
+  page: number;
+  per_page: number;
+  has_more: boolean;
+}
+
+export async function getRecommendationHistory(
+  page = 1,
+  perPage = 20,
+): Promise<PaginatedRecommendationHistory> {
+  return apiFetch<PaginatedRecommendationHistory>(
+    `/history?page=${page}&per_page=${perPage}`,
+  );
+}

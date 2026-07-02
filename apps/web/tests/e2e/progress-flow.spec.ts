@@ -26,7 +26,10 @@ async function loginAsTestUser(page: Page): Promise<boolean> {
   await page.click('button[type="submit"], button:has-text("Login"), button:has-text("Sign in")');
 
   try {
-    await page.waitForURL(`${BASE_URL}/dashboard**`, { timeout: 8_000 });
+    // A completed test user lands on /dashboard; a fresh one is sent into the
+    // gated onboarding flow (/onboarding/*). Accept either as "logged in".
+    // The post-onboarding tests below assume a completed pre-seeded fixture user.
+    await page.waitForURL(/\/(dashboard|onboarding)(\/|$|\?)/, { timeout: 8_000 });
     return true;
   } catch {
     return false;

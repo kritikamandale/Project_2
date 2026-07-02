@@ -90,6 +90,7 @@ const authConfig: NextAuthConfig = {
             name: data.user.full_name,
             role: data.user.role,
             isVerified: data.user.is_verified,
+            onboardingStatus: data.user.onboarding_status ?? "not_started",
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
             accessTokenExpires: Date.now() + 14 * 60 * 1000,
@@ -104,7 +105,7 @@ const authConfig: NextAuthConfig = {
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       // Initial sign-in — seed token from authorize() return value
       if (user) {
         return {
@@ -112,11 +113,20 @@ const authConfig: NextAuthConfig = {
           id: user.id,
           role: (user as any).role,
           isVerified: (user as any).isVerified,
+          onboardingStatus: (user as any).onboardingStatus ?? "not_started",
           accessToken: (user as any).accessToken,
           refreshToken: (user as any).refreshToken,
           accessTokenExpires: (user as any).accessTokenExpires,
           error: undefined,
         };
+      }
+
+      // Client-driven refresh of onboarding progress via useSession().update():
+      // after each onboarding step completes we push the new status into the JWT
+      // so the edge middleware gate opens without waiting for a full re-login.
+      if (trigger === "update" && (session as any)?.onboardingStatus) {
+        token.onboardingStatus = (session as any).onboardingStatus;
+        return token;
       }
 
       // Access token still valid
@@ -145,6 +155,7 @@ const authConfig: NextAuthConfig = {
         id: token.id,
         role: token.role,
         isVerified: token.isVerified,
+        onboardingStatus: (token as any).onboardingStatus ?? "not_started",
       };
       (session as any).accessToken = token.accessToken;
       (session as any).error = token.error;

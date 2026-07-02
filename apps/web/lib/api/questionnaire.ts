@@ -190,3 +190,35 @@ export async function updateQuestionnaire(
 export async function getIndianCities(): Promise<string[]> {
   return apiFetch<string[]>("/cities");
 }
+
+// ---------------------------------------------------------------------------
+// History
+// ---------------------------------------------------------------------------
+
+export interface QuestionnaireHistoryItem {
+  id: string;
+  submitted_at: string;
+  questionnaire_version: number | null;
+  sleep_hours_avg: number | null;
+  stress_level: number | null;
+  water_intake_liters: number | null;
+  diet_type: string | null;
+  screen_time_hours: number | null;
+  sunscreen_use: string | null;
+  exercise_frequency: string | null;
+}
+
+export interface PaginatedQuestionnaires {
+  items: QuestionnaireHistoryItem[];
+  total: number;
+  page: number;
+  per_page: number;
+  has_more: boolean;
+}
+
+export async function getQuestionnaireHistory(
+  page = 1,
+  perPage = 20,
+): Promise<PaginatedQuestionnaires> {
+  return apiFetch<PaginatedQuestionnaires>(`/history?page=${page}&per_page=${perPage}`);
+}

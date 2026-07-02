@@ -184,14 +184,27 @@ class RecommendationGenerateResponse(BaseModel):
 
 class RecommendationListItem(BaseModel):
     id: uuid.UUID
+    # Cycle linkage — lets the history view group questionnaire + scan + rec together
+    scan_id: Optional[uuid.UUID] = None
+    questionnaire_id: Optional[uuid.UUID] = None
     generated_at: datetime
     skin_score: Optional[float] = None
+    roadmap_weeks: int = 20
+    estimated_monthly_cost_inr: Optional[float] = None
     products_count: int = 0
     is_dermatologist_reviewed: bool
     requires_derm_review: bool
     feedback_rating: Optional[int] = None
 
     model_config = {"from_attributes": True}
+
+
+class PaginatedRecommendations(BaseModel):
+    items: list[RecommendationListItem]
+    total: int
+    page: int
+    per_page: int
+    has_more: bool
 
 
 # ---------------------------------------------------------------------------

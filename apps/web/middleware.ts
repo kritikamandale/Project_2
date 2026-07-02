@@ -11,6 +11,19 @@ const ROLE_HOME: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
+// First-time onboarding gate (USER role only)
+// A USER must complete the strict 3-step flow before any post-onboarding route
+// is reachable. Each status maps to the single onboarding sub-route the user is
+// allowed to be on; "completed" unlocks the rest of the app.
+// ---------------------------------------------------------------------------
+const ONBOARDING_STEP_PATH: Record<string, string> = {
+  not_started: "/onboarding/questionnaire",
+  questionnaire_done: "/onboarding/scan",
+  scan_done: "/onboarding/recommendations",
+  completed: "/dashboard",
+};
+
+// ---------------------------------------------------------------------------
 // Route protection rules (checked in order)
 // ---------------------------------------------------------------------------
 type RouteRule = {
@@ -22,7 +35,7 @@ type RouteRule = {
 const ROUTE_RULES: RouteRule[] = [
   // User routes
   {
-    pattern: /^\/(scan|questionnaire|results|roadmap|progress|profile)(\/|$)/,
+    pattern: /^\/(scan|questionnaire|results|roadmap|progress|profile|onboarding|history)(\/|$)/,
     allowedRoles: ["USER"],
     redirectTo: "/login",
   },
@@ -109,6 +122,28 @@ export default auth((req: NextRequest & { auth: any }) => {
         return NextResponse.redirect(new URL(home, req.url));
       }
       break;
+    }
+  }
+
+  // First-time onboarding gate — USER role only. DERMATOLOGIST/ADMIN untouched.
+  if (userRole === "USER") {
+    const onboardingStatus: string =
+      (session.user as any).onboardingStatus ?? "not_started";
+    const onOnboarding = pathname.startsWith("/onboarding");
+
+    if (onboardingStatus !== "completed") {
+      const stepPath = ONBOARDING_STEP_PATH[onboardingStatus] ?? ONBOARDING_STEP_PATH.not_started;
+      // Any post-onboarding route → bounce to the current step.
+      if (!onOnboarding) {
+        return NextResponse.redirect(new URL(stepPath, req.url));
+      }
+      // Inside onboarding but not on the allowed step → no skipping ahead/back.
+      if (pathname !== stepPath) {
+        return NextResponse.redirect(new URL(stepPath, req.url));
+      }
+    } else if (onOnboarding) {
+      // Completed users can't re-enter onboarding by URL; re-scans live in the app.
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
 

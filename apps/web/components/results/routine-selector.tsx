@@ -368,15 +368,15 @@ function SampleProductCard({ product, skinType }: { product: SampleProduct; skin
               <CheckCircle2 className="w-3 h-3" /> Best for your skin
             </span>
           )}
-          <p className="text-sm font-bold text-gray-900 leading-tight">{product.name}</p>
-          <p className="text-xs text-gray-500 mt-0.5 font-medium">{product.brand}</p>
+          <p className="font-card text-sm font-bold text-gray-900 leading-tight">{product.name}</p>
+          <p className="font-card text-xs text-gray-500 mt-0.5 font-medium">{product.brand}</p>
         </div>
-        <p className="text-sm font-bold text-gray-800 shrink-0">
+        <p className="font-card text-sm font-bold text-gray-800 shrink-0">
           ₹{product.priceInr.toLocaleString("en-IN")}
         </p>
       </div>
 
-      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+      <div className="font-card flex items-center gap-1.5 text-xs text-gray-500">
         <Leaf className="w-3.5 h-3.5 text-green-500 shrink-0" />
         <span>
           <span className="font-medium text-gray-700">Key: </span>

@@ -1,5 +1,6 @@
 /**
- * E2E: Full user journey — register → scan → questionnaire → results → roadmap
+ * E2E: Full user journey — gated onboarding: questionnaire → scan → recommendations,
+ * then the unlocked dashboard/results/roadmap.
  *
  * Prerequisites:
  *   - App running at BASE_URL (set via PLAYWRIGHT_BASE_URL env or default)
@@ -89,6 +90,13 @@ test.describe("Camera scan page", () => {
     const response = await page.goto(`${BASE_URL}/scan`);
     const permPolicy = response?.headers()["permissions-policy"] ?? "";
     // camera=(self) or camera=self — both acceptable
+    expect(permPolicy).toMatch(/camera=\(self\)|camera=self/i);
+  });
+
+  test("onboarding scan step also allows camera in Permissions-Policy", async ({ page }) => {
+    // Step 2 of onboarding hosts the same camera pipeline and must be camera-enabled.
+    const response = await page.goto(`${BASE_URL}/onboarding/scan`);
+    const permPolicy = response?.headers()["permissions-policy"] ?? "";
     expect(permPolicy).toMatch(/camera=\(self\)|camera=self/i);
   });
 
