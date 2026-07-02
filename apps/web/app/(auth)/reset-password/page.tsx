@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PasswordStrength } from "@/components/auth/password-strength";
 import { resetPassword } from "@/lib/api/auth";
@@ -133,7 +134,7 @@ export default function ResetPasswordPage() {
                       <FormItem>
                         <FormLabel>New password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" autoComplete="new-password" {...field} />
+                          <PasswordInput placeholder="••••••••" autoComplete="new-password" {...field} />
                         </FormControl>
                         <PasswordStrength password={watchedPassword} className="mt-2" />
                         <FormMessage />
@@ -144,7 +145,7 @@ export default function ResetPasswordPage() {
                       <FormItem>
                         <FormLabel>Confirm new password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" autoComplete="new-password" {...field} />
+                          <PasswordInput placeholder="••••••••" autoComplete="new-password" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -880,12 +880,12 @@ function Section7Health({ answers, update }: { answers: Answers; update: <K exte
           cols={2}
           exclusive={["none", "prefer_not_to_say"]}
           options={[
-            { value: "acne",              emoji: "🔴", label: "Acne"              },
-            { value: "rosacea",           emoji: "🌹", label: "Rosacea"           },
-            { value: "eczema",            emoji: "🌊", label: "Eczema"            },
-            { value: "psoriasis",         emoji: "🔵", label: "Psoriasis"         },
-            { value: "melasma",           emoji: "🟤", label: "Melasma"           },
-            { value: "none",              emoji: "✅", label: "None"              },
+            { value: "acne",              emoji: "🔴", label: "Acne",              sub: "Pimples, blackheads or whiteheads" },
+            { value: "rosacea",           emoji: "🌹", label: "Rosacea",           sub: "Facial redness & visible blood vessels" },
+            { value: "eczema",            emoji: "🌊", label: "Eczema",            sub: "Dry, itchy, inflamed patches of skin" },
+            { value: "psoriasis",         emoji: "🔵", label: "Psoriasis",         sub: "Thick, scaly red patches" },
+            { value: "melasma",           emoji: "🟤", label: "Melasma",           sub: "Brown/grey patches, often on cheeks" },
+            { value: "none",              emoji: "✅", label: "None",              sub: "No diagnosed skin conditions" },
             { value: "prefer_not_to_say", emoji: "🔒", label: "Prefer not to say" },
           ]}
         />
@@ -1141,8 +1141,8 @@ export function QuestionnaireForm({
     setCompleted((prev) => (prev.includes(currentSection) ? prev : [...prev, currentSection]));
     if (currentSection < 8) {
       setCurrentSection((s) => s + 1);
-      setShowIntro(true);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      setShowIntro(false);
+      window.scrollTo({ top: 0, behavior: "auto" });
     } else {
       handleSubmit();
     }

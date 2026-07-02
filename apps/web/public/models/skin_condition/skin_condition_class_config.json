@@ -1,0 +1,51 @@
+{
+  "model_name": "skin_condition_classifier",
+  "model_version": "1.0.0",
+  "task": "skin_condition_classification",
+  "input_shape": [
+    224,
+    224,
+    3
+  ],
+  "num_classes": 4,
+  "class_names": [
+    "acne",
+    "dark_spots",
+    "oiliness",
+    "wrinkles"
+  ],
+  "class_to_index": {
+    "acne": 0,
+    "dark_spots": 1,
+    "oiliness": 2,
+    "wrinkles": 3
+  },
+  "index_to_class": {
+    "0": "acne",
+    "1": "dark_spots",
+    "2": "oiliness",
+    "3": "wrinkles"
+  },
+  "condition_aliases": {
+    "dark_spots": [
+      "dark_spots",
+      "pigmentation"
+    ]
+  },
+  "primary_threshold": 0.5,
+  "secondary_threshold": 0.3,
+  "test_accuracy": 0.9700272679328918,
+  "test_top2_accuracy": 0.9925068020820618,
+  "dataset": "Skin Issues v2 \u2014 ahmedismaiil/skin-issues-version-2-dataset-balanced",
+  "dataset_images": 9770,
+  "framework": "EfficientNetV2-S + DualPool + CosineDecay",
+  "output_activation": "softmax",
+  "maps_to": "ConditionName enum in apps/api/app/models/scan.py",
+  "conditions_covered": [
+    "acne",
+    "dark_spots",
+    "oiliness",
+    "wrinkles"
+  ],
+  "inference_note": "dark_spots prediction also returns pigmentation via condition_aliases"
+}

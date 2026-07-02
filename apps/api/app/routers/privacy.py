@@ -45,66 +45,67 @@ async def erase_account(
 ):
     user_id: uuid.UUID = current_user.id
 
-    async with db.begin():
-        # Revoke all refresh tokens
-        from app.models.user import RefreshToken
-        await db.execute(
-            delete(RefreshToken).where(RefreshToken.user_id == user_id)
-        )
+    # Revoke all refresh tokens
+    from app.models.user import RefreshToken
+    await db.execute(
+        delete(RefreshToken).where(RefreshToken.user_id == user_id)
+    )
 
-        # Hard-delete scan records (feature vectors, analysis results)
-        await db.execute(
-            text("DELETE FROM skin_scans WHERE user_id = :uid"),
-            {"uid": user_id},
-        )
+    # Hard-delete scan records (feature vectors, analysis results)
+    await db.execute(
+        text("DELETE FROM skin_scans WHERE user_id = :uid"),
+        {"uid": user_id},
+    )
 
-        # Hard-delete questionnaire responses
-        await db.execute(
-            text("DELETE FROM questionnaire_responses WHERE user_id = :uid"),
-            {"uid": user_id},
-        )
+    # Hard-delete questionnaire responses
+    await db.execute(
+        text("DELETE FROM questionnaire_responses WHERE user_id = :uid"),
+        {"uid": user_id},
+    )
 
-        # Hard-delete recommendations (cascades recommendation_products)
-        await db.execute(
-            text("DELETE FROM recommendations WHERE user_id = :uid"),
-            {"uid": user_id},
-        )
+    # Hard-delete recommendations (cascades recommendation_products)
+    await db.execute(
+        text("DELETE FROM recommendations WHERE user_id = :uid"),
+        {"uid": user_id},
+    )
 
-        # Hard-delete progress scans, checkins, product feedback
-        await db.execute(
-            text("DELETE FROM progress_scans WHERE user_id = :uid"),
-            {"uid": user_id},
-        )
-        await db.execute(
-            text("DELETE FROM routine_checkins WHERE user_id = :uid"),
-            {"uid": user_id},
-        )
-        await db.execute(
-            text("DELETE FROM product_feedback WHERE user_id = :uid"),
-            {"uid": user_id},
-        )
+    # Hard-delete progress scans, checkins, product feedback
+    await db.execute(
+        text("DELETE FROM progress_scans WHERE user_id = :uid"),
+        {"uid": user_id},
+    )
+    await db.execute(
+        text("DELETE FROM routine_checkins WHERE user_id = :uid"),
+        {"uid": user_id},
+    )
+    await db.execute(
+        text("DELETE FROM product_feedback WHERE user_id = :uid"),
+        {"uid": user_id},
+    )
 
-        # Hard-delete in-app notifications
-        await db.execute(
-            text("DELETE FROM in_app_notifications WHERE user_id = :uid"),
-            {"uid": user_id},
-        )
+    # Hard-delete in-app notifications
+    await db.execute(
+        text("DELETE FROM in_app_notifications WHERE user_id = :uid"),
+        {"uid": user_id},
+    )
 
-        # Keep audit_logs — legally required records; nullify user_id foreign key
-        await db.execute(
-            text(
-                "UPDATE audit_logs SET user_id = NULL, "
-                "metadata = jsonb_set(COALESCE(metadata, '{}'), '{erased}', 'true') "
-                "WHERE user_id = :uid"
-            ),
-            {"uid": user_id},
-        )
+    # Keep audit_logs — legally required records; nullify user_id foreign key
+    await db.execute(
+        text(
+            "UPDATE audit_logs SET user_id = NULL, "
+            "metadata = jsonb_set(COALESCE(metadata, '{}'), '{erased}', 'true') "
+            "WHERE user_id = :uid"
+        ),
+        {"uid": user_id},
+    )
 
-        # Hard-delete user profile and user row (cascades via FK)
-        from app.models.user import User
-        await db.execute(
-            delete(User).where(User.id == user_id)
-        )
+    # Hard-delete user profile and user row (cascades via FK)
+    from app.models.user import User
+    await db.execute(
+        delete(User).where(User.id == user_id)
+    )
+
+    await db.commit()
 
     # Flush Redis keys for this user
     pattern = f"*:{user_id}*"

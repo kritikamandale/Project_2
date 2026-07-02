@@ -145,13 +145,11 @@ async def global_exception_handler(request: Request, exc: Exception):
     import sys
     print(f"GLOBAL EXCEPTION: {exc}", file=sys.stderr)
     traceback.print_exc(file=sys.stderr)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "detail": str(exc),
-            "traceback": traceback.format_exc()
-        }
-    )
+    if settings.is_production:
+        content = {"detail": "Internal server error"}
+    else:
+        content = {"detail": str(exc), "traceback": traceback.format_exc()}
+    return JSONResponse(status_code=500, content=content)
 
 @app.get("/health", tags=["health"])
 async def health_check():

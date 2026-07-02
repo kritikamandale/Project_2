@@ -204,37 +204,67 @@ Select at most 5 products total. Prioritise patient safety — if diagnosed cond
 
 
 # ---------------------------------------------------------------------------
-# Gemini REST helper (no SDK — avoids pydantic/httpx version conflicts)
+# Groq REST helper — OpenAI-compatible chat completions endpoint
 # ---------------------------------------------------------------------------
 
-async def _call_gemini_api(
+async def _call_groq_api(
     api_key: str,
     model: str,
     system_prompt: str,
     user_prompt: str,
     max_tokens: int = 4096,
-    response_json: bool = False,
 ) -> str:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    payload: dict = {
-        "system_instruction": {"parts": [{"text": system_prompt}]},
-        "contents": [{"parts": [{"text": user_prompt}]}],
-        "generationConfig": {
-            "maxOutputTokens": max_tokens,
-        },
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "max_tokens": max_tokens,
+        "response_format": {"type": "json_object"},
     }
-    if response_json:
-        payload["generationConfig"]["responseMimeType"] = "application/json"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.post(url, params={"key": api_key}, json=payload)
+        resp = await client.post(url, json=payload, headers=headers)
         resp.raise_for_status()
         data = resp.json()
 
-    candidates = data.get("candidates", [])
-    if not candidates:
-        raise ValueError(f"Gemini returned no candidates. Response: {data}")
-    return candidates[0]["content"]["parts"][0]["text"].strip()
+    choices = data.get("choices", [])
+    if not choices:
+        raise ValueError(f"Groq returned no choices. Response: {data}")
+    return choices[0]["message"]["content"].strip()
+
+
+# ---------------------------------------------------------------------------
+# Normalize loosely-worded LLM output into the strict schema before validation
+# ---------------------------------------------------------------------------
+
+_TIME_OF_DAY_ALIASES: dict[str, str] = {
+    "morning": "morning",
+    "am": "morning",
+    "night": "night",
+    "pm": "night",
+    "evening": "night",
+    "both": "both",
+    "morning and night": "both",
+    "morning & night": "both",
+    "am and pm": "both",
+    "twice daily": "both",
+    "weekly": "weekly",
+    "once a week": "weekly",
+    "1-2x weekly": "weekly",
+}
+
+
+def _normalize_claude_output(parsed_dict: dict) -> None:
+    for product in parsed_dict.get("products") or []:
+        raw = str(product.get("time_of_day", "")).strip().lower()
+        product["time_of_day"] = _TIME_OF_DAY_ALIASES.get(raw, "both")
 
 
 # ---------------------------------------------------------------------------
@@ -243,8 +273,8 @@ async def _call_gemini_api(
 
 class RecommendationService:
     def __init__(self) -> None:
-        if not settings.gemini_api_key:
-            logger.warning("GEMINI_API_KEY not set — recommendations will fail until configured.")
+        if not settings.groq_api_key:
+            logger.warning("GROQ_API_KEY not set — recommendations will fail until configured.")
         self._pinecone_available = False
         self._pinecone_index = None
         self._try_init_pinecone()
@@ -456,34 +486,27 @@ class RecommendationService:
         user: User,
         candidates: list[dict],
     ) -> ClaudeOutput:
-        if not settings.gemini_api_key:
+        if not settings.groq_api_key:
             raise ValueError(
-                "GEMINI_API_KEY is not set. Get a free key at https://aistudio.google.com/apikey "
+                "GROQ_API_KEY is not set. Get a free key at https://console.groq.com/keys "
                 "and add it to apps/api/.env"
             )
 
         user_prompt = _build_user_prompt(scan, questionnaire, routine, climate, user, candidates)
-        raw_text = await _call_gemini_api(
-            api_key=settings.gemini_api_key,
-            model=settings.gemini_model,
+        raw_text = await _call_groq_api(
+            api_key=settings.groq_api_key,
+            model=settings.groq_model,
             system_prompt=SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            max_tokens=settings.gemini_max_tokens,
-            response_json=True,
+            max_tokens=settings.groq_max_tokens,
         )
-
-        # Strip markdown code fences if the model wrapped the JSON
-        if raw_text.startswith("```"):
-            raw_text = raw_text.split("```")[1]
-            if raw_text.startswith("json"):
-                raw_text = raw_text[4:]
-            raw_text = raw_text.strip()
 
         try:
             parsed_dict = json.loads(raw_text)
+            _normalize_claude_output(parsed_dict)
             return ClaudeOutput(**parsed_dict)
         except Exception as exc:
-            logger.error("Gemini JSON parse failed: %s\nRaw: %s", exc, raw_text[:500])
+            logger.error("Groq JSON parse failed: %s\nRaw: %s", exc, raw_text[:500])
             raise ValueError(f"AI model returned invalid JSON: {exc}") from exc
 
     # ------------------------------------------------------------------
@@ -566,7 +589,7 @@ class RecommendationService:
             db.add(queue_entry)
 
         await db.commit()
-        await db.refresh(rec)
+        await db.refresh(rec, attribute_names=["products"])
         return rec
 
 

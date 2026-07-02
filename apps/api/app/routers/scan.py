@@ -63,36 +63,37 @@ async def submit_scan(
             },
         )
 
-    async with db.begin():
-        scan = SkinScan(
-            user_id=current_user.id,
-            scan_timestamp=datetime.now(timezone.utc),
-            skin_type=payload.skin_type,
-            analysis_confidence_score=payload.skin_type_confidence,
-            lighting_quality_score=payload.lighting_quality_score,
-            image_permanently_deleted=True,
-            image_was_processed_locally=True,
-            image_deleted_at=datetime.now(timezone.utc),
-            raw_analysis_json={
-                "fitzpatrick_tone": payload.fitzpatrick_tone,
-                "model_version": payload.model_version,
-                "analysis_timestamp": payload.analysis_timestamp,
-                "vector_stats": validation.vector_stats,
-                "warnings": validation.warnings,
-                "bias_flag": validation.bias_flag,
-            },
-        )
-        db.add(scan)
-        await db.flush()  # populate scan.id before inserting conditions
+    scan = SkinScan(
+        user_id=current_user.id,
+        scan_timestamp=datetime.now(timezone.utc),
+        skin_type=payload.skin_type,
+        analysis_confidence_score=payload.skin_type_confidence,
+        lighting_quality_score=payload.lighting_quality_score,
+        image_permanently_deleted=True,
+        image_was_processed_locally=True,
+        image_deleted_at=datetime.now(timezone.utc),
+        raw_analysis_json={
+            "fitzpatrick_tone": payload.fitzpatrick_tone,
+            "model_version": payload.model_version,
+            "analysis_timestamp": payload.analysis_timestamp,
+            "vector_stats": validation.vector_stats,
+            "warnings": validation.warnings,
+            "bias_flag": validation.bias_flag,
+        },
+    )
+    db.add(scan)
+    await db.flush()  # populate scan.id before inserting conditions
 
-        for cond in payload.conditions:
-            db.add(SkinCondition(
-                scan_id=scan.id,
-                condition_name=cond.name,
-                severity=cond.severity,
-                affected_zone=cond.zone,
-                confidence_score=cond.confidence,
-            ))
+    for cond in payload.conditions:
+        db.add(SkinCondition(
+            scan_id=scan.id,
+            condition_name=cond.name,
+            severity=cond.severity,
+            affected_zone=cond.zone,
+            confidence_score=cond.confidence,
+        ))
+
+    await db.commit()
 
     bias_message = validation.warnings[0] if validation.bias_flag and validation.warnings else None
 

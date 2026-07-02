@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CameraCapture } from "@/components/camera/CameraCapture";
-import type { SkinAnalysisResult } from "@/lib/ai/skinAnalysis";
+import { loadSkinModel, type SkinAnalysisResult } from "@/lib/ai/skinAnalysis";
 
 type GateStatus = "checking" | "ready" | "needs_questionnaire";
 
@@ -16,6 +16,12 @@ export default function ScanPage() {
     fetch("/api/proxy/questionnaire/latest")
       .then((r) => setGate(r.ok ? "ready" : "needs_questionnaire"))
       .catch(() => setGate("needs_questionnaire"));
+
+    // Kick off the ~105MB model download + WebGL warm-up as soon as the page
+    // opens, so it runs in the background while the user grants camera access
+    // and frames their face — instead of only starting once the camera is live.
+    // Fire-and-forget; CameraCapture/analyzeFrame handle any load failure.
+    loadSkinModel().catch(() => {});
   }, []);
 
   function handleComplete(_result: SkinAnalysisResult, scanId: string) {

@@ -4,12 +4,15 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy.ext.asyncio import create_async_engine
 
 # Import all models so Alembic detects them
 from app.models import User, SkinScan, Recommendation, Product  # noqa: F401
 from app.core.config import settings
-from app.core.database import Base
+# Reuse the app's engine so migrations get the same async-driver coercion and
+# PgBouncer-safe connect_args (statement_cache_size=0, unique prepared-statement
+# names). Building a fresh engine here would fall back to psycopg2 and/or break
+# on the Supabase transaction pooler.
+from app.core.database import Base, engine as app_engine
 
 config = context.config
 if config.config_file_name is not None:
@@ -30,8 +33,7 @@ def run_migrations_offline() -> None:
 
 
 async def run_async_migrations() -> None:
-    engine = create_async_engine(str(settings.database_url), echo=False)
-    async with engine.begin() as conn:
+    async with app_engine.begin() as conn:
         await conn.run_sync(
             lambda sync_conn: context.configure(
                 connection=sync_conn,
@@ -40,7 +42,7 @@ async def run_async_migrations() -> None:
             )
         )
         await conn.run_sync(lambda _: context.run_migrations())
-    await engine.dispose()
+    await app_engine.dispose()
 
 
 def run_migrations_online() -> None:

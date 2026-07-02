@@ -1,0 +1,28 @@
+{
+  "class_names": [
+    "dry",
+    "normal",
+    "oily"
+  ],
+  "class_to_index": {
+    "dry": 0,
+    "normal": 1,
+    "oily": 2
+  },
+  "index_to_class": {
+    "0": "dry",
+    "1": "normal",
+    "2": "oily"
+  },
+  "model_name": "skin_type_classifier",
+  "model_version": "1.0.0",
+  "input_shape": [
+    224,
+    224,
+    3
+  ],
+  "num_classes": 3,
+  "test_accuracy": 0.6577669978141785,
+  "test_top2_accuracy": 0.8737863898277283,
+  "framework": "EfficientNetV2-S + Custom Head"
+}

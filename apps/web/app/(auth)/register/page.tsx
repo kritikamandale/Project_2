@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordStrength } from "@/components/auth/password-strength";
@@ -251,7 +252,7 @@ export default function RegisterPage() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" autoComplete="new-password" {...field} />
+                          <PasswordInput placeholder="••••••••" autoComplete="new-password" {...field} />
                         </FormControl>
                         <PasswordStrength password={watchedPassword} className="mt-2" />
                         <FormMessage />
@@ -262,7 +263,7 @@ export default function RegisterPage() {
                       <FormItem>
                         <FormLabel>Confirm password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" autoComplete="new-password" {...field} />
+                          <PasswordInput placeholder="••••••••" autoComplete="new-password" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

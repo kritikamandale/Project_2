@@ -327,7 +327,7 @@ function captureExifStrippedFrame(
   video: HTMLVideoElement,
   targetWidth = 1280,
   targetHeight = 960,
-): string {
+): { dataUrl: string; canvas: HTMLCanvasElement } {
   const canvas = document.createElement("canvas");
   canvas.width = targetWidth;
   canvas.height = targetHeight;
@@ -335,7 +335,10 @@ function captureExifStrippedFrame(
   // Drawing the video frame to a new canvas and exporting as dataURL discards
   // any EXIF metadata that might have been embedded in the video stream.
   ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
-  return canvas.toDataURL("image/jpeg", 0.92);
+  // Return the canvas too: analysis must run against this frozen frame, not the
+  // live <video>, which unmounts the instant status leaves "countdown" and would
+  // then be a 0×0 element (→ "Requested texture size [0x0] is invalid").
+  return { dataUrl: canvas.toDataURL("image/jpeg", 0.92), canvas };
 }
 
 // ---------------------------------------------------------------------------
@@ -477,11 +480,19 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   const runCapture = useCallback(async () => {
     const video = webcamRef.current?.video;
     if (!video) { dispatch({ type: "ERROR", message: "Camera feed lost" }); return; }
+    // The video must still be a live frame here. If it reports 0×0 the stream
+    // isn't ready — capturing now would produce a blank/invalid frame.
+    if (!video.videoWidth || !video.videoHeight) {
+      dispatch({ type: "ERROR", message: "Camera not ready yet — please wait a moment and try again." });
+      return;
+    }
 
     dispatch({ type: "CAPTURING" });
     // EXIF stripping happens here: drawing to a new canvas and re-exporting
     // as dataURL removes all metadata embedded in the original video frame.
-    const dataUrl = captureExifStrippedFrame(video);
+    // Capture the frozen canvas now (video is still mounted) and analyze THAT —
+    // the <video> unmounts as soon as we leave the countdown state.
+    const { dataUrl, canvas: frameCanvas } = captureExifStrippedFrame(video);
 
     dispatch({ type: "ANALYZING", step: "Preprocessing image…", progress: 15 });
     await tick();
@@ -493,7 +504,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
       dispatch({ type: "ANALYZING", step: "Detecting skin features…", progress: 55 });
       const bounds = faceGuide.bounds ?? undefined;
       const lightingScore = lighting.mean / 255;
-      const result = await analyzeFrame(video, bounds, lightingScore);
+      const result = await analyzeFrame(frameCanvas, bounds, lightingScore);
 
       dispatch({ type: "ANALYZING", step: "Classifying skin type…", progress: 75 });
       await tick();
@@ -735,14 +746,14 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                 <p className="text-white/60 text-sm">
                   Skin type:{" "}
                   <span className="text-violet-300 font-medium capitalize">
-                    {state.result.skinType}
+                    {state.result.skin_type}
                   </span>{" "}
-                  ({Math.round(state.result.skinTypeConfidence * 100)}% confidence)
+                  ({Math.round(state.result.skin_type_confidence * 100)}% confidence)
                 </p>
                 <p className="text-white/60 text-sm">
                   Fitzpatrick tone:{" "}
                   <span className="text-indigo-300 font-medium">
-                    Type {state.result.fitzpatrickTone}
+                    Type {state.result.fitzpatrick_tone}
                   </span>
                 </p>
                 {state.result.conditions.length > 0 && (
@@ -753,7 +764,8 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               </div>
 
               {/* Bias warning */}
-              {state.result.biasFlag && (
+              {(["IV", "V", "VI"] as FitzpatrickTone[]).includes(state.result.fitzpatrick_tone) &&
+                state.result.skin_type_confidence < 0.70 && (
                 <Alert className="bg-amber-900/40 border-amber-600/50 max-w-sm">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
                   <AlertDescription className="text-amber-200 text-xs">

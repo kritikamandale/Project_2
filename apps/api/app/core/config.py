@@ -22,6 +22,9 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
         env_ignore_empty=True,  # treat VAR= as unset (use field default)
+        str_strip_whitespace=True,  # trim stray spaces/newlines in env values
+                                    # (e.g. "GROQ_API_KEY= gsk_..." would otherwise
+                                    # send a malformed "Bearer  <key>" header)
     )
 
     # -------------------------------------------------------------------------
@@ -121,12 +124,12 @@ class Settings(BaseSettings):
     s3_lifecycle_expiry_days: int = 1
 
     # -------------------------------------------------------------------------
-    # Google Gemini (recommendation engine — free tier: 1M tokens/day)
-    # Get a free key at https://aistudio.google.com/apikey
+    # Groq (recommendation engine — free tier: 14,400 req/day)
+    # Get a free key at https://console.groq.com/keys
     # -------------------------------------------------------------------------
-    gemini_api_key: str = ""
-    gemini_model: str = "gemini-1.5-flash"
-    gemini_max_tokens: int = 4096
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
+    groq_max_tokens: int = 4096
 
     # -------------------------------------------------------------------------
     # Pinecone (product vector embeddings — optional)

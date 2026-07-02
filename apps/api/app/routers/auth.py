@@ -217,14 +217,14 @@ async def logout(
     else:
         jti = ""
 
-    async with db.begin():
-        await auth_service.logout_user(
-            db, redis,
-            user_id=current_user.id,
-            jti=jti,
-            access_token_remaining_ttl=remaining_ttl,
-            opaque_refresh_token=body.refresh_token,
-        )
+    await auth_service.logout_user(
+        db, redis,
+        user_id=current_user.id,
+        jti=jti,
+        access_token_remaining_ttl=remaining_ttl,
+        opaque_refresh_token=body.refresh_token,
+    )
+    await db.commit()
     return MessageResponse(message="Logged out successfully")
 
 

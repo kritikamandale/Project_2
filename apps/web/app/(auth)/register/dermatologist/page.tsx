@@ -19,6 +19,7 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PasswordStrength } from "@/components/auth/password-strength";
 import { registerDermatologist } from "@/lib/api/auth";
@@ -203,7 +204,7 @@ export default function DermatologistRegisterPage() {
                     <FormField control={form.control} name="password" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Password</FormLabel>
-                        <FormControl><Input type="password" placeholder="••••••••" autoComplete="new-password" {...field} /></FormControl>
+                        <FormControl><PasswordInput placeholder="••••••••" autoComplete="new-password" {...field} /></FormControl>
                         <PasswordStrength password={watchedPassword} className="mt-2" />
                         <FormMessage />
                       </FormItem>
@@ -211,7 +212,7 @@ export default function DermatologistRegisterPage() {
                     <FormField control={form.control} name="confirmPassword" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Confirm password</FormLabel>
-                        <FormControl><Input type="password" placeholder="••••••••" autoComplete="new-password" {...field} /></FormControl>
+                        <FormControl><PasswordInput placeholder="••••••••" autoComplete="new-password" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />

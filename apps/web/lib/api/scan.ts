@@ -92,20 +92,20 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
  */
 export async function submitScan(result: SkinAnalysisResult): Promise<ScanSubmitResponse> {
   const body = {
-    skin_type: result.skinType,
-    skin_type_confidence: result.skinTypeConfidence,
-    fitzpatrick_tone: result.fitzpatrickTone,
+    skin_type: result.skin_type,
+    skin_type_confidence: result.skin_type_confidence,
+    fitzpatrick_tone: result.fitzpatrick_tone,
     conditions: result.conditions.map((c) => ({
       name: c.name,
       severity: c.severity,
       zone: c.zone,
       confidence: c.confidence,
     })),
-    lighting_quality_score: result.lightingQualityScore,
-    feature_vector: result.featureVector,
-    model_version: result.modelVersion,
+    lighting_quality_score: result.lighting_quality_score,
+    feature_vector: result.feature_vector,
+    model_version: result.model_version,
     processed_locally: true as const,
-    analysis_timestamp: result.analysisTimestamp,
+    analysis_timestamp: result.analysis_timestamp,
   };
 
   return apiFetch<ScanSubmitResponse>("scan/submit", {

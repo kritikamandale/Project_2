@@ -20,6 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -223,8 +224,7 @@ export default function LoginPage() {
                       </Link>
                     </div>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder="••••••••"
                         autoComplete="current-password"
                         {...field}

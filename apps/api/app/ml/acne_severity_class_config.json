@@ -1,0 +1,42 @@
+{
+  "model_name": "acne_severity_classifier",
+  "model_version": "1.0.0",
+  "task": "acne_severity_grading",
+  "input_shape": [
+    224,
+    224,
+    3
+  ],
+  "num_classes": 4,
+  "class_names": [
+    "none",
+    "mild",
+    "moderate",
+    "severe"
+  ],
+  "class_to_index": {
+    "none": 0,
+    "mild": 1,
+    "moderate": 2,
+    "severe": 3
+  },
+  "index_to_class": {
+    "0": "none",
+    "1": "mild",
+    "2": "moderate",
+    "3": "severe"
+  },
+  "severity_mapping": {
+    "0": "none",
+    "1": "mild",
+    "2": "moderate",
+    "3": "severe"
+  },
+  "primary_threshold": 0.5,
+  "test_accuracy": 0.5401785969734192,
+  "test_auc": 0.8173429369926453,
+  "dataset": "ACNE04 \u2014 jincyjis/acne04 or manuelhettich/acne04 (Hayashi grading criterion)",
+  "framework": "EfficientNetV2-B0 + SE Attention + Focal Loss",
+  "maps_to": "severity enum in apps/api/app/models/scan.py",
+  "note": "Hayashi: 1-5 lesions=mild, 6-20=moderate, 21-50=severe, 0=none"
+}
