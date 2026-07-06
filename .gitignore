@@ -46,6 +46,15 @@ test-results/
 Thumbs.db
 *.log
 *.pid
+*.tsbuildinfo
+.envrc
+.secrets/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.secret
 
 # ML model artifacts — too large for git; use DVC or S3
 apps/api/app/ml/artifacts/*.pkl
