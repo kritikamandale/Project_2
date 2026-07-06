@@ -10,7 +10,7 @@ from sqlalchemy import (
     Boolean, DateTime, Enum, Float, ForeignKey, Index,
     Integer, String, func,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, TEXT, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TEXT, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -48,9 +48,17 @@ class Product(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "products"
 
     brand: Mapped[str] = mapped_column(ProductBrandEnum, nullable=False, index=True)
+    # Free-text marketing brand ("Re'equil", "CeraVe", "Bioderma"). The `brand`
+    # enum stays for affiliate grouping (use "others" for non-partners); this is
+    # what the UI shows. Additive — does not touch ProductBrandStr.
+    brand_display: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
     product_name: Mapped[str] = mapped_column(String(255), nullable=False)
     product_url: Mapped[Optional[str]] = mapped_column(String(1000))
     price_inr: Mapped[Optional[float]] = mapped_column(Float)
+    # List/MRP price; discount % = (mrp_inr - price_inr) / mrp_inr when both set.
+    mrp_inr: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # 1 = single, 2/3 = combo pack. Powers the "combos" filter.
+    pack_size: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
     category: Mapped[str] = mapped_column(ProductCategoryEnum, nullable=False, index=True)
 
     # Array columns — native PostgreSQL TEXT[]
@@ -65,6 +73,16 @@ class Product(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     approval_dermatologist_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
+
+    # Multi-store buy links: [{"store": "Amazon", "url": "https://…"}, …]
+    store_links: Mapped[Optional[list]] = mapped_column(JSONB, default=list, server_default="[]")
+    # Normalised actives for Match Score / duplicate-active / comedogenic checks
+    # (e.g. ["salicylic acid", "niacinamide"]). Derived from key_ingredients if empty.
+    key_actives: Mapped[Optional[list]] = mapped_column(JSONB, default=list, server_default="[]")
+    # false for retinoids / high-dose salicylic / hydroquinone; NULL = unknown.
+    pregnancy_safe: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    # Manual "newly added" flag; endpoint also treats created_at within 30 days as new.
+    is_new: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
 
     # Social proof
     rating_avg: Mapped[float] = mapped_column(Float, default=0.0)

@@ -17,8 +17,8 @@ const RATING_OPTIONS: { value: ProductRating; emoji: string; label: string }[] =
 ];
 
 const RATING_COLORS: Record<ProductRating, string> = {
-  working: "bg-emerald-50 border-emerald-300 text-emerald-700",
-  unsure: "bg-yellow-50 border-yellow-300 text-yellow-700",
+  working: "bg-teal-50 border-teal-300 text-teal-700",
+  unsure: "bg-cream-50 border-cream-300 text-cream-800",
   not_working: "bg-rose-50 border-rose-300 text-rose-600",
 };
 
@@ -77,7 +77,7 @@ function ProductCard({
           {item.condition_improvement_pct >= 0 ? "improved" : "changed"}{" "}
           <span
             className={
-              item.condition_improvement_pct > 0 ? "text-emerald-600 font-semibold" : "text-rose-500 font-semibold"
+              item.condition_improvement_pct > 0 ? "text-teal-600 font-semibold" : "text-rose-500 font-semibold"
             }
           >
             {item.condition_improvement_pct > 0 ? "+" : ""}

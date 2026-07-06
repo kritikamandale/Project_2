@@ -24,9 +24,9 @@ interface ResultsCardProps {
 }
 
 const PHASE_STYLES: Record<number, { border: string; bg: string; badge: string }> = {
-  1: { border: "border-blue-200",    bg: "bg-blue-50",    badge: "bg-blue-100 text-blue-700" },
-  2: { border: "border-purple-200",  bg: "bg-purple-50",  badge: "bg-purple-100 text-purple-700" },
-  3: { border: "border-emerald-200", bg: "bg-emerald-50", badge: "bg-emerald-100 text-emerald-700" },
+  1: { border: "border-teal-200",  bg: "bg-teal-50",  badge: "bg-teal-100 text-teal-700" },
+  2: { border: "border-skin-200",  bg: "bg-skin-50",  badge: "bg-skin-100 text-skin-700" },
+  3: { border: "border-cream-300", bg: "bg-cream-50", badge: "bg-cream-100 text-cream-800" },
 };
 
 export function ResultsCard({
@@ -53,7 +53,7 @@ export function ResultsCard({
               Phase {phase}
             </span>
             {p.is_dermatologist_approved && (
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1">
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 flex items-center gap-1">
                 <Shield className="w-3 h-3" /> Approved
               </span>
             )}
@@ -77,7 +77,7 @@ export function ResultsCard({
       <div className="px-4 py-3 space-y-2.5">
         {highlightedIngredient && (
           <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <Leaf className="w-3.5 h-3.5 text-green-500 shrink-0" />
+            <Leaf className="w-3.5 h-3.5 text-teal-500 shrink-0" />
             Key: <strong className="ml-0.5">{highlightedIngredient}</strong>
           </div>
         )}

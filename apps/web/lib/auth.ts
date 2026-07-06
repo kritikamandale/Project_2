@@ -61,6 +61,11 @@ async function refreshAccessToken(refreshToken: string): Promise<{
 // ---------------------------------------------------------------------------
 
 const authConfig: NextAuthConfig = {
+  // Required when running `next start` locally / behind a reverse proxy —
+  // dev mode auto-trusts the host, production does not (UntrustedHost error).
+  // Vercel sets this automatically; self-hosted deployments rely on this flag.
+  trustHost: true,
+
   providers: [
     Credentials({
       credentials: {

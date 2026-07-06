@@ -16,6 +16,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.routers import (
+    admin,
     auth,
     users,
     scan,
@@ -70,10 +71,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if settings.is_development:
+    if settings.is_development and settings.db_auto_create:
         try:
             async with engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
+                # One cheap existence probe instead of letting create_all
+                # round-trip once per table/enum on every dev reload — with a
+                # remote database that used to add ~20s per restart.
+                from sqlalchemy import inspect as sa_inspect
+                has_users = await conn.run_sync(
+                    lambda sync_conn: sa_inspect(sync_conn).has_table("users")
+                )
+                if not has_users:
+                    await conn.run_sync(Base.metadata.create_all)
         except Exception as exc:
             # Allow server to start without a database in local dev (useful for UI dev)
             import logging
@@ -115,7 +124,7 @@ app.add_middleware(
     expose_headers=["X-Request-ID"],
 )
 
-if settings.is_production:
+if settings.is_prod_like:
     app.add_middleware(
         TrustedHostMiddleware,
         allowed_hosts=settings.trusted_hosts,
@@ -138,16 +147,18 @@ app.include_router(recommendations.router, prefix=f"{API_PREFIX}/recommendations
 app.include_router(products.router,        prefix=f"{API_PREFIX}/products",        tags=["products"])
 app.include_router(progress.router,        prefix=f"{API_PREFIX}/progress",        tags=["progress"])
 app.include_router(dermatologist.router,   prefix=f"{API_PREFIX}/dermatologist",   tags=["dermatologist"])
+app.include_router(admin.router,           prefix=f"{API_PREFIX}/admin",           tags=["admin"])
 app.include_router(privacy.router,         prefix=f"{API_PREFIX}/users",           tags=["privacy"])
 
+import sys
 import traceback
-from fastapi.responses import JSONResponse
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    import sys
     print(f"GLOBAL EXCEPTION: {exc}", file=sys.stderr)
     traceback.print_exc(file=sys.stderr)
-    if settings.is_production:
+    if settings.is_prod_like:
         content = {"detail": "Internal server error"}
     else:
         content = {"detail": str(exc), "traceback": traceback.format_exc()}

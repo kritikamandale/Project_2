@@ -3,7 +3,6 @@ Server-side skin type classifier — scikit-learn GradientBoostingClassifier.
 Trained offline; model artifact loaded from disk at startup.
 """
 
-import os
 import pickle
 from pathlib import Path
 
@@ -35,7 +34,10 @@ class SkinClassifier:
         instance = cls()
         if MODEL_PATH.exists():
             with open(MODEL_PATH, "rb") as f:
-                instance._model = pickle.load(f)
+                # MODEL_PATH is a fixed path baked into the deployment (this
+                # repo's own trained artifact), never derived from request
+                # input — not a deserialization vector for untrusted data.
+                instance._model = pickle.load(f)  # nosec B301 # noqa: S301
         else:
             # Dev mode — use dummy pass-through
             instance._model = None
@@ -48,7 +50,7 @@ class SkinClassifier:
 
         proba = self._model.predict_proba([features])[0]
         classes = self._model.classes_
-        confidences = dict(zip(classes, proba.tolist()))
+        confidences = dict(zip(classes, proba.tolist(), strict=True))
         predicted = max(confidences, key=confidences.get)
         return predicted, confidences
 

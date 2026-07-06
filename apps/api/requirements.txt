@@ -1,7 +1,8 @@
 # FastAPI & ASGI
-fastapi==0.115.4
+fastapi==0.139.0
+starlette==1.3.1  # pulled in by fastapi>=0.46.0 constraint; pinned explicitly after the 0.41.3 CVE batch
 uvicorn[standard]==0.32.1
-python-multipart==0.0.12
+python-multipart==0.0.32
 
 # Pydantic v2
 pydantic==2.9.2
@@ -14,11 +15,11 @@ alembic==1.14.0
 
 # Authentication
 email-validator==2.2.0
-PyJWT==2.9.0  # replaced python-jose 3.3.0 (CVE-2024-33663 algorithm confusion, CVE-2024-33664 DoS)
+PyJWT==2.13.0  # replaced python-jose 3.3.0 (CVE-2024-33663 algorithm confusion, CVE-2024-33664 DoS)
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1  # passlib 1.7.4 misreads the version API on bcrypt>=4.1/5.x and raises spurious "72 bytes" errors
-python-dotenv==1.0.1
-cryptography==43.0.3
+python-dotenv==1.2.2
+cryptography==49.0.0
 
 # Rate limiting
 slowapi==0.1.9
@@ -35,11 +36,11 @@ boto3==1.35.66
 botocore==1.35.66
 
 # AI / ML
-# Gemini is called via plain httpx REST — no SDK needed (avoids pydantic version conflicts)
+# Groq is called via plain httpx REST — no SDK needed (avoids pydantic version conflicts)
 scikit-learn==1.5.2
 opencv-python-headless==4.10.0.84
 numpy==1.26.4
-pillow==11.0.0
+pillow==12.3.0
 tensorflow-cpu==2.18.0
 
 # Pinecone vector store (optional — leave PINECONE_API_KEY blank to use PostgreSQL fallback)
@@ -50,7 +51,7 @@ pgvector==0.3.5
 
 # HTTP client
 httpx==0.27.2
-aiohttp==3.11.6
+aiohttp==3.14.1
 
 # Utilities
 python-slugify==8.0.4
@@ -69,9 +70,9 @@ bandit==1.7.10
 sentry-sdk[fastapi]==2.18.0
 
 # Testing
-pytest==8.3.3
-pytest-asyncio==0.24.0
-pytest-cov==6.0.0
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
 httpx==0.27.2
 factory-boy==3.3.1
 faker==30.8.2

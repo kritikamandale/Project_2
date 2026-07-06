@@ -25,23 +25,23 @@ import { RoutineSelector } from "@/components/results/routine-selector";
 // Constants
 // ---------------------------------------------------------------------------
 const BRAND_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  nykaa:      { bg: "bg-pink-100",    text: "text-pink-700",   label: "Nykaa" },
+  nykaa:      { bg: "bg-skin-100",    text: "text-skin-700",   label: "Nykaa" },
   minimalist: { bg: "bg-gray-100",    text: "text-gray-800",   label: "Minimalist" },
   dermaco:    { bg: "bg-teal-100",    text: "text-teal-700",   label: "Dermaco" },
-  others:     { bg: "bg-purple-100",  text: "text-purple-700", label: "Others" },
+  others:     { bg: "bg-cream-100",   text: "text-cream-800",  label: "Others" },
 };
 
 const SEVERITY_CONFIG: Record<string, { color: string; bg: string; width: string }> = {
   severe:   { color: "text-red-600",   bg: "bg-red-500",    width: "w-full" },
-  moderate: { color: "text-amber-600", bg: "bg-amber-400",  width: "w-2/3" },
-  mild:     { color: "text-yellow-600", bg: "bg-yellow-400", width: "w-1/3" },
-  none:     { color: "text-green-600", bg: "bg-green-400",  width: "w-4" },
+  moderate: { color: "text-skin-600", bg: "bg-skin-400",  width: "w-2/3" },
+  mild:     { color: "text-cream-700", bg: "bg-cream-400", width: "w-1/3" },
+  none:     { color: "text-teal-600", bg: "bg-teal-400",  width: "w-4" },
 };
 
 const PHASE_STYLES: Record<number, { border: string; bg: string; badge: string; text: string }> = {
-  1: { border: "border-blue-200",   bg: "bg-blue-50",    badge: "bg-blue-100 text-blue-700",   text: "text-blue-700" },
-  2: { border: "border-purple-200", bg: "bg-purple-50",  badge: "bg-purple-100 text-purple-700", text: "text-purple-700" },
-  3: { border: "border-emerald-200",bg: "bg-emerald-50", badge: "bg-emerald-100 text-emerald-700", text: "text-emerald-700" },
+  1: { border: "border-teal-200",   bg: "bg-teal-50",    badge: "bg-teal-100 text-teal-700",   text: "text-teal-700" },
+  2: { border: "border-skin-200",  bg: "bg-skin-50",  badge: "bg-skin-100 text-skin-700",   text: "text-skin-700" },
+  3: { border: "border-cream-300", bg: "bg-cream-50", badge: "bg-cream-100 text-cream-800", text: "text-cream-800" },
 };
 
 const SKIN_TYPE_DESC: Record<string, string> = {
@@ -77,16 +77,16 @@ function SkinScoreDial({ score }: { score: number }) {
   }, [score, count]);
 
   const color =
-    score >= 70 ? "#22c55e" :
-    score >= 50 ? "#f59e0b" :
-    "#ef4444";
+    score >= 70 ? "#81b29a" :   // muted-teal — healthy
+    score >= 50 ? "#f2cc8f" :   // apricot-cream — moderate
+    "#e07a5f";                  // burnt-peach — needs attention
 
   const offset = circumference - (displayed / 100) * circumference;
 
   return (
     <div className="relative flex flex-col items-center">
       <svg width="140" height="140" className="-rotate-90">
-        <circle cx="70" cy="70" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="12" />
+        <circle cx="70" cy="70" r={radius} fill="none" stroke="#3d405b" strokeWidth="12" />
         <motion.circle
           cx="70" cy="70" r={radius} fill="none"
           stroke={color} strokeWidth="12"
@@ -99,8 +99,8 @@ function SkinScoreDial({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-number text-3xl font-bold text-gray-900">{displayed}</span>
-        <span className="text-xs text-gray-500 font-medium">/ 100</span>
+        <span className="font-number text-3xl font-bold text-eggshell">{displayed}</span>
+        <span className="text-xs text-gray-300 font-medium">/ 100</span>
       </div>
     </div>
   );
@@ -166,7 +166,7 @@ function ProductCard({ entry, index }: { entry: RecommendedProductEntry; index: 
               Phase {entry.phase}
             </span>
             {p.is_dermatologist_approved && (
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1">
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 flex items-center gap-1">
                 <Shield className="w-3 h-3" /> Derm approved
               </span>
             )}
@@ -191,7 +191,7 @@ function ProductCard({ entry, index }: { entry: RecommendedProductEntry; index: 
         {/* Key ingredient chip */}
         {entry.highlighted_ingredient && (
           <div className="flex items-center gap-1.5">
-            <Leaf className="w-3.5 h-3.5 text-green-600 shrink-0" />
+            <Leaf className="w-3.5 h-3.5 text-teal-600 shrink-0" />
             <span className="text-xs text-gray-600">
               Key ingredient: <strong>{entry.highlighted_ingredient}</strong>
             </span>
@@ -218,7 +218,7 @@ function ProductCard({ entry, index }: { entry: RecommendedProductEntry; index: 
         {entry.reason_text && (
           <Accordion.Root type="single" collapsible>
             <Accordion.Item value="reason">
-              <Accordion.Trigger className="group flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+              <Accordion.Trigger className="group flex items-center gap-1.5 text-xs font-semibold text-skin-600 hover:text-skin-800 transition-colors">
                 Why this for you?
                 <ChevronDown className="w-3.5 h-3.5 transition-transform group-data-[state=open]:rotate-180" />
               </Accordion.Trigger>
@@ -260,7 +260,7 @@ function RoadmapTimeline({ phases }: { phases: RoadmapPhase[] }) {
   return (
     <div className="relative">
       {/* Connecting line */}
-      <div className="absolute top-5 left-6 right-6 h-0.5 bg-gradient-to-r from-blue-200 via-purple-200 to-emerald-200 hidden sm:block" />
+      <div className="absolute top-5 left-6 right-6 h-0.5 bg-gradient-to-r from-teal-200 via-skin-200 to-cream-200 hidden sm:block" />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative">
         {phases.map((phase, i) => {
           const style = PHASE_STYLES[phase.phase] ?? PHASE_STYLES[1];
@@ -323,7 +323,7 @@ function FeedbackSection({ recommendationId }: { recommendationId: string }) {
 
   if (submitted) {
     return (
-      <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
+      <div className="flex items-center gap-2 text-teal-600 text-sm font-medium">
         <CheckCircle2 className="w-4 h-4" /> Thank you for your feedback!
       </div>
     );
@@ -354,7 +354,7 @@ function FeedbackSection({ recommendationId }: { recommendationId: string }) {
       {selected > 0 && (
         <button
           onClick={handleSubmit}
-          className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+          className="px-4 py-1.5 bg-skin-500 text-white text-xs font-semibold rounded-lg hover:bg-skin-600 transition-colors"
         >
           Submit
         </button>
@@ -375,11 +375,11 @@ function GeneratingState() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white flex flex-col items-center justify-center px-4">
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-        className="w-16 h-16 rounded-full border-4 border-indigo-200 border-t-indigo-600 mb-8"
+        className="w-16 h-16 rounded-full border-4 border-teal-200 border-t-teal-600 mb-8"
       />
       <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
         Building your skin roadmap
@@ -398,12 +398,12 @@ function GeneratingState() {
             className="flex items-center gap-3 text-sm"
           >
             {i < step ? (
-              <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0" />
             ) : i === step ? (
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ repeat: Infinity, duration: 1 }}
-                className="w-4 h-4 rounded-full bg-indigo-500 shrink-0"
+                className="w-4 h-4 rounded-full bg-teal-500 shrink-0"
               />
             ) : (
               <div className="w-4 h-4 rounded-full border-2 border-gray-200 shrink-0" />
@@ -493,7 +493,7 @@ export default function ResultsPage() {
               // Re-run generation from scratch (clears the one-shot init guard)
               if (typeof window !== "undefined") window.location.reload();
             }}
-            className="px-6 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
+            className="px-6 py-2 bg-skin-500 text-white text-sm font-semibold rounded-xl hover:bg-skin-600 transition-colors"
           >
             Try again
           </button>
@@ -523,8 +523,17 @@ export default function ResultsPage() {
   const phase2Products = rec.products.filter((p) => p.phase === 2);
   const phase3Products = rec.products.filter((p) => p.phase === 3);
 
+  // Primary concern = the most severe detected condition — drives the product
+  // Match Score reason ("active <concern>") so the routine is personalised.
+  const SEVERITY_RANK: Record<string, number> = { severe: 3, moderate: 2, mild: 1, none: 0 };
+  const primaryCondition =
+    [...rec.conditions_summary]
+      .filter((c) => c.severity !== "none")
+      .sort((a, b) => (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0))[0]
+      ?.condition_name ?? null;
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-eggshell">
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20 px-4 py-3 flex items-center justify-between">
         <button
@@ -543,20 +552,20 @@ export default function ResultsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-lg"
+          className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 text-eggshell shadow-lg"
         >
-          <p className="text-indigo-200 text-sm font-medium mb-1">Your Skin Health Score</p>
+          <p className="text-teal-300 text-sm font-medium mb-1">Your Skin Health Score</p>
           <div className="flex items-center gap-6">
             <SkinScoreDial score={rec.skin_score ?? 0} />
             <div className="flex-1 min-w-0">
               <p className="text-2xl font-bold capitalize mb-1">
                 {rec.skin_type ?? "—"} Skin
               </p>
-              <p className="text-indigo-200 text-sm leading-relaxed">
+              <p className="text-gray-300 text-sm leading-relaxed">
                 {SKIN_TYPE_DESC[rec.skin_type ?? ""] ?? ""}
               </p>
               {rec.fitzpatrick_tone && (
-                <div className="mt-3 inline-flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full text-xs font-medium">
+                <div className="mt-3 inline-flex items-center gap-1.5 bg-eggshell/10 px-3 py-1 rounded-full text-xs font-medium">
                   <Sparkles className="w-3.5 h-3.5" />
                   Fitzpatrick {rec.fitzpatrick_tone}
                 </div>
@@ -569,7 +578,7 @@ export default function ResultsPage() {
         {rec.conditions_summary.length > 0 && (
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-indigo-500" />
+              <Activity className="w-5 h-5 text-teal-500" />
               Detected Conditions
             </h2>
             <div className="grid grid-cols-2 gap-3">
@@ -581,32 +590,38 @@ export default function ResultsPage() {
         )}
 
         {/* ---- 3. Routine Recommendations ---- */}
-        <RoutineSelector skinType={rec.skin_type} />
+        <RoutineSelector
+          skinType={rec.skin_type}
+          fitzpatrick={rec.fitzpatrick_tone}
+          condition={primaryCondition}
+          scanId={rec.scan_id}
+          questionnaireId={rec.questionnaire_id}
+        />
 
         {/* ---- 4. Climate insight ---- */}
         {meta.climate_insight && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-sky-50 border border-sky-200 rounded-2xl p-4 flex gap-3"
+            className="bg-teal-50 border border-teal-200 rounded-2xl p-4 flex gap-3"
           >
-            <MapPin className="w-5 h-5 text-sky-500 shrink-0 mt-0.5" />
+            <MapPin className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold text-sky-800 mb-1">Climate Insight</p>
-              <p className="text-sm text-sky-700 leading-relaxed">{meta.climate_insight}</p>
+              <p className="text-sm font-semibold text-teal-800 mb-1">Climate Insight</p>
+              <p className="text-sm text-teal-700 leading-relaxed">{meta.climate_insight}</p>
             </div>
           </motion.div>
         )}
 
         {/* ---- 5. Monthly cost estimate ---- */}
         {rec.estimated_monthly_cost_inr && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
+          <div className="bg-cream-50 border border-cream-200 rounded-xl px-4 py-3 flex items-center gap-3">
             <span className="text-2xl">💰</span>
             <div>
-              <p className="text-sm font-semibold text-amber-800">
+              <p className="text-sm font-semibold text-cream-800">
                 Estimated Monthly Cost: ₹{rec.estimated_monthly_cost_inr.toLocaleString("en-IN")}
               </p>
-              <p className="text-xs text-amber-600">One-time purchase — products typically last 2–3 months</p>
+              <p className="text-xs text-cream-700">One-time purchase — products typically last 2–3 months</p>
             </div>
           </div>
         )}
@@ -630,7 +645,7 @@ export default function ResultsPage() {
         {/* ---- 6. Product Recommendations ---- */}
         <section>
           <h2 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-indigo-500" />
+            <Sparkles className="w-5 h-5 text-teal-500" />
             Your Personalised Routine
           </h2>
           <p className="text-sm text-gray-500 mb-5">
@@ -640,7 +655,7 @@ export default function ResultsPage() {
           {phase1Products.length > 0 && (
             <div className="mb-5">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-bold bg-teal-100 text-teal-700 px-2.5 py-1 rounded-full">
                   Phase 1 · Weeks 1–4
                 </span>
                 <span className="text-xs text-gray-400">Foundations</span>
@@ -654,7 +669,7 @@ export default function ResultsPage() {
           {phase2Products.length > 0 && (
             <div className="mb-5">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-bold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-bold bg-skin-100 text-skin-700 px-2.5 py-1 rounded-full">
                   Phase 2 · Weeks 5–12
                 </span>
                 <span className="text-xs text-gray-400">Targeted Treatment</span>
@@ -668,7 +683,7 @@ export default function ResultsPage() {
           {phase3Products.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-bold bg-cream-100 text-cream-800 px-2.5 py-1 rounded-full">
                   Phase 3 · Weeks 13–20
                 </span>
                 <span className="text-xs text-gray-400">Optimise</span>
@@ -686,7 +701,7 @@ export default function ResultsPage() {
         {rec.roadmap && (
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-indigo-500" />
+              <Clock className="w-5 h-5 text-teal-500" />
               Your 20-Week Roadmap
             </h2>
             <RoadmapTimeline phases={rec.roadmap.phases} />
@@ -701,7 +716,7 @@ export default function ResultsPage() {
                       <span className="text-sm font-semibold capitalize text-gray-800">
                         {ct.condition.replace(/_/g, " ")}
                       </span>
-                      <span className="text-xs text-indigo-600 font-medium">
+                      <span className="text-xs text-teal-600 font-medium">
                         ~{ct.expected_improvement_pct}% by week {ct.expected_improvement_week}
                       </span>
                     </div>
@@ -717,19 +732,19 @@ export default function ResultsPage() {
         {(meta.morning_routine.length > 0 || meta.night_routine.length > 0) && (
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Sun className="w-5 h-5 text-amber-500" />
+              <Sun className="w-5 h-5 text-skin-500" />
               Daily Routine Steps
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {meta.morning_routine.length > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                  <p className="text-sm font-bold text-amber-800 mb-3 flex items-center gap-1.5">
+                <div className="bg-cream-50 border border-cream-200 rounded-2xl p-4">
+                  <p className="text-sm font-bold text-cream-800 mb-3 flex items-center gap-1.5">
                     <Sun className="w-4 h-4" /> Morning Routine
                   </p>
                   <ol className="space-y-2">
                     {meta.morning_routine.map((step, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-amber-900">
-                        <span className="text-xs font-bold bg-amber-200 text-amber-800 w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                      <li key={i} className="flex items-start gap-2 text-sm text-cream-900">
+                        <span className="text-xs font-bold bg-cream-200 text-cream-800 w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                           {i + 1}
                         </span>
                         {step}
@@ -739,14 +754,14 @@ export default function ResultsPage() {
                 </div>
               )}
               {meta.night_routine.length > 0 && (
-                <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4">
-                  <p className="text-sm font-bold text-indigo-800 mb-3 flex items-center gap-1.5">
+                <div className="bg-gray-100 border border-gray-200 rounded-2xl p-4">
+                  <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
                     🌙 Night Routine
                   </p>
                   <ol className="space-y-2">
                     {meta.night_routine.map((step, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-indigo-900">
-                        <span className="text-xs font-bold bg-indigo-200 text-indigo-800 w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-900">
+                        <span className="text-xs font-bold bg-gray-200 text-gray-800 w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                           {i + 1}
                         </span>
                         {step}
@@ -763,18 +778,18 @@ export default function ResultsPage() {
         {(meta.ingredients_to_use.length > 0 || meta.ingredients_to_avoid.length > 0) && (
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Leaf className="w-5 h-5 text-green-500" />
+              <Leaf className="w-5 h-5 text-teal-500" />
               Ingredients Guide
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {meta.ingredients_to_use.length > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
-                  <p className="text-sm font-bold text-green-800 mb-2 flex items-center gap-1.5">
+                <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4">
+                  <p className="text-sm font-bold text-teal-800 mb-2 flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4" /> Look for
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {meta.ingredients_to_use.map((ing) => (
-                      <span key={ing} className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+                      <span key={ing} className="text-xs bg-teal-100 text-teal-700 px-2.5 py-1 rounded-full font-medium">
                         {ing}
                       </span>
                     ))}
@@ -803,13 +818,13 @@ export default function ResultsPage() {
         {meta.lifestyle_tips.length > 0 && (
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <Droplets className="w-5 h-5 text-blue-500" />
+              <Droplets className="w-5 h-5 text-teal-500" />
               Lifestyle Tips
             </h2>
             <div className="bg-white border border-gray-100 rounded-2xl divide-y divide-gray-50 shadow-sm">
               {meta.lifestyle_tips.map((tip, i) => (
                 <div key={i} className="px-4 py-3 flex gap-3 text-sm text-gray-700">
-                  <Zap className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <Zap className="w-4 h-4 text-skin-500 shrink-0 mt-0.5" />
                   {tip}
                 </div>
               ))}
@@ -821,7 +836,7 @@ export default function ResultsPage() {
         {meta.dermatologist_note && (
           <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <Shield className="w-5 h-5 text-indigo-500" />
+              <Shield className="w-5 h-5 text-teal-500" />
               <span className="text-sm font-bold text-gray-900">Dermatologist Note</span>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed italic">
@@ -833,27 +848,27 @@ export default function ResultsPage() {
         {/* ---- 12. Derm review badge ---- */}
         <div className={`rounded-2xl p-4 flex items-center gap-3 ${
           rec.is_dermatologist_reviewed
-            ? "bg-green-50 border border-green-200"
+            ? "bg-teal-50 border border-teal-200"
             : rec.requires_derm_review
-            ? "bg-amber-50 border border-amber-200"
+            ? "bg-cream-50 border border-cream-200"
             : "bg-gray-50 border border-gray-200"
         }`}>
           {rec.is_dermatologist_reviewed ? (
             <>
-              <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />
+              <CheckCircle2 className="w-6 h-6 text-teal-600 shrink-0" />
               <div>
-                <p className="text-sm font-bold text-green-800">Dermatologist Reviewed</p>
-                <p className="text-xs text-green-600">
+                <p className="text-sm font-bold text-teal-800">Dermatologist Reviewed</p>
+                <p className="text-xs text-teal-600">
                   Approved on {rec.reviewed_at ? new Date(rec.reviewed_at).toLocaleDateString("en-IN") : "—"}
                 </p>
               </div>
             </>
           ) : rec.requires_derm_review ? (
             <>
-              <Clock className="w-6 h-6 text-amber-600 shrink-0" />
+              <Clock className="w-6 h-6 text-cream-700 shrink-0" />
               <div>
-                <p className="text-sm font-bold text-amber-800">Pending Dermatologist Review</p>
-                <p className="text-xs text-amber-600">
+                <p className="text-sm font-bold text-cream-800">Pending Dermatologist Review</p>
+                <p className="text-xs text-cream-700">
                   Our certified dermatologists will review this recommendation within 24–48 hours.
                 </p>
               </div>

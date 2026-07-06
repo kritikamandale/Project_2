@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { Suspense, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
@@ -77,7 +77,9 @@ function friendlyError(code: string | null): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function LoginPage() {
+// useSearchParams() requires a Suspense boundary for static prerendering —
+// the inner component reads params; the default export provides the boundary.
+function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
@@ -285,5 +287,13 @@ export default function LoginPage() {
         </p>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
   );
 }

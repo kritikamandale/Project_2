@@ -53,10 +53,10 @@ function scorePassword(password: string): StrengthResult {
 
   const LEVELS: Record<StrengthLevel, { label: string; color: string }> = {
     0: { label: "Too weak", color: "bg-red-500" },
-    1: { label: "Weak", color: "bg-orange-500" },
-    2: { label: "Fair", color: "bg-yellow-500" },
-    3: { label: "Good", color: "bg-blue-500" },
-    4: { label: "Strong", color: "bg-green-500" },
+    1: { label: "Weak", color: "bg-red-400" },
+    2: { label: "Fair", color: "bg-cream-500" },
+    3: { label: "Good", color: "bg-teal-400" },
+    4: { label: "Strong", color: "bg-teal-600" },
   };
 
   return {
@@ -95,9 +95,9 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
           className={cn(
             "font-medium",
             filledBars <= 1 && "text-red-500",
-            filledBars === 2 && "text-yellow-600",
-            filledBars === 3 && "text-blue-600",
-            filledBars === 4 && "text-green-600"
+            filledBars === 2 && "text-cream-700",
+            filledBars === 3 && "text-teal-600",
+            filledBars === 4 && "text-teal-700"
           )}
         >
           {result.label}

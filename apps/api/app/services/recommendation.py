@@ -19,7 +19,7 @@ from typing import Optional
 
 import numpy as np
 
-from app.core.sanitization import sanitize_text
+from app.core.sanitization import looks_like_prompt_injection, sanitize_text
 import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -300,6 +300,24 @@ class RecommendationService:
         user: User,
         db: AsyncSession,
     ) -> Recommendation:
+        # 0. Cache: reuse the stored recommendation for the same scan +
+        # questionnaire instead of re-running the LLM (several seconds per
+        # call and burns Groq free-tier quota). A new scan or retaken
+        # questionnaire gets a new id, so it naturally regenerates.
+        existing = await db.scalar(
+            select(Recommendation)
+            .options(selectinload(Recommendation.products))
+            .where(
+                Recommendation.user_id == user.id,
+                Recommendation.scan_id == scan_id,
+                Recommendation.questionnaire_id == questionnaire_id,
+            )
+            .order_by(Recommendation.generated_at.desc())
+        )
+        if existing is not None:
+            logger.info("Reusing recommendation %s for scan %s (cache hit).", existing.id, scan_id)
+            return existing
+
         # 1. Fetch scan with conditions
         scan = await db.scalar(
             select(SkinScan)
@@ -353,11 +371,25 @@ class RecommendationService:
 
         # 8. Determine if derm review needed
         diagnosed = questionnaire.diagnosed_conditions if questionnaire else None
+
+        # Free text that goes straight into the LLM prompt — if any of it reads
+        # like an attempt to override the system prompt, don't trust the
+        # model's own self-reported confidence for this request; force review.
+        free_text_inputs = [
+            routine.known_allergens_text if routine else None,
+            questionnaire.medication_name_text if questionnaire and hasattr(questionnaire, "medication_name_text") else None,
+            *(diagnosed or []),
+        ]
+        injection_suspected = any(looks_like_prompt_injection(t) for t in free_text_inputs)
+        if injection_suspected:
+            logger.warning("Possible prompt-injection attempt in free text for user %s — forcing derm review.", user.id)
+
         needs_review = (
             claude_output.overall_confidence < 0.75
             or bool(diagnosed and any(d not in ("none", "prefer_not_to_say") for d in diagnosed))
             or bool(allergen_flags)
             or bool(ingredient_conflicts)  # unsafe combos always require derm review
+            or injection_suspected
         )
 
         # Merge conflict info into allergen_flags so the UI surfaces them
@@ -460,11 +492,35 @@ class RecommendationService:
                 Product.skin_types_suitable.contains([scan.skin_type])
             )
 
+        # Match on the user's *issue*, not just skin type + climate: keep only
+        # products that target at least one of the scan's active conditions.
+        # Additive and relaxable — the fallback below rescues an empty result.
+        active_conditions = [
+            c.condition_name for c in (scan.conditions or []) if c.severity != "none"
+        ]
+        if active_conditions:
+            stmt = stmt.where(
+                Product.targets_conditions.overlap(active_conditions)
+            )
+
         stmt = stmt.limit(top_k)
         rows = await db.scalars(stmt)
         products = list(rows.all())
 
-        # If strict filtering returned too few, relax to all active products
+        # If strict filtering returned too few, relax the condition filter first
+        # (keep skin type + climate), then fall back to all active products.
+        if len(products) < 10 and active_conditions:
+            relaxed = select(Product).where(Product.is_active.is_(True))
+            if climate and climate.climate_zone:
+                relaxed = relaxed.where(
+                    Product.climate_zones_suitable.contains([climate.climate_zone])
+                )
+            if scan.skin_type:
+                relaxed = relaxed.where(
+                    Product.skin_types_suitable.contains([scan.skin_type])
+                )
+            products = list((await db.scalars(relaxed.limit(top_k))).all())
+
         if len(products) < 10:
             rows = await db.scalars(
                 select(Product).where(Product.is_active.is_(True)).limit(top_k)
@@ -659,7 +715,7 @@ def _check_allergens(
         return []
     allergens = [a.strip().lower() for a in routine.known_allergens_text.split(",") if a.strip()]
     flagged = []
-    for item, product in matched:
+    for _item, product in matched:
         if product is None:
             continue
         ingredients = [i.lower() for i in (product.key_ingredients or [])]

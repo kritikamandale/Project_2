@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useRef } from "react";
+import { Suspense, useState, useTransition, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +11,9 @@ import { verifyEmail, resendOtp } from "@/lib/api/auth";
 
 const OTP_LENGTH = 6;
 
-export default function VerifyEmailPage() {
+// useSearchParams() requires a Suspense boundary for static prerendering —
+// the inner component reads params; the default export provides the boundary.
+function VerifyEmailPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
@@ -138,7 +140,7 @@ export default function VerifyEmailPage() {
                 className="text-center py-4 space-y-3"
               >
                 <div className="text-5xl">✅</div>
-                <h3 className="font-semibold text-green-700 text-lg">
+                <h3 className="font-semibold text-teal-700 text-lg">
                   Email verified!
                 </h3>
                 <p className="text-sm text-gray-500">
@@ -191,7 +193,7 @@ export default function VerifyEmailPage() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="text-center text-sm text-green-600 mb-3"
+                      className="text-center text-sm text-teal-600 mb-3"
                     >
                       ✓ New code sent to {email}
                     </motion.p>
@@ -234,5 +236,13 @@ export default function VerifyEmailPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyEmailPageInner />
+    </Suspense>
   );
 }

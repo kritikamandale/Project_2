@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,7 +34,7 @@ const PRIORITIES = ["high", "normal", "low"];
 function PriorityBadge({ p }: { p: string }) {
   const cls: Record<string, string> = {
     high: "bg-red-100 text-red-700 border border-red-200",
-    normal: "bg-blue-100 text-blue-700 border border-blue-200",
+    normal: "bg-teal-100 text-teal-700 border border-teal-200",
     low: "bg-gray-100 text-gray-600 border border-gray-200",
   };
   return (
@@ -46,11 +46,11 @@ function PriorityBadge({ p }: { p: string }) {
 
 function StatusBadge({ s }: { s: string }) {
   const cls: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-700",
-    in_review: "bg-purple-100 text-purple-700",
-    approved: "bg-green-100 text-green-700",
+    pending: "bg-cream-100 text-cream-800",
+    in_review: "bg-gray-100 text-gray-700",
+    approved: "bg-teal-100 text-teal-700",
     rejected: "bg-red-100 text-red-700",
-    escalated: "bg-orange-100 text-orange-700",
+    escalated: "bg-skin-100 text-skin-700",
   };
   return (
     <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${cls[s] ?? "bg-gray-100 text-gray-600"}`}>
@@ -77,7 +77,9 @@ function SortIcon({ colKey, sort }: { colKey: SortKey; sort: SortState }) {
 // Page
 // ---------------------------------------------------------------------------
 
-export default function ReviewQueuePage() {
+// useSearchParams() requires a Suspense boundary for static prerendering —
+// the inner component reads params; the default export provides the boundary.
+function ReviewQueuePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -144,7 +146,7 @@ export default function ReviewQueuePage() {
   const hasFilters = !!(statusFilter || skinTypeFilter || priorityFilter || dateFrom || dateTo);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-eggshell">
       {/* Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between flex-wrap gap-3">
@@ -442,5 +444,13 @@ export default function ReviewQueuePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ReviewQueuePage() {
+  return (
+    <Suspense fallback={null}>
+      <ReviewQueuePageInner />
+    </Suspense>
   );
 }

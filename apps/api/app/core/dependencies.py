@@ -121,8 +121,8 @@ async def get_current_user(
         jti: str | None = payload.get("jti")
         if not user_id or not jti:
             raise credentials_exception
-    except JWTError:
-        raise credentials_exception
+    except JWTError as exc:
+        raise credentials_exception from exc
 
     # JTI revocation check (set on logout or password reset)
     if await redis.get(f"revoked_jti:{jti}"):
@@ -173,6 +173,7 @@ def require_role(*roles: str):
 
 require_user = require_role("USER", "DERMATOLOGIST")
 require_dermatologist = require_role("DERMATOLOGIST")
+require_admin = require_role("ADMIN")
 
 
 # ---------------------------------------------------------------------------

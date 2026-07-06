@@ -33,7 +33,6 @@ from app.models.progress import (
     RoutineCheckin,
 )
 from app.models.recommendation import Recommendation, RecommendationProduct
-from app.models.product import Product
 from app.schemas.progress import (
     AdherenceHeatmapResponse,
     AlertItem,

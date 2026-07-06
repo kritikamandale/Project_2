@@ -1,9 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { QuestionnaireForm } from "@/components/questionnaire/questionnaire-form";
 
-export default function QuestionnairePage() {
+// useSearchParams() requires a Suspense boundary for static prerendering —
+// the inner component reads params; the default export provides the boundary.
+function QuestionnairePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawRedirect = searchParams.get("redirectTo");
@@ -21,5 +24,13 @@ export default function QuestionnairePage() {
     <main className="min-h-screen bg-gray-50">
       <QuestionnaireForm onComplete={handleComplete} />
     </main>
+  );
+}
+
+export default function QuestionnairePage() {
+  return (
+    <Suspense fallback={null}>
+      <QuestionnairePageInner />
+    </Suspense>
   );
 }

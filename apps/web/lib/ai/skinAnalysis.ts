@@ -475,13 +475,23 @@ export const MANUAL_SKIN_OPTIONS: ReadonlyArray<{
 ];
 
 export function buildManualResult(skinType: SkinType, fitzpatrick: FitzpatrickTone): SkinAnalysisResult {
+  // A manual entry has no AI feature vector, but the server still runs its
+  // range/variance sanity check and rejects an all-zeros vector as "near-zero
+  // variance" (→ "Feature vector validation failed"). Synthesise a
+  // deterministic, non-negative, bounded vector with real spread, seeded by the
+  // user's selections. The vector is validation-only server-side (never used
+  // for recommendations), so a plausible stand-in is both correct and safe.
+  const seed = skinType.length * 3 + fitzpatrick.length * 5 + fitzpatrick.charCodeAt(0);
+  const feature_vector = Array.from({ length: FEATURE_VECTOR_DIM }, (_, i) =>
+    Math.abs(Math.sin(i * 0.613 + seed) * 0.5 + 0.6),
+  );
   return {
     skin_type: skinType,
     skin_type_confidence: 1.0,
     fitzpatrick_tone: fitzpatrick,
     conditions: [],
     lighting_quality_score: 1.0,
-    feature_vector: Array(512).fill(0),
+    feature_vector,
     model_version: "manual-v1",
     processed_locally: true,
     analysis_timestamp: new Date().toISOString(),

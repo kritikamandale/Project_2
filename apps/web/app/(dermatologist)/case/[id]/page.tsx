@@ -37,8 +37,8 @@ import {
 function SeverityBar({ severity }: { severity: string }) {
   const map: Record<string, { w: string; color: string }> = {
     none: { w: "w-0", color: "bg-gray-200" },
-    mild: { w: "w-1/4", color: "bg-yellow-400" },
-    moderate: { w: "w-2/4", color: "bg-orange-400" },
+    mild: { w: "w-1/4", color: "bg-cream-400" },
+    moderate: { w: "w-2/4", color: "bg-skin-400" },
     severe: { w: "w-full", color: "bg-red-500" },
   };
   const { w, color } = map[severity] ?? map.mild;
@@ -97,14 +97,14 @@ function ProductCard({
   const phaseColors = [
     "",
     "bg-teal-50 border-teal-200",
-    "bg-purple-50 border-purple-200",
-    "bg-amber-50 border-amber-200",
+    "bg-skin-50 border-skin-200",
+    "bg-cream-50 border-cream-200",
   ];
-  const phaseTextColors = ["", "text-teal-700", "text-purple-700", "text-amber-700"];
+  const phaseTextColors = ["", "text-teal-700", "text-skin-700", "text-cream-700"];
 
   const actionRing: Record<string, string> = {
-    approve: "ring-2 ring-green-400 bg-green-50",
-    modify: "ring-2 ring-amber-400 bg-amber-50",
+    approve: "ring-2 ring-teal-400 bg-teal-50",
+    modify: "ring-2 ring-cream-400 bg-cream-50",
     remove: "ring-2 ring-red-400 bg-red-50 opacity-75",
   };
 
@@ -163,7 +163,7 @@ function ProductCard({
           exit={{ opacity: 0, height: 0 }}
           className="mt-3"
         >
-          <label className="text-xs font-medium text-amber-700 block mb-1">
+          <label className="text-xs font-medium text-cream-700 block mb-1">
             Your override note:
           </label>
           <textarea
@@ -172,7 +172,7 @@ function ProductCard({
             placeholder="Enter your clinical reasoning or modified recommendation…"
             rows={3}
             disabled={readonly}
-            className="w-full text-xs border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500 bg-white resize-none disabled:opacity-60"
+            className="w-full text-xs border border-cream-300 rounded-lg px-3 py-2 focus:outline-none focus:border-cream-500 bg-white resize-none disabled:opacity-60"
           />
         </motion.div>
       )}
@@ -183,8 +183,8 @@ function ProductCard({
             onClick={() => onAction("approve")}
             className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all ${
               state.action === "approve"
-                ? "bg-green-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700"
+                ? "bg-teal-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-teal-50 hover:text-teal-700"
             }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
@@ -197,8 +197,8 @@ function ProductCard({
             }}
             className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all ${
               state.action === "modify"
-                ? "bg-amber-500 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-amber-50 hover:text-amber-700"
+                ? "bg-cream-500 text-gray-900"
+                : "bg-gray-100 text-gray-600 hover:bg-cream-50 hover:text-cream-700"
             }`}
           >
             <Edit3 className="w-3.5 h-3.5" />
@@ -223,9 +223,9 @@ function ProductCard({
           <span
             className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${
               product.derm_action === "approve"
-                ? "bg-green-100 text-green-700"
+                ? "bg-teal-100 text-teal-700"
                 : product.derm_action === "modify"
-                ? "bg-amber-100 text-amber-700"
+                ? "bg-cream-100 text-cream-700"
                 : "bg-red-100 text-red-700"
             }`}
           >
@@ -420,7 +420,7 @@ export default function CaseDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-eggshell">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
           <p className="text-sm text-gray-400">Loading case…</p>
@@ -431,7 +431,7 @@ export default function CaseDetailPage() {
 
   if (error && !caseData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-eggshell">
         <div className="text-center">
           <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-2" />
           <p className="text-gray-700 font-medium">{error}</p>
@@ -450,7 +450,7 @@ export default function CaseDetailPage() {
   const { patient } = caseData;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-eggshell">
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-4">
@@ -470,7 +470,7 @@ export default function CaseDetailPage() {
                   caseData.priority === "high"
                     ? "bg-red-100 text-red-700"
                     : caseData.priority === "normal"
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-teal-100 text-teal-700"
                     : "bg-gray-100 text-gray-600"
                 }`}
               >
@@ -479,12 +479,12 @@ export default function CaseDetailPage() {
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
                   caseData.status === "approved"
-                    ? "bg-green-100 text-green-700"
+                    ? "bg-teal-100 text-teal-700"
                     : caseData.status === "rejected"
                     ? "bg-red-100 text-red-700"
                     : caseData.status === "in_review"
-                    ? "bg-purple-100 text-purple-700"
-                    : "bg-yellow-100 text-yellow-700"
+                    ? "bg-skin-100 text-skin-700"
+                    : "bg-cream-100 text-cream-700"
                 }`}
               >
                 {caseData.status.replace("_", " ")}
@@ -515,7 +515,7 @@ export default function CaseDetailPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white text-sm font-medium px-6 py-3 rounded-xl shadow-lg flex items-center gap-2"
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-teal-600 text-white text-sm font-medium px-6 py-3 rounded-xl shadow-lg flex items-center gap-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             Review submitted! Redirecting…
@@ -560,8 +560,8 @@ export default function CaseDetailPage() {
                   <div
                     className={`h-full rounded-full ${
                       caseData.confidence_score >= 0.75
-                        ? "bg-green-400"
-                        : "bg-amber-400"
+                        ? "bg-teal-400"
+                        : "bg-cream-400"
                     }`}
                     style={{
                       width: `${(caseData.confidence_score * 100).toFixed(0)}%`,
@@ -625,7 +625,7 @@ export default function CaseDetailPage() {
           {/* Lifestyle */}
           <CollapsibleSection
             title="Lifestyle"
-            icon={<Zap className="w-4 h-4 text-purple-500" />}
+            icon={<Zap className="w-4 h-4 text-skin-500" />}
             expanded={expandedSection === "lifestyle"}
             onToggle={() => toggleSection("lifestyle")}
           >
@@ -662,7 +662,7 @@ export default function CaseDetailPage() {
           {/* Climate */}
           <CollapsibleSection
             title="Climate Profile"
-            icon={<Droplets className="w-4 h-4 text-blue-500" />}
+            icon={<Droplets className="w-4 h-4 text-teal-500" />}
             expanded={expandedSection === "climate"}
             onToggle={() => toggleSection("climate")}
           >
@@ -682,7 +682,7 @@ export default function CaseDetailPage() {
           {/* Current routine */}
           <CollapsibleSection
             title="Current Routine"
-            icon={<Moon className="w-4 h-4 text-indigo-500" />}
+            icon={<Moon className="w-4 h-4 text-gray-500" />}
             expanded={expandedSection === "routine"}
             onToggle={() => toggleSection("routine")}
           >
@@ -693,7 +693,7 @@ export default function CaseDetailPage() {
                 {patient.current_routine_items.map((item) => (
                   <span
                     key={item}
-                    className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md capitalize"
+                    className="text-xs bg-gray-50 text-gray-700 px-2 py-0.5 rounded-md capitalize"
                   >
                     {item}
                   </span>
@@ -889,7 +889,7 @@ export default function CaseDetailPage() {
                 <button
                   onClick={() => handleSubmitReview("approved")}
                   disabled={submitting}
-                  className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-60 px-4 py-3 rounded-xl transition-colors"
+                  className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-60 px-4 py-3 rounded-xl transition-colors"
                 >
                   {submitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -903,7 +903,7 @@ export default function CaseDetailPage() {
                   <button
                     onClick={() => handleSubmitReview("request_info")}
                     disabled={submitting}
-                    className="flex items-center justify-center gap-1.5 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 disabled:opacity-60 px-4 py-2.5 rounded-xl transition-colors"
+                    className="flex items-center justify-center gap-1.5 text-sm font-medium text-cream-700 bg-cream-50 hover:bg-cream-100 border border-cream-200 disabled:opacity-60 px-4 py-2.5 rounded-xl transition-colors"
                   >
                     <Send className="w-3.5 h-3.5" />
                     Request Info
@@ -927,20 +927,20 @@ export default function CaseDetailPage() {
             <div
               className={`rounded-2xl border p-5 ${
                 caseData.status === "approved"
-                  ? "bg-green-50 border-green-200"
+                  ? "bg-teal-50 border-teal-200"
                   : "bg-red-50 border-red-200"
               }`}
             >
               <div className="flex items-center gap-2">
                 {caseData.status === "approved" ? (
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <CheckCircle2 className="w-5 h-5 text-teal-600" />
                 ) : (
                   <XCircle className="w-5 h-5 text-red-600" />
                 )}
                 <p
                   className={`text-sm font-semibold capitalize ${
                     caseData.status === "approved"
-                      ? "text-green-800"
+                      ? "text-teal-800"
                       : "text-red-800"
                   }`}
                 >

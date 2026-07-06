@@ -84,7 +84,7 @@ cd ../..
 pnpm dev
 
 # Option B — individual
-pnpm --filter @skin-analysis/web dev      # http://localhost:3000
+pnpm --filter @skin-analysis/web dev      # http://localhost:3100
 pnpm --filter @skin-analysis/api dev      # http://localhost:8000
 ```
 

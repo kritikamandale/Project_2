@@ -15,7 +15,9 @@ from app.main import app
 from app.core.config import settings
 from app.core.database import Base, get_db
 from app.core.dependencies import get_redis
-from app.core.security import get_password_hash, create_access_token
+# security.py exposes hash_password (not get_password_hash) and
+# create_access_token(user_id, role, email) -> (token, jti).
+from app.core.security import hash_password as get_password_hash, create_access_token
 from app.models.user import AuditLog, RefreshToken, User, UserProfile
 
 TEST_DATABASE_URL = "postgresql+asyncpg://skin_user:password@localhost:5432/skin_analysis_test"
@@ -155,9 +157,8 @@ async def dermatologist_user(db_session) -> User:
 # ---------------------------------------------------------------------------
 
 def make_access_token(user: User) -> str:
-    return create_access_token(
-        data={"sub": str(user.id), "role": user.role, "jti": str(uuid.uuid4())}
-    )
+    token, _jti = create_access_token(user.id, user.role, user.email)
+    return token
 
 
 @pytest.fixture

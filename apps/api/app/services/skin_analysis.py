@@ -164,4 +164,4 @@ class SkinAnalysisService:
             import sentry_sdk
             sentry_sdk.capture_message(message, level="warning")
         except Exception:
-            pass
+            log.debug("Sentry unavailable — bias warning not reported: %s", message)

@@ -27,6 +27,10 @@ import {
 // used to show "first time takes longer" copy only on genuinely fresh visits.
 const MODELS_CACHED_KEY = "skinai_models_cached_v1";
 
+// Seconds for the auto-capture countdown that starts once the camera is ready.
+// The user can skip the wait by tapping the shutter.
+const CAPTURE_SECONDS = 6;
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -48,6 +52,7 @@ interface FaceGuide {
 }
 
 type CaptureStatus =
+  | "intro"
   | "idle"
   | "requesting"
   | "active"
@@ -74,6 +79,7 @@ interface State {
 }
 
 type Action =
+  | { type: "INTRO" }
   | { type: "REQUEST" }
   | { type: "CAMERA_READY" }
   | { type: "COUNTDOWN"; count: number }
@@ -88,7 +94,7 @@ type Action =
   | { type: "SET_MANUAL_FITZPATRICK"; value: FitzpatrickTone };
 
 const initialState: State = {
-  status: "idle",
+  status: "intro",
   countdown: 3,
   analysisStep: "",
   analysisProgress: 0,
@@ -102,7 +108,8 @@ const initialState: State = {
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "REQUEST": return { ...state, status: "requesting" };
+    case "INTRO": return { ...initialState };
+    case "REQUEST": return { ...state, status: "requesting", errorMessage: "" };
     case "CAMERA_READY": return { ...state, status: "active" };
     case "COUNTDOWN": return { ...state, status: "countdown", countdown: action.count };
     case "CAPTURING": return { ...state, status: "capturing" };
@@ -193,8 +200,13 @@ function drawFaceGuide(
   const scaleY = canvas.height / videoHeight;
   const cx = (canvas.width / 2);
   const cy = (canvas.height / 2) - 20;
-  const rx = (videoWidth * 0.22) * scaleX;
-  const ry = (videoHeight * 0.32) * scaleY;
+  // Portrait (vertical) oval sized to a human face's ~3:4 width:height ratio so
+  // it frames forehead-to-chin. Driven by the canvas HEIGHT so it stays taller
+  // than wide regardless of the (landscape) camera frame's aspect ratio — the
+  // previous width-based radii produced a horizontal oval on wide video. Width
+  // is clamped so the oval can never spill past the frame edges on narrow views.
+  const ry = canvas.height * 0.40;
+  const rx = Math.min(ry * 0.72, canvas.width * 0.42);
 
   const canCapture =
     lighting.quality === "good" &&
@@ -390,12 +402,16 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
     }
   });
 
-  // Allow capture in good/acceptable lighting once the models are ready;
-  // face-detection is advisory only
-  const canCapture =
-    state.status === "active" &&
-    lighting.quality !== "poor" &&
-    modelState === "ready";
+  // The camera is ready to shoot once it's live and the on-device model has
+  // loaded. Lighting / face-position are advisory hints only — they no longer
+  // block capture, so the shutter (and the auto-timer) always work once ready.
+  const cameraReady = state.status === "active" && modelState === "ready";
+
+  // Auto-capture countdown (null = not counting). Started by the effect below
+  // once the camera is ready; the shutter button skips it.
+  const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
+  const autoStartedRef = useRef(false);   // ensures the timer starts once per live session
+  const capturingRef = useRef(false);     // guards against double-capture (timer + tap)
 
   // ---------------------------------------------------------------------------
   // Real-time lighting analysis loop (every animation frame)
@@ -484,30 +500,53 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   const retryModelLoad = useCallback(() => setModelState("idle"), []);
 
   // ---------------------------------------------------------------------------
-  // Countdown
+  // Auto-capture countdown
   // ---------------------------------------------------------------------------
-  const startCountdown = useCallback(() => {
-    if (!canCapture) return;
-    dispatch({ type: "COUNTDOWN", count: 3 });
-  }, [canCapture]);
-
+  // Kick off the timer once the camera is live and the model is ready.
   useEffect(() => {
-    if (state.status !== "countdown") return;
-    if (state.countdown <= 0) {
+    if (cameraReady && autoCountdown === null && !autoStartedRef.current) {
+      autoStartedRef.current = true;
+      setAutoCountdown(CAPTURE_SECONDS);
+    }
+  }, [cameraReady, autoCountdown]);
+
+  // Tick down once per second and capture at zero. We stay in "active" status
+  // the whole time, so the live oval and lighting guidance keep rendering.
+  useEffect(() => {
+    if (autoCountdown === null || state.status !== "active") return;
+    if (autoCountdown <= 0) {
+      setAutoCountdown(null);
       runCapture();
       return;
     }
-    countdownRef.current = setTimeout(() => {
-      dispatch({ type: "COUNTDOWN", count: state.countdown - 1 });
-    }, 1000);
+    countdownRef.current = setTimeout(
+      () => setAutoCountdown((n) => (n === null ? null : n - 1)),
+      1000,
+    );
     return () => clearTimeout(countdownRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.status, state.countdown]);
+  }, [autoCountdown, state.status]);
+
+  // Reset the timer whenever we leave the live view (capture / error / retake),
+  // so re-entering "active" begins a fresh countdown.
+  useEffect(() => {
+    if (state.status !== "active") {
+      autoStartedRef.current = false;
+      capturingRef.current = false;
+      setAutoCountdown(null);
+    }
+  }, [state.status]);
 
   // ---------------------------------------------------------------------------
   // Capture + analysis pipeline
   // ---------------------------------------------------------------------------
   const runCapture = useCallback(async () => {
+    // Guard: the timer hitting zero and a shutter tap can race — only the first
+    // one through proceeds.
+    if (capturingRef.current) return;
+    capturingRef.current = true;
+    setAutoCountdown(null);
+
     const video = webcamRef.current?.video;
     if (!video) { dispatch({ type: "ERROR", message: "Camera feed lost" }); return; }
     // The video must still be a live frame here. If it reports 0×0 the stream
@@ -596,8 +635,8 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   // ---------------------------------------------------------------------------
 
   const lightingColors: Record<LightingQuality, string> = {
-    good: "text-green-400",
-    acceptable: "text-yellow-400",
+    good: "text-teal-400",
+    acceptable: "text-cream-400",
     poor: "text-red-400",
   };
 
@@ -616,7 +655,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
 
       {/* ── Privacy banner ──────────────────────────────────────────────── */}
       <div className="relative z-20 flex items-center gap-2 px-4 py-2 bg-black/70 border-b border-white/10 text-xs text-white/80">
-        <ShieldCheck className="w-4 h-4 text-green-400 shrink-0" />
+        <ShieldCheck className="w-4 h-4 text-teal-400 shrink-0" />
         <span>
           Your photo never leaves your device. We analyse your skin locally and only
           send skin characteristics — not your image.{" "}
@@ -635,16 +674,18 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
       {/* ── Main camera area ────────────────────────────────────────────── */}
       <div className="relative flex-1 flex items-center justify-center bg-black">
 
-        {/* Camera feed */}
-        {(state.status === "idle" || state.status === "requesting" || state.status === "active" || state.status === "countdown") && (
+        {/* Camera feed — mounted only after the user opts in on the intro screen,
+            so react-webcam's getUserMedia call (and thus the browser permission
+            prompt) fires from a deliberate user action, not silently on load. */}
+        {(state.status === "requesting" || state.status === "active" || state.status === "countdown") && (
           <Webcam
             ref={webcamRef}
             audio={false}
             mirrored
             videoConstraints={{ width: 1280, height: 960, facingMode: "user" }}
             onUserMedia={() => dispatch({ type: "CAMERA_READY" })}
-            onUserMediaError={() =>
-              dispatch({ type: "ERROR", message: "Camera access denied. Please allow camera permission and try again." })
+            onUserMediaError={(err) =>
+              dispatch({ type: "ERROR", message: cameraErrorMessage(err) })
             }
             className="w-full h-full object-cover"
             style={{ maxHeight: "calc(100vh - 120px)" }}
@@ -724,23 +765,28 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           )}
         </AnimatePresence>
 
-        {/* ── Countdown overlay ──────────────────────────────────────── */}
-        <AnimatePresence>
-          {state.status === "countdown" && state.countdown > 0 && (
-            <motion.div
-              key={state.countdown}
-              initial={{ scale: 1.4, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.7, opacity: 0 }}
-              transition={{ duration: 0.35 }}
-              className="absolute inset-0 flex items-center justify-center bg-black/30"
-            >
-              <span className="text-white font-bold text-9xl drop-shadow-2xl">
-                {state.countdown}
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* ── Auto-capture countdown ─────────────────────────────────── */}
+        {/* Non-blocking (pointer-events-none) so the oval / hints stay visible
+            and the shutter underneath stays tappable while the timer runs. */}
+        {state.status === "active" && autoCountdown !== null && autoCountdown > 0 && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <AnimatePresence mode="popLayout">
+              <motion.span
+                key={autoCountdown}
+                initial={{ scale: 1.4, opacity: 0 }}
+                animate={{ scale: 1, opacity: 0.9 }}
+                exit={{ scale: 0.7, opacity: 0 }}
+                transition={{ duration: 0.35 }}
+                className="text-white font-bold text-9xl drop-shadow-2xl"
+              >
+                {autoCountdown}
+              </motion.span>
+            </AnimatePresence>
+            <span className="mt-2 text-white/80 text-sm bg-black/50 rounded-full px-4 py-1.5 backdrop-blur-sm">
+              Auto-capturing in {autoCountdown}s — hold still, or tap the shutter
+            </span>
+          </div>
+        )}
 
         {/* ── Analyzing overlay ──────────────────────────────────────── */}
         <AnimatePresence>
@@ -829,16 +875,16 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               {/* Bias warning */}
               {(["IV", "V", "VI"] as FitzpatrickTone[]).includes(state.result.fitzpatrick_tone) &&
                 state.result.skin_type_confidence < 0.70 && (
-                <Alert className="bg-amber-900/40 border-amber-600/50 max-w-sm">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <AlertDescription className="text-amber-200 text-xs">
+                <Alert className="bg-cream-900/40 border-cream-600/50 max-w-sm">
+                  <AlertTriangle className="w-4 h-4 text-cream-400" />
+                  <AlertDescription className="text-cream-200 text-xs">
                     Lower confidence for your skin tone. You can retake or override manually.
                   </AlertDescription>
                 </Alert>
               )}
 
               {/* Privacy confirmation — photo is still in memory until Confirm is clicked */}
-              <p className="text-green-400 text-xs text-center max-w-xs">
+              <p className="text-teal-400 text-xs text-center max-w-xs">
                 ✓ Your photo stays on this device and will be deleted once you confirm.
               </p>
 
@@ -872,7 +918,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             >
               <div className="text-6xl">✅</div>
               <h3 className="text-white font-semibold text-xl">Scan saved!</h3>
-              <p className="text-green-400 text-sm text-center max-w-xs px-4">
+              <p className="text-teal-400 text-sm text-center max-w-xs px-4">
                 Your photo has been deleted. Only skin data was saved.
               </p>
             </motion.div>
@@ -888,9 +934,9 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-4 p-6"
             >
               <div className="text-5xl">⚠️</div>
-              <p className="text-white text-center">{state.errorMessage}</p>
+              <p className="text-white text-center max-w-sm">{state.errorMessage}</p>
               <div className="flex gap-3">
-                <Button variant="outline" className="border-white/20 text-white" onClick={() => dispatch({ type: "RETAKE" })}>
+                <Button variant="outline" className="border-white/20 text-white" onClick={() => dispatch({ type: "REQUEST" })}>
                   Try again
                 </Button>
                 <Button variant="ghost" className="text-white/60" onClick={() => dispatch({ type: "FALLBACK" })}>
@@ -901,12 +947,49 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           )}
         </AnimatePresence>
 
+        {/* ── Permission intro — deliberate opt-in before the browser prompt ── */}
+        {state.status === "intro" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 flex flex-col items-center justify-center bg-black px-6 text-center"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-skin-500/15 flex items-center justify-center mb-5">
+              <Camera className="w-8 h-8 text-skin-400" />
+            </div>
+            <h2 className="text-white font-semibold text-xl mb-2">Enable your camera</h2>
+            <p className="text-white/60 text-sm max-w-sm mb-1">
+              We&apos;ll ask your browser for camera access so you can take a quick face scan.
+            </p>
+            <p className="text-teal-300/80 text-xs max-w-sm mb-7 inline-flex items-center gap-1.5 justify-center">
+              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+              Your photo is analysed on your device and never uploaded.
+            </p>
+            <Button
+              onClick={() => dispatch({ type: "REQUEST" })}
+              className="bg-skin-500 hover:bg-skin-600 text-white px-8 h-12 text-base"
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              Enable Camera
+            </Button>
+            <button
+              onClick={() => dispatch({ type: "FALLBACK" })}
+              className="mt-4 text-white/50 hover:text-white/80 text-sm transition-colors"
+            >
+              Skip and enter my skin details manually
+            </button>
+          </motion.div>
+        )}
+
         {/* ── Requesting permission ────────────────────────────────── */}
         {state.status === "requesting" && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/80">
             <div className="text-center text-white/70 space-y-3">
               <Camera className="w-12 h-12 mx-auto animate-pulse" />
               <p>Requesting camera access…</p>
+              <p className="text-white/40 text-xs max-w-xs">
+                Choose “Allow” in your browser’s prompt to start the scan.
+              </p>
             </div>
           </div>
         )}
@@ -921,33 +1004,33 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             exit={{ opacity: 0, y: 20 }}
             className="relative z-20 flex items-center justify-center gap-6 py-6 bg-black"
           >
-            <div className="text-center text-xs text-white/40 w-24">
-              {!canCapture && (
-                <span>
-                  {modelState !== "ready"
-                    ? "Preparing…"
-                    : lighting.quality === "poor"
-                    ? "Need better lighting"
-                    : "Position face"}
-                </span>
-              )}
+            <div className="text-center text-xs text-white/50 w-24">
+              {!cameraReady ? (
+                <span>Preparing…</span>
+              ) : lighting.quality === "poor" ? (
+                <span className="text-red-400">Low light</span>
+              ) : null}
             </div>
 
             <button
-              onClick={startCountdown}
-              disabled={!canCapture}
+              onClick={runCapture}
+              disabled={!cameraReady}
               className={`w-20 h-20 rounded-full border-4 transition-all duration-300 flex items-center justify-center
-                ${canCapture
+                ${cameraReady
                   ? "border-white bg-white/10 hover:bg-white/20 active:scale-95 shadow-[0_0_24px_rgba(255,255,255,0.3)]"
                   : "border-white/20 bg-white/5 cursor-not-allowed opacity-50"
                 }`}
-              aria-label="Capture"
+              aria-label={autoCountdown !== null ? "Capture now" : "Capture"}
             >
-              <div className={`w-14 h-14 rounded-full ${canCapture ? "bg-white" : "bg-white/30"}`} />
+              <div className={`w-14 h-14 rounded-full ${cameraReady ? "bg-white" : "bg-white/30"}`} />
             </button>
 
-            <div className="text-xs text-white/40 w-24 text-right">
-              {canCapture && <span className="text-green-400">Ready</span>}
+            <div className="text-xs w-24 text-left">
+              {cameraReady && (
+                autoCountdown !== null
+                  ? <span className="text-white/60">Tap to<br />capture now</span>
+                  : <span className="text-teal-400">Ready</span>
+              )}
             </div>
           </motion.div>
         )}
@@ -1075,4 +1158,30 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
 
 function tick(ms = 50): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+// Turn a getUserMedia failure into specific, actionable guidance. The browser
+// only re-shows its permission prompt while the site is in the default state —
+// once "Block" is chosen it must be reset from the address-bar camera icon, so
+// that case needs different copy from "no camera found".
+function cameraErrorMessage(err: unknown): string {
+  const name =
+    typeof err === "string" ? err : (err as DOMException | undefined)?.name;
+  switch (name) {
+    case "NotAllowedError":
+    case "PermissionDeniedError":
+    case "SecurityError":
+      return "Camera permission is blocked. Click the camera icon in your browser's address bar, choose “Allow”, then reload — or use manual input below.";
+    case "NotFoundError":
+    case "DevicesNotFoundError":
+      return "No camera was found on this device. Connect a camera, or use manual input below.";
+    case "NotReadableError":
+    case "TrackStartError":
+      return "Your camera is in use by another app. Close it and try again, or use manual input.";
+    case "OverconstrainedError":
+    case "ConstraintNotSatisfiedError":
+      return "This camera doesn't support the required settings. Please use manual input.";
+    default:
+      return "Couldn't access the camera. Please allow camera permission and try again, or use manual input.";
+  }
 }

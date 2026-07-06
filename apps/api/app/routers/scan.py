@@ -159,15 +159,12 @@ async def get_scan(
     result = await db.execute(
         select(SkinScan)
         .options(selectinload(SkinScan.conditions))
-        .where(SkinScan.id == scan_id)
+        .where(SkinScan.id == scan_id, SkinScan.user_id == current_user.id)
     )
     scan = result.scalar_one_or_none()
 
     if scan is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found")
-
-    if scan.user_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
     response = ScanResponse.model_validate(scan)
 

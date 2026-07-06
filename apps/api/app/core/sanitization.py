@@ -4,7 +4,7 @@ Uses nh3 (Ammonia/Rust-based) to strip all HTML tags from user-supplied text.
 Applied at middleware level and as explicit helpers in service layer.
 """
 
-from typing import Any
+from typing import Any, Optional
 
 try:
     import nh3
@@ -23,6 +23,30 @@ def sanitize_text(value: str) -> str:
     # Fallback: naive tag stripper (no deps)
     import re
     return re.sub(r"<[^>]+>", "", value)
+
+
+# ---------------------------------------------------------------------------
+# Prompt-injection heuristic (defense-in-depth for the LLM recommendation flow)
+# ---------------------------------------------------------------------------
+# sanitize_text() above only strips HTML-like tags; it does nothing against a
+# plain-language attempt to override the system prompt (no angle brackets
+# needed for that). This is a coarse heuristic, not a guarantee — callers
+# should use it to fall back to a conservative path (e.g. force a
+# dermatologist review) rather than to block the request outright.
+_INJECTION_PHRASES: frozenset[str] = frozenset({
+    "ignore previous instructions", "ignore all previous instructions",
+    "ignore the above", "disregard previous instructions", "disregard the system prompt",
+    "forget everything above", "forget your instructions", "new instructions:",
+    "system prompt:", "you are now", "act as", "do not follow",
+})
+
+
+def looks_like_prompt_injection(value: Optional[str]) -> bool:
+    """True if free text reads like an attempt to override LLM instructions."""
+    if not value:
+        return False
+    lowered = value.lower()
+    return any(phrase in lowered for phrase in _INJECTION_PHRASES)
 
 
 def sanitize_dict(data: dict[str, Any], depth: int = 0) -> dict[str, Any]:

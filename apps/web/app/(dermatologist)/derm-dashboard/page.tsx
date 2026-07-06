@@ -52,7 +52,7 @@ function StatCard({ icon, label, value, sub, accent, delay }: StatCardProps) {
 function PriorityBadge({ priority }: { priority: string }) {
   const map: Record<string, string> = {
     high: "bg-red-100 text-red-700",
-    normal: "bg-blue-100 text-blue-700",
+    normal: "bg-teal-100 text-teal-700",
     low: "bg-gray-100 text-gray-600",
   };
   return (
@@ -70,11 +70,11 @@ function PriorityBadge({ priority }: { priority: string }) {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-700",
-    in_review: "bg-purple-100 text-purple-700",
-    approved: "bg-green-100 text-green-700",
+    pending: "bg-cream-100 text-cream-800",
+    in_review: "bg-gray-100 text-gray-700",
+    approved: "bg-teal-100 text-teal-700",
     rejected: "bg-red-100 text-red-700",
-    escalated: "bg-orange-100 text-orange-700",
+    escalated: "bg-skin-100 text-skin-700",
   };
   const label = status.replace("_", " ");
   return (
@@ -116,7 +116,7 @@ export default function DermDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-eggshell">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-gray-500">Loading dashboard…</p>
@@ -127,7 +127,7 @@ export default function DermDashboardPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-eggshell">
         <div className="text-center">
           <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-2" />
           <p className="text-gray-700 font-medium">{error}</p>
@@ -144,7 +144,7 @@ export default function DermDashboardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-eggshell">
       {/* Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
@@ -174,23 +174,23 @@ export default function DermDashboardPage() {
             delay={0}
           />
           <StatCard
-            icon={<Clock className="w-5 h-5 text-amber-600" />}
+            icon={<Clock className="w-5 h-5 text-cream-700" />}
             label="Pending Review"
             value={stats?.pending_review ?? 0}
             sub="awaiting action"
-            accent="bg-amber-50"
+            accent="bg-cream-50"
             delay={0.05}
           />
           <StatCard
-            icon={<CheckCircle2 className="w-5 h-5 text-green-600" />}
+            icon={<CheckCircle2 className="w-5 h-5 text-teal-600" />}
             label="Approved Today"
             value={stats?.approved_today ?? 0}
             sub="cases"
-            accent="bg-green-50"
+            accent="bg-teal-50"
             delay={0.1}
           />
           <StatCard
-            icon={<BarChart3 className="w-5 h-5 text-purple-600" />}
+            icon={<BarChart3 className="w-5 h-5 text-skin-600" />}
             label="Avg Review Time"
             value={
               stats?.avg_review_time_minutes != null
@@ -198,7 +198,7 @@ export default function DermDashboardPage() {
                 : "—"
             }
             sub="per case"
-            accent="bg-purple-50"
+            accent="bg-skin-50"
             delay={0.15}
           />
         </div>
@@ -227,7 +227,7 @@ export default function DermDashboardPage() {
 
           {queue.length === 0 ? (
             <div className="py-16 text-center">
-              <CheckCircle2 className="w-10 h-10 text-green-400 mx-auto mb-2" />
+              <CheckCircle2 className="w-10 h-10 text-teal-400 mx-auto mb-2" />
               <p className="text-gray-500 font-medium">All caught up!</p>
               <p className="text-sm text-gray-400 mt-1">No pending cases right now.</p>
             </div>
@@ -301,8 +301,8 @@ export default function DermDashboardPage() {
             className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-teal-300 transition-colors group"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-yellow-600" />
+              <div className="w-10 h-10 rounded-xl bg-cream-50 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-cream-700" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900 group-hover:text-teal-700">

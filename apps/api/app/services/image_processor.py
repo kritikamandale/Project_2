@@ -4,7 +4,6 @@ Privacy-critical: no image persists beyond 60 seconds.
 """
 
 import uuid
-from datetime import timedelta
 
 import boto3
 from botocore.config import Config

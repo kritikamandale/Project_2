@@ -13,8 +13,8 @@ interface Props {
 }
 
 const ADHERENCE_COLORS: Record<AdherenceLevel | "empty", string> = {
-  yes: "bg-emerald-500",
-  mostly: "bg-yellow-400",
+  yes: "bg-teal-500",
+  mostly: "bg-cream-500",
   no: "bg-zinc-200",
   empty: "bg-zinc-100",
 };
@@ -120,9 +120,9 @@ export function AdherenceHeatmap({ initialStreak = 0, onCheckinComplete }: Props
                 "px-4 py-1.5 rounded-full text-sm font-medium border transition-all",
                 todayAnswer === level
                   ? level === "yes"
-                    ? "bg-emerald-500 text-white border-emerald-500"
+                    ? "bg-teal-500 text-white border-teal-500"
                     : level === "mostly"
-                    ? "bg-yellow-400 text-white border-yellow-400"
+                    ? "bg-cream-500 text-gray-900 border-cream-500"
                     : "bg-zinc-400 text-white border-zinc-400"
                   : "bg-white text-zinc-600 border-zinc-300 hover:border-zinc-400",
                 submitting ? "opacity-50 cursor-not-allowed" : "",
@@ -138,7 +138,7 @@ export function AdherenceHeatmap({ initialStreak = 0, onCheckinComplete }: Props
         {streak > 0 && (
           <p className="text-sm text-zinc-600">
             You&apos;ve followed your routine{" "}
-            <span className="font-bold text-orange-500">
+            <span className="font-bold text-skin-500">
               {streak} day{streak !== 1 ? "s" : ""} in a row
             </span>
             {streak >= 7 && " 🔥"}
@@ -150,7 +150,7 @@ export function AdherenceHeatmap({ initialStreak = 0, onCheckinComplete }: Props
       <div className="flex gap-6 text-sm">
         <div>
           <p className="text-zinc-400 text-xs uppercase tracking-wide">Current streak</p>
-          <p className="font-bold text-orange-500 text-xl">{streak}d</p>
+          <p className="font-bold text-skin-500 text-xl">{streak}d</p>
         </div>
         <div>
           <p className="text-zinc-400 text-xs uppercase tracking-wide">Longest streak</p>
@@ -187,8 +187,8 @@ export function AdherenceHeatmap({ initialStreak = 0, onCheckinComplete }: Props
             <div className="flex gap-1">
               <div className="w-3.5 h-3.5 rounded-sm bg-zinc-100" />
               <div className="w-3.5 h-3.5 rounded-sm bg-zinc-200" />
-              <div className="w-3.5 h-3.5 rounded-sm bg-yellow-400" />
-              <div className="w-3.5 h-3.5 rounded-sm bg-emerald-500" />
+              <div className="w-3.5 h-3.5 rounded-sm bg-cream-500" />
+              <div className="w-3.5 h-3.5 rounded-sm bg-teal-500" />
             </div>
             <span>More</span>
           </div>

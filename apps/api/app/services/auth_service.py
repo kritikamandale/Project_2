@@ -274,7 +274,7 @@ def _build_token_response(user: User, access_token: str, refresh_token: str) -> 
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        token_type="bearer",
+        token_type="bearer",  # noqa: S106 — OAuth2 scheme name, not a secret
         user=UserResponse.model_validate(user),
     )
 
@@ -315,7 +315,6 @@ async def register_user(
     await db.flush()  # get user.id
 
     # Record consent timestamp (DPDP Act Section 6 requirement)
-    from app.models.user import UserProfile
     db.add(UserProfile(
         user_id=user.id,
         consent_given_at=datetime.now(timezone.utc),

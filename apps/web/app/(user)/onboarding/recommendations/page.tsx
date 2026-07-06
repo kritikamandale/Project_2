@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AlertTriangle, Loader2 } from "lucide-react";
@@ -24,7 +24,9 @@ const GENERATING_STEPS = [
   "Finalising personalised recommendations…",
 ];
 
-export default function OnboardingRecommendationsPage() {
+// useSearchParams() requires a Suspense boundary for static prerendering —
+// the inner component reads params; the default export provides the boundary.
+function OnboardingRecommendationsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { update } = useSession();
@@ -70,9 +72,12 @@ export default function OnboardingRecommendationsPage() {
           questionnaire_id: questionnaireId,
         });
 
-        // Seed the results-page cache so it renders this rec instead of regenerating.
+        // Seed the results-page cache so it renders this rec instead of
+        // regenerating. Must be sessionStorage — that's what the results page
+        // reads (it was localStorage before, so the seed never hit and every
+        // results visit re-ran the engine).
         try {
-          localStorage.setItem(
+          sessionStorage.setItem(
             `rec_${scanId}_${questionnaireId ?? "none"}`,
             gen.recommendation_id,
           );
@@ -95,8 +100,8 @@ export default function OnboardingRecommendationsPage() {
   if (error) {
     return (
       <div className="max-w-md mx-auto mt-16 px-6 text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-50 mb-4">
-          <AlertTriangle className="w-7 h-7 text-amber-500" />
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cream-100 mb-4">
+          <AlertTriangle className="w-7 h-7 text-cream-700" />
         </div>
         <h1 className="text-lg font-semibold text-gray-900">We couldn&apos;t finish your plan</h1>
         <p className="text-sm text-gray-500 mt-2">{error}</p>
@@ -123,5 +128,13 @@ export default function OnboardingRecommendationsPage() {
         Generating your personalised routine — this may take up to a minute.
       </p>
     </div>
+  );
+}
+
+export default function OnboardingRecommendationsPage() {
+  return (
+    <Suspense fallback={null}>
+      <OnboardingRecommendationsPageInner />
+    </Suspense>
   );
 }

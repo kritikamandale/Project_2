@@ -41,10 +41,10 @@ function formatDate(iso: string): string {
 }
 
 const SKIN_TYPE_BADGE: Record<string, string> = {
-  oily: "bg-emerald-50 text-emerald-700",
-  dry: "bg-amber-50 text-amber-700",
-  combination: "bg-violet-50 text-violet-700",
-  normal: "bg-sky-50 text-sky-700",
+  oily: "bg-teal-50 text-teal-700",
+  dry: "bg-cream-50 text-cream-800",
+  combination: "bg-skin-50 text-skin-700",
+  normal: "bg-gray-100 text-gray-700",
   sensitive: "bg-rose-50 text-rose-700",
 };
 
@@ -125,7 +125,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-eggshell">
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <motion.div

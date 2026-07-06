@@ -22,7 +22,7 @@ function AlertBanner({ message, type }: { message: string; type: string }) {
         isOverdue
           ? "border-rose-200 bg-rose-50 text-rose-700"
           : isWorsened
-          ? "border-amber-200 bg-amber-50 text-amber-800"
+          ? "border-cream-300 bg-cream-50 text-cream-800"
           : "border-skin-200 bg-skin-50 text-skin-800",
       ].join(" ")}
     >
@@ -341,14 +341,14 @@ export default function DashboardPage() {
               label="Current Streak"
               value={streak > 0 ? `${streak}d` : "—"}
               sub={streak > 0 ? "routine adherence" : "Start your routine"}
-              accent="bg-amber-50"
+              accent="bg-cream-50"
             />
             <StatCard
               icon="📅"
               label="Next Scan"
               value={nextScanLabel}
               sub={isOverdue ? "Please rescan now" : "recommended schedule"}
-              accent={isOverdue ? "bg-rose-50" : "bg-emerald-50"}
+              accent={isOverdue ? "bg-rose-50" : "bg-teal-50"}
             />
             <StatCard
               icon="💪"
@@ -440,7 +440,7 @@ export default function DashboardPage() {
                         <p
                           className={`text-xs font-medium ${
                             isImproved
-                              ? "text-emerald-600"
+                              ? "text-teal-600"
                               : isWorsened
                               ? "text-rose-600"
                               : "text-zinc-400"
@@ -454,7 +454,7 @@ export default function DashboardPage() {
                     <span
                       className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                         isImproved
-                          ? "bg-emerald-50 text-emerald-700"
+                          ? "bg-teal-50 text-teal-700"
                           : isWorsened
                           ? "bg-rose-50 text-rose-700"
                           : "bg-zinc-100 text-zinc-500"

@@ -15,16 +15,16 @@ export function RescanCTA({ lastScanDate, daysUntilRescan, isOverdue }: Props) {
   // No scan yet
   if (!lastScanDate) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-xl border border-teal-200 bg-teal-50 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="font-semibold text-emerald-800">Start your skin journey</p>
-          <p className="text-sm text-emerald-700 mt-0.5">
+          <p className="font-semibold text-teal-800">Start your skin journey</p>
+          <p className="text-sm text-teal-700 mt-0.5">
             Take your first scan to begin tracking your progress.
           </p>
         </div>
         <button
           onClick={() => router.push("/scan")}
-          className="shrink-0 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
+          className="shrink-0 px-5 py-2.5 rounded-lg bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
         >
           Scan now
         </button>
@@ -67,7 +67,7 @@ export function RescanCTA({ lastScanDate, daysUntilRescan, isOverdue }: Props) {
             {daysUntilRescan != null ? (
               <>
                 Your next skin scan is in{" "}
-                <span className="font-bold text-emerald-600">{daysUntilRescan} days</span>.
+                <span className="font-bold text-teal-600">{daysUntilRescan} days</span>.
                 Continue your routine for best results.
               </>
             ) : (
@@ -77,7 +77,7 @@ export function RescanCTA({ lastScanDate, daysUntilRescan, isOverdue }: Props) {
         </div>
         <button
           onClick={() => router.push("/scan")}
-          className="shrink-0 px-5 py-2.5 rounded-lg border border-emerald-300 text-emerald-700 bg-emerald-50 text-sm font-semibold hover:bg-emerald-100 transition-colors"
+          className="shrink-0 px-5 py-2.5 rounded-lg border border-teal-300 text-teal-700 bg-teal-50 text-sm font-semibold hover:bg-teal-100 transition-colors"
         >
           Re-scan early
         </button>
@@ -94,7 +94,7 @@ export function RescanCTA({ lastScanDate, daysUntilRescan, isOverdue }: Props) {
         </div>
         <div className="h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-700"
+            className="h-full rounded-full bg-gradient-to-r from-teal-400 to-teal-500 transition-all duration-700"
             style={{ width: `${pct}%` }}
           />
         </div>

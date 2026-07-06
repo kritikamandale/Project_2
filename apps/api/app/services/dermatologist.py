@@ -2,13 +2,12 @@
 
 import base64
 import hashlib
-import os
 import uuid
 from datetime import date, datetime, timezone
 from typing import Optional
 
 from cryptography.fernet import Fernet
-from sqlalchemy import and_, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -18,7 +17,7 @@ from app.models.product import Product
 from app.models.questionnaire import EnvironmentProfile, QuestionnaireResponse, SkincareRoutineCurrent
 from app.models.recommendation import Recommendation, RecommendationProduct
 from app.models.scan import SkinCondition, SkinScan
-from app.models.user import User, UserProfile
+from app.models.user import UserProfile
 from app.schemas.dermatologist import (
     AnonymizedPatient,
     CaseDetailResponse,

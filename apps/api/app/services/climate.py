@@ -5,7 +5,6 @@ Results cached in Redis to avoid redundant API calls.
 
 import json
 
-import httpx
 import redis.asyncio as aioredis
 
 from app.core.config import settings

@@ -6,7 +6,7 @@ Pydantic Settings validates types and raises on missing required values at start
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyHttpUrl, Field, PostgresDsn, RedisDsn, field_validator, model_validator
+from pydantic import Field, PostgresDsn, RedisDsn, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _WEAK_SECRETS = frozenset({
@@ -106,6 +106,14 @@ class Settings(BaseSettings):
     db_max_overflow: int = 20
     db_pool_timeout: int = 30
 
+    # Log every SQL statement (set DB_ECHO=true when debugging queries).
+    # Deliberately decoupled from DEBUG — echo adds real per-request overhead.
+    db_echo: bool = False
+
+    # Create missing tables on startup in dev. Schema is managed by Alembic
+    # (alembic upgrade head); this is only a convenience for fresh clones.
+    db_auto_create: bool = True
+
     # -------------------------------------------------------------------------
     # Redis 7
     # -------------------------------------------------------------------------
@@ -179,6 +187,11 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         return self.environment == "development"
 
+    @property
+    def is_prod_like(self) -> bool:
+        """Production or staging — hardening that should never be dev-only."""
+        return self.environment in ("production", "staging")
+
     @model_validator(mode="after")
     def _enforce_strong_secrets_in_production(self) -> "Settings":
         if self.environment in ("production", "staging"):
@@ -191,6 +204,11 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "JWT_SECRET_KEY must be a strong random value in production/staging. "
                     "Generate one with: openssl rand -hex 32"
+                )
+            if not self.clamav_enabled:
+                raise ValueError(
+                    "CLAMAV_ENABLED must be true in production/staging — file uploads "
+                    "would otherwise be treated as clean without ever being scanned."
                 )
         return self
 

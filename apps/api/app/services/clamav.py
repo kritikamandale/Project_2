@@ -9,9 +9,12 @@ Protocol:
 """
 
 import asyncio
+import logging
 import struct
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class ClamAVScanError(Exception):
@@ -61,7 +64,7 @@ async def scan_bytes(data: bytes) -> tuple[bool, str]:
         try:
             await writer.wait_closed()
         except Exception:
-            pass
+            logger.debug("ClamAV connection close raised (already-broken socket) — ignoring.", exc_info=True)
 
     is_clean = result.endswith("OK")
     return is_clean, result

@@ -4,7 +4,7 @@ import uuid
 from datetime import date, datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 # ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ class UserLogin(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
-    token_type: Literal["bearer"] = "bearer"
+    token_type: Literal["bearer"] = "bearer"  # noqa: S105 — OAuth2 scheme name, not a secret
     user: "UserResponse"
 
 

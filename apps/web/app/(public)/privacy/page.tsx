@@ -18,8 +18,8 @@ export default function PrivacyPolicyPage() {
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-xl bg-green-100 dark:bg-green-900/30 p-2">
-              <ShieldCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="rounded-xl bg-teal-100 dark:bg-teal-900/30 p-2">
+              <ShieldCheck className="h-6 w-6 text-teal-600 dark:text-teal-400" />
             </div>
             <h1 className="text-3xl font-bold text-foreground">Privacy Policy</h1>
           </div>
@@ -63,8 +63,8 @@ export default function PrivacyPolicyPage() {
                 ["IP address", "Security — rate limiting, audit logs", "90 days"],
                 ["Device / browser (User-Agent)", "Security audit logs", "90 days"],
               ]} />
-              <div className="rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
-                <p className="text-sm text-green-800 dark:text-green-300 font-medium">
+              <div className="rounded-xl bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 p-4">
+                <p className="text-sm text-teal-800 dark:text-teal-300 font-medium">
                   🔒 Raw face images are <strong>never stored</strong>. Your camera captures a
                   frame, our on-device model extracts a 512-number mathematical vector, and
                   the image is discarded immediately. The vector cannot be reverse-engineered
@@ -90,7 +90,7 @@ export default function PrivacyPolicyPage() {
                 ["Dermatologist review of high-risk cases", "Explicit consent at registration"],
               ].map(([purpose, basis], i) => (
                 <li key={i} className="flex gap-2 text-sm">
-                  <span className="text-green-500 mt-0.5">✓</span>
+                  <span className="text-teal-500 mt-0.5">✓</span>
                   <span><strong>{purpose}</strong> — Legal basis: {basis}</span>
                 </li>
               ))}

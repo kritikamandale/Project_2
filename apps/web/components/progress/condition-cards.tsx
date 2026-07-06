@@ -29,9 +29,9 @@ const CONDITION_ICONS: Record<string, string> = {
 function statusColors(status: ConditionProgressItem["status"]) {
   if (status === "improved")
     return {
-      badge: "bg-emerald-100 text-emerald-700",
-      border: "border-emerald-200",
-      line: "#10b981",
+      badge: "bg-teal-100 text-teal-700",
+      border: "border-teal-200",
+      line: "#6e9783",
     };
   if (status === "worsened")
     return {
@@ -42,7 +42,7 @@ function statusColors(status: ConditionProgressItem["status"]) {
   return {
     badge: "bg-zinc-100 text-zinc-500",
     border: "border-zinc-200",
-    line: "#94a3b8",
+    line: "#9ea0ad",
   };
 }
 
@@ -100,7 +100,7 @@ function ConditionCard({ item }: { item: ConditionProgressItem }) {
             <p
               className={
                 item.improvement_pct > 0
-                  ? "text-emerald-600 font-semibold"
+                  ? "text-teal-600 font-semibold"
                   : item.improvement_pct < 0
                   ? "text-rose-500 font-semibold"
                   : "text-zinc-500"

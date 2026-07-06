@@ -3,17 +3,14 @@ Admin service — analytics, user management, product CRUD, settings, TOTP.
 All mutating operations write to audit_logs.
 """
 
-import base64
-import io
+import logging
 import math
-import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 import pyotp
-from sqlalchemy import cast, func, select, text, update
-from sqlalchemy.dialects.postgresql import ARRAY, TEXT
+from sqlalchemy import func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin import DermatologistProfile, PlatformSetting, ReviewQueue
@@ -42,6 +39,7 @@ from app.schemas.admin import (
     TOTPSetupResponse,
 )
 
+logger = logging.getLogger(__name__)
 UTC = timezone.utc
 
 
@@ -305,6 +303,7 @@ async def get_charts_data(db: AsyncSession) -> ChartsDataResponse:
                 )
             )
         except Exception:
+            logger.warning("Skipping malformed condition-improvement row: %s", r, exc_info=True)
             continue
 
     return ChartsDataResponse(

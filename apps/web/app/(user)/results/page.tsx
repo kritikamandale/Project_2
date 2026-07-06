@@ -18,8 +18,8 @@ export default function ResultsLandingPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-8 h-8 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-eggshell">
+      <div className="w-8 h-8 rounded-full border-4 border-skin-200 border-t-skin-500 animate-spin" />
     </div>
   );
 }

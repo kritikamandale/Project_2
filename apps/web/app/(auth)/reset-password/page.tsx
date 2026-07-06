@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { Suspense, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -39,7 +39,9 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>;
 
-export default function ResetPasswordPage() {
+// useSearchParams() requires a Suspense boundary for static prerendering —
+// the inner component reads params; the default export provides the boundary.
+function ResetPasswordPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
@@ -109,7 +111,7 @@ export default function ResetPasswordPage() {
                 className="text-center py-4 space-y-3"
               >
                 <div className="text-5xl">✅</div>
-                <h3 className="font-semibold text-green-700 text-lg">
+                <h3 className="font-semibold text-teal-700 text-lg">
                   Password updated!
                 </h3>
                 <p className="text-sm text-gray-500">
@@ -172,5 +174,13 @@ export default function ResetPasswordPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordPageInner />
+    </Suspense>
   );
 }

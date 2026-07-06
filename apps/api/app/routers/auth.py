@@ -9,7 +9,7 @@ via the request object.
 from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import InvalidTokenError as JWTError
 from pydantic import BaseModel, EmailStr, Field
@@ -32,7 +32,6 @@ from app.schemas.user import (
     TokenResponse,
     UserLogin,
     UserRegister,
-    UserResponse,
     UserWithProfileResponse,
 )
 from app.services import auth_service
@@ -80,7 +79,7 @@ async def register_user(
         async with db.begin():
             await auth_service.register_user(db, redis, body, ip_address=ip)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     return MessageResponse(
         message="Account created. Please check your email for a verification code."
@@ -109,7 +108,7 @@ async def register_dermatologist(
         async with db.begin():
             await auth_service.register_dermatologist(db, redis, body, ip_address=ip)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     return MessageResponse(
         message=(
@@ -151,7 +150,7 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from exc
     return tokens
 
 
@@ -183,7 +182,7 @@ async def refresh_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from exc
     return tokens
 
 
@@ -248,7 +247,7 @@ async def verify_email(
                 db, redis, body.email, body.otp
             )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return MessageResponse(message="Email verified successfully. You can now log in.")
 
 
@@ -329,7 +328,7 @@ async def reset_password(
                 db, redis, token=body.otp, new_password=body.new_password
             )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return MessageResponse(message="Password reset successfully. Please log in.")
 
 

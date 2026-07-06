@@ -93,8 +93,8 @@ export function CookieConsent() {
         >
           <div className="rounded-2xl border border-border bg-card shadow-2xl p-5">
             <div className="flex items-start gap-3 mb-4">
-              <div className="rounded-xl bg-amber-100 dark:bg-amber-900/30 p-2 mt-0.5 shrink-0">
-                <Cookie className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div className="rounded-xl bg-cream-100 dark:bg-cream-900/30 p-2 mt-0.5 shrink-0">
+                <Cookie className="h-5 w-5 text-cream-700 dark:text-cream-400" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground text-sm mb-1">
@@ -117,7 +117,7 @@ export function CookieConsent() {
             </div>
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-              <ShieldCheck className="h-3.5 w-3.5 text-green-500 shrink-0" />
+              <ShieldCheck className="h-3.5 w-3.5 text-teal-500 shrink-0" />
               <span>
                 Your skin images are <strong>never stored</strong>. Read our{" "}
                 <a

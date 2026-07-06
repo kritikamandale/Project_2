@@ -22,9 +22,8 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_verified_user
 from app.core.limiter import limiter
 from app.models.recommendation import Recommendation, RecommendationProduct
-from app.models.scan import SkinScan, SkinCondition
+from app.models.scan import SkinScan
 from app.schemas.recommendation import (
-    ConditionTimeline,
     FeedbackRequest,
     RecommendationDetailResponse,
     RecommendationGenerateRequest,
@@ -173,7 +172,7 @@ async def generate_recommendation(
             db=db,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
     # Step 3 complete: a recommendation now exists and is stored — this is the
     # only place onboarding is marked `completed`, satisfying the rule that

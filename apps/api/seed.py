@@ -486,6 +486,132 @@ DERMACO_PRODUCTS = [
 ]
 
 # ---------------------------------------------------------------------------
+# New derm/pharmacy brands (results-page v2). brand="others" keeps the enum
+# intact; brand_display carries the real marketing name. mrp_inr on some rows
+# powers the discount filter; pack_size 2/3 powers the combos filter.
+# ---------------------------------------------------------------------------
+REEQUIL_PRODUCTS = [
+    {
+        "brand": "others", "brand_display": "Re'equil",
+        "product_name": "Re'equil Ultra Matte Dry Touch Sunscreen SPF 50",
+        "category": "sunscreen", "price_inr": 545.0, "mrp_inr": 650.0,
+        "key_ingredients": ["zinc oxide", "titanium dioxide", "vitamin E"],
+        "key_actives": ["zinc oxide", "titanium dioxide"],
+        "targets_conditions": ["pigmentation", "dark_spots", "acne"],
+        "skin_types_suitable": ["oily", "combination"],
+        "fitzpatrick_suitable": ["III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["tropical", "coastal", "arid"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
+        "product_url": "https://www.reequil.com/products/ultra-matte-dry-touch-sunscreen-gel-spf-50-pa",
+        "rating_avg": 4.5, "review_count": 12400,
+    },
+    {
+        "brand": "others", "brand_display": "Re'equil",
+        "product_name": "Re'equil Pilepsta Anti Acne Cream",
+        "category": "treatment", "price_inr": 725.0, "mrp_inr": 850.0,
+        "key_ingredients": ["azelaic acid", "salicylic acid", "niacinamide"],
+        "key_actives": ["azelaic acid", "salicylic acid", "niacinamide"],
+        "targets_conditions": ["acne", "pores", "pigmentation"],
+        "skin_types_suitable": ["oily", "combination"],
+        "fitzpatrick_suitable": ["II", "III", "IV", "V"],
+        "climate_zones_suitable": ["tropical", "coastal", "semi_arid"],
+        "is_dermatologist_approved": True, "pregnancy_safe": False, "is_new": True,
+        "product_url": "https://www.reequil.com/products/pilepsta-anti-acne-cream",
+        "rating_avg": 4.3, "review_count": 5400,
+    },
+    {
+        "brand": "others", "brand_display": "Re'equil",
+        "product_name": "Re'equil Ceramide & Hyaluronic Acid Moisturiser",
+        "category": "moisturiser", "price_inr": 595.0, "mrp_inr": 695.0,
+        "key_ingredients": ["ceramides", "hyaluronic acid", "niacinamide"],
+        "key_actives": ["ceramide", "hyaluronic acid", "niacinamide"],
+        "targets_conditions": ["dryness", "redness", "texture"],
+        "skin_types_suitable": ["dry", "normal", "sensitive", "combination"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "temperate"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
+        "product_url": "https://www.reequil.com/products/ceramide-and-hyaluronic-acid-moisturizer",
+        "rating_avg": 4.4, "review_count": 3900,
+    },
+]
+
+CERAVE_PRODUCTS = [
+    {
+        "brand": "others", "brand_display": "CeraVe",
+        "product_name": "CeraVe Foaming Facial Cleanser",
+        "category": "cleanser", "price_inr": 715.0, "mrp_inr": 950.0,
+        "key_ingredients": ["ceramides", "niacinamide", "hyaluronic acid"],
+        "key_actives": ["ceramide", "niacinamide", "hyaluronic acid"],
+        "targets_conditions": ["acne", "pores", "texture"],
+        "skin_types_suitable": ["oily", "combination", "normal"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["tropical", "coastal", "temperate"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
+        "product_url": "https://www.cerave.com/skincare/cleansers/foaming-facial-cleanser",
+        "rating_avg": 4.6, "review_count": 21800,
+    },
+    {
+        "brand": "others", "brand_display": "CeraVe",
+        "product_name": "CeraVe Moisturising Cream",
+        "category": "moisturiser", "price_inr": 890.0, "mrp_inr": 1100.0,
+        "key_ingredients": ["ceramides", "hyaluronic acid", "glycerin"],
+        "key_actives": ["ceramide", "hyaluronic acid", "glycerin"],
+        "targets_conditions": ["dryness", "redness"],
+        "skin_types_suitable": ["dry", "normal", "sensitive"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "temperate"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
+        "product_url": "https://www.cerave.com/skincare/moisturizers/moisturizing-cream",
+        "rating_avg": 4.7, "review_count": 34500,
+    },
+    {
+        "brand": "others", "brand_display": "CeraVe",
+        "product_name": "CeraVe Cleanser + Moisturiser Barrier Combo",
+        "category": "cleanser", "price_inr": 1450.0, "mrp_inr": 2050.0, "pack_size": 2,
+        "key_ingredients": ["ceramides", "niacinamide", "hyaluronic acid"],
+        "key_actives": ["ceramide", "niacinamide", "hyaluronic acid"],
+        "targets_conditions": ["dryness", "redness", "texture"],
+        "skin_types_suitable": ["dry", "normal", "sensitive"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "temperate"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
+        "product_url": "https://www.cerave.com/skincare/value-sets",
+        "rating_avg": 4.6, "review_count": 4100,
+    },
+]
+
+BIODERMA_PRODUCTS = [
+    {
+        "brand": "others", "brand_display": "Bioderma",
+        "product_name": "Bioderma Sensibio H2O Micellar Water",
+        "category": "cleanser", "price_inr": 990.0, "mrp_inr": 1290.0,
+        "key_ingredients": ["micellar water", "glycerin", "cucumber extract"],
+        "key_actives": ["glycerin"],
+        "targets_conditions": ["redness", "dryness"],
+        "skin_types_suitable": ["sensitive", "dry", "normal"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["temperate", "arid", "semi_arid", "coastal"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
+        "product_url": "https://www.bioderma.in/our-products/sensibio/sensibio-h2o",
+        "rating_avg": 4.6, "review_count": 18700,
+    },
+    {
+        "brand": "others", "brand_display": "Bioderma",
+        "product_name": "Bioderma Sensibio Defensive Soothing Moisturiser",
+        "category": "moisturiser", "price_inr": 1150.0, "mrp_inr": 1450.0,
+        "key_ingredients": ["glycerin", "niacinamide", "panthenol"],
+        "key_actives": ["glycerin", "niacinamide"],
+        "targets_conditions": ["redness", "dryness", "texture"],
+        "skin_types_suitable": ["sensitive", "dry", "normal", "combination"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["temperate", "arid", "semi_arid"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
+        "product_url": "https://www.bioderma.in/our-products/sensibio/sensibio-defensive",
+        "rating_avg": 4.4, "review_count": 6300,
+    },
+]
+
+# ---------------------------------------------------------------------------
 # Indian city climate data (static, pre-seeded as a reference table)
 # Note: These create EnvironmentProfile rows NOT linked to any user (user_id
 # is nullable-null here only for the reference data pattern); in production
@@ -639,9 +765,25 @@ async def seed_dermatologists(session: AsyncSession) -> list[User]:
     return derms
 
 
+def _derive_actives(key_ingredients: list[str]) -> list[str]:
+    """Normalise key_ingredients into key_actives (strip trailing percentages)."""
+    actives: list[str] = []
+    for ing in (key_ingredients or []):
+        base = ing.lower().strip()
+        if "%" in base:
+            base = base.split("%")[0].rstrip(" 0123456789.")
+        base = base.strip()
+        if base and base not in actives:
+            actives.append(base)
+    return actives
+
+
 async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> None:
     print("  Seeding products...")
-    all_products = NYKAA_PRODUCTS + MINIMALIST_PRODUCTS + DERMACO_PRODUCTS
+    all_products = (
+        NYKAA_PRODUCTS + MINIMALIST_PRODUCTS + DERMACO_PRODUCTS
+        + REEQUIL_PRODUCTS + CERAVE_PRODUCTS + BIODERMA_PRODUCTS
+    )
     for p in all_products:
         exists = await session.execute(
             select(Product).where(
@@ -649,21 +791,45 @@ async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> N
                 Product.product_name == p["product_name"],
             )
         )
-        if exists.scalar_one_or_none():
-            print(f"    skip {p['brand']}/{p['product_name']} (exists)")
+        existing = exists.scalar_one_or_none()
+        if existing:
+            # Backfill the v2 columns on already-seeded rows (mrp/actives/etc.)
+            # without disturbing anything else.
+            changed = False
+            if existing.mrp_inr is None and p.get("mrp_inr") is not None:
+                existing.mrp_inr = p["mrp_inr"]; changed = True
+            elif existing.mrp_inr is None and existing.price_inr:
+                # No explicit MRP — synthesise a modest one so discounts exist.
+                existing.mrp_inr = round(existing.price_inr * 1.2, 2); changed = True
+            if not existing.key_actives:
+                existing.key_actives = p.get("key_actives") or _derive_actives(existing.key_ingredients or []); changed = True
+            if existing.brand_display is None and p.get("brand_display"):
+                existing.brand_display = p["brand_display"]; changed = True
+            if p.get("pack_size") and existing.pack_size in (None, 1):
+                existing.pack_size = p["pack_size"]; changed = True
+            if p.get("pregnancy_safe") is not None and existing.pregnancy_safe is None:
+                existing.pregnancy_safe = p["pregnancy_safe"]; changed = True
+            print(f"    ~ backfill {p['brand']}/{p['product_name']}" if changed else f"    skip {p['brand']}/{p['product_name']} (exists)")
             continue
         product = Product(
             id=uuid.uuid4(),
             brand=p["brand"],
+            brand_display=p.get("brand_display"),
             product_name=p["product_name"],
             product_url=p.get("product_url"),
             price_inr=p.get("price_inr"),
+            mrp_inr=p.get("mrp_inr"),
+            pack_size=p.get("pack_size", 1),
             category=p["category"],
             key_ingredients=p.get("key_ingredients", []),
+            key_actives=p.get("key_actives") or _derive_actives(p.get("key_ingredients", [])),
             targets_conditions=p.get("targets_conditions", []),
             skin_types_suitable=p.get("skin_types_suitable", []),
             fitzpatrick_suitable=p.get("fitzpatrick_suitable", []),
             climate_zones_suitable=p.get("climate_zones_suitable", []),
+            store_links=p.get("store_links", []),
+            pregnancy_safe=p.get("pregnancy_safe"),
+            is_new=p.get("is_new", False),
             is_dermatologist_approved=p.get("is_dermatologist_approved", False),
             approval_dermatologist_id=approval_derm_id if p.get("is_dermatologist_approved") else None,
             rating_avg=p.get("rating_avg", 0.0),
@@ -671,7 +837,18 @@ async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> N
             is_active=True,
         )
         session.add(product)
-        print(f"    + [{p['brand']}] {p['product_name']}")
+        print(f"    + [{p.get('brand_display') or p['brand']}] {p['product_name']}")
+
+    # Backfill mrp_inr + key_actives on ALL existing rows not covered above
+    # (e.g. rows seeded before v2 that aren't in the current seed lists).
+    stragglers = (await session.scalars(
+        select(Product).where(Product.is_active.is_(True))
+    )).all()
+    for prod in stragglers:
+        if prod.mrp_inr is None and prod.price_inr:
+            prod.mrp_inr = round(prod.price_inr * 1.2, 2)
+        if not prod.key_actives:
+            prod.key_actives = _derive_actives(prod.key_ingredients or [])
 
 
 async def seed_platform_settings(session: AsyncSession) -> None:
@@ -701,7 +878,10 @@ async def reset_seed_tables(session: AsyncSession) -> None:
 # ---------------------------------------------------------------------------
 
 async def main(reset: bool = False) -> None:
-    engine = create_async_engine(str(settings.database_url), echo=False)
+    # Reuse the app engine — it coerces the DSN to asyncpg and applies the
+    # PgBouncer-safe connect_args (a fresh engine here would fall back to
+    # psycopg2 and/or break on the Supabase transaction pooler).
+    from app.core.database import engine
     factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with factory() as session:

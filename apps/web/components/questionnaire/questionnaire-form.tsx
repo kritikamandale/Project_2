@@ -169,7 +169,7 @@ function ProgressBar({ current, completed }: { current: number; completed: numbe
                     isCurrent
                       ? "bg-skin-600 text-white shadow-md scale-105"
                       : isDone
-                      ? "bg-emerald-100 text-emerald-700"
+                      ? "bg-teal-100 text-teal-700"
                       : "bg-gray-100 text-gray-400"
                   }`}
                 >
@@ -179,7 +179,7 @@ function ProgressBar({ current, completed }: { current: number; completed: numbe
                 {i < SECTIONS.length - 1 && (
                   <div
                     className={`h-px w-3 rounded-full transition-colors ${
-                      isDone ? "bg-emerald-300" : "bg-gray-200"
+                      isDone ? "bg-teal-300" : "bg-gray-200"
                     }`}
                   />
                 )}
@@ -471,8 +471,8 @@ function YesNoSelect({
         onClick={() => onChange(true)}
         className={`rounded-2xl border-2 p-4 font-semibold text-sm transition-all active:scale-95 ${
           value === true
-            ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md"
-            : "border-gray-200 text-gray-700 hover:border-emerald-200"
+            ? "border-teal-500 bg-teal-50 text-teal-700 shadow-md"
+            : "border-gray-200 text-gray-700 hover:border-teal-200"
         }`}
       >
         ✅ {yesLabel}
@@ -866,9 +866,9 @@ function Section6Routine({ answers, update }: { answers: Answers; update: <K ext
 function Section7Health({ answers, update }: { answers: Answers; update: <K extends keyof Answers>(k: K, v: Answers[K]) => void }) {
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 flex gap-2 items-start">
+      <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 flex gap-2 items-start">
         <span className="text-lg mt-0.5">🔒</span>
-        <p className="text-xs text-slate-600 leading-relaxed">
+        <p className="text-xs text-gray-600 leading-relaxed">
           <strong>This is private and never shared.</strong> Health data is encrypted and used solely
           to improve the accuracy of your personalised skin analysis.
         </p>
@@ -1293,7 +1293,7 @@ export function QuestionnaireForm({
         </p>
         <div className="w-full max-w-xs h-2 bg-gray-100 rounded-full overflow-hidden mt-2">
           <motion.div
-            className="h-full bg-emerald-500 rounded-full"
+            className="h-full bg-teal-500 rounded-full"
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
             transition={{ duration: 1.5, ease: "easeOut" }}
@@ -1304,7 +1304,7 @@ export function QuestionnaireForm({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-eggshell">
       <ProgressBar current={currentSection} completed={completed} />
 
       <div className="max-w-2xl mx-auto px-4 py-6 pb-32">

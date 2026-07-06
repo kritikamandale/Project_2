@@ -5,7 +5,6 @@ Set PINECONE_API_KEY to enable Pinecone as the vector store instead.
 """
 
 import logging
-from typing import Optional
 
 from app.core.config import settings
 

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_verified_user, require_dermatologist
+from app.core.dependencies import require_dermatologist
 from app.schemas.dermatologist import (
     CaseDetailResponse,
     DermStatsResponse,
@@ -75,7 +75,7 @@ async def get_case(
             dermatologist_id=current_user.id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.post(
@@ -104,7 +104,7 @@ async def submit_review(
             ),
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
     from datetime import timezone
     from datetime import datetime as _dt
@@ -138,7 +138,7 @@ async def override_product(
             override_note=payload.override_note,
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
     return ProductOverrideResponse(
         recommendation_product_id=rp.id,

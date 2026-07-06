@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import (
-    Boolean, DateTime, Enum, Float, ForeignKey, Index, String, func,
+    Boolean, DateTime, Enum, Float, ForeignKey, Index, func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship

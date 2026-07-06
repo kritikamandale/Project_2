@@ -13,9 +13,9 @@ import {
 } from "@/lib/api/recommendations";
 
 const PHASE_STYLES: Record<number, { border: string; bg: string; badge: string; text: string }> = {
-  1: { border: "border-blue-200",    bg: "bg-blue-50",    badge: "bg-blue-100 text-blue-700",     text: "text-blue-700" },
-  2: { border: "border-purple-200",  bg: "bg-purple-50",  badge: "bg-purple-100 text-purple-700",  text: "text-purple-700" },
-  3: { border: "border-emerald-200", bg: "bg-emerald-50", badge: "bg-emerald-100 text-emerald-700", text: "text-emerald-700" },
+  1: { border: "border-teal-200",  bg: "bg-teal-50",  badge: "bg-teal-100 text-teal-700",   text: "text-teal-700" },
+  2: { border: "border-skin-200",  bg: "bg-skin-50",  badge: "bg-skin-100 text-skin-700",   text: "text-skin-700" },
+  3: { border: "border-cream-300", bg: "bg-cream-50", badge: "bg-cream-100 text-cream-800", text: "text-cream-800" },
 };
 
 function currentWeek(generatedAt: string): number {
@@ -39,14 +39,14 @@ function PhaseCard({ phase, week, index }: { phase: RoadmapPhase; week: number; 
       }`}
     >
       {isActive && (
-        <span className="absolute -top-2.5 left-4 text-[10px] font-bold uppercase tracking-wide bg-indigo-600 text-white px-2 py-0.5 rounded-full">
+        <span className="absolute -top-2.5 left-4 text-[10px] font-bold uppercase tracking-wide bg-skin-600 text-white px-2 py-0.5 rounded-full">
           You are here
         </span>
       )}
       <div className="flex items-center gap-3 mb-3">
         <div
           className={`w-11 h-11 rounded-full flex items-center justify-center text-base font-bold shrink-0 ${
-            isDone ? "bg-green-100 text-green-700" : style.badge
+            isDone ? "bg-teal-100 text-teal-700" : style.badge
           }`}
         >
           {isDone ? "✓" : phase.phase}
@@ -75,8 +75,8 @@ function EmptyState() {
   const router = useRouter();
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-      <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-5">
-        <Calendar className="w-7 h-7 text-indigo-500" />
+      <div className="w-16 h-16 rounded-full bg-skin-100 flex items-center justify-center mb-5">
+        <Calendar className="w-7 h-7 text-skin-500" />
       </div>
       <h2 className="text-xl font-bold text-gray-900 mb-2">No roadmap yet</h2>
       <p className="text-gray-500 text-sm mb-6 max-w-xs">
@@ -84,7 +84,7 @@ function EmptyState() {
       </p>
       <button
         onClick={() => router.push("/scan")}
-        className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
+        className="flex items-center gap-2 px-6 py-2.5 bg-skin-500 text-white text-sm font-semibold rounded-xl hover:bg-skin-600 transition-colors"
       >
         <Camera className="w-4 h-4" />
         Start a Scan
@@ -118,7 +118,7 @@ export default function RoadmapPage() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
-          className="w-10 h-10 rounded-full border-4 border-indigo-200 border-t-indigo-600"
+          className="w-10 h-10 rounded-full border-4 border-skin-200 border-t-skin-500"
         />
       </div>
     );
@@ -133,7 +133,7 @@ export default function RoadmapPage() {
   const progressPct = Math.min(100, Math.round((week / totalWeeks) * 100));
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-eggshell">
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20 px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => router.push("/dashboard")}
@@ -143,7 +143,7 @@ export default function RoadmapPage() {
         </button>
         <button
           onClick={() => router.push(`/results/${rec.scan_id}?questionnaire_id=${rec.questionnaire_id ?? ""}`)}
-          className="flex items-center gap-1 text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors"
+          className="flex items-center gap-1 text-sm text-skin-600 font-medium hover:text-skin-800 transition-colors"
         >
           Full results <ArrowRight className="w-3.5 h-3.5" />
         </button>
@@ -154,29 +154,29 @@ export default function RoadmapPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-lg"
+          className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 text-eggshell shadow-lg"
         >
-          <p className="text-indigo-200 text-sm font-medium mb-1 flex items-center gap-1.5">
+          <p className="text-teal-300 text-sm font-medium mb-1 flex items-center gap-1.5">
             <Sparkles className="w-4 h-4" /> Your Skincare Roadmap
           </p>
           <p className="text-2xl font-bold mb-4">
             Week {Math.min(week, totalWeeks)} of {totalWeeks}
           </p>
-          <div className="h-2.5 bg-white/20 rounded-full overflow-hidden">
+          <div className="h-2.5 bg-eggshell/20 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-white rounded-full"
+              className="h-full bg-teal-400 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${progressPct}%` }}
               transition={{ duration: 1, ease: "easeOut" }}
             />
           </div>
-          <p className="text-indigo-200 text-xs mt-2">{progressPct}% through your personalised plan</p>
+          <p className="text-gray-300 text-xs mt-2">{progressPct}% through your personalised plan</p>
         </motion.div>
 
         {/* Phase timeline */}
         <section>
           <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-indigo-500" />
+            <Clock className="w-5 h-5 text-teal-500" />
             Phase Timeline
           </h2>
           <div className="space-y-4">
@@ -197,7 +197,7 @@ export default function RoadmapPage() {
                     <span className="text-sm font-semibold capitalize text-gray-800">
                       {ct.condition.replace(/_/g, " ")}
                     </span>
-                    <span className="text-xs text-indigo-600 font-medium">
+                    <span className="text-xs text-teal-600 font-medium">
                       ~{ct.expected_improvement_pct}% by week {ct.expected_improvement_week}
                     </span>
                   </div>

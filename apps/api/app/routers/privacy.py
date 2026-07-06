@@ -12,10 +12,10 @@ import zipfile
 from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from sqlalchemy import delete, select, text
+from sqlalchemy import delete, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -135,17 +135,6 @@ async def export_account_data(
     db: Annotated[AsyncSession, Depends(get_db)] = None,
 ):
     user_id: uuid.UUID = current_user.id
-
-    def _row_to_dict(row) -> dict:
-        """Convert ORM row to JSON-serialisable dict."""
-        return {
-            c.key: (
-                str(v) if isinstance(v, (uuid.UUID, datetime)) else v
-            )
-            for c, v in zip(row.__table__.columns, row.__table__.columns)
-            if hasattr(row, c.key)
-            for v in [getattr(row, c.key)]
-        }
 
     # Collect all user data via raw SQL so we're schema-agnostic
     tables = {

@@ -26,7 +26,9 @@ function ConfettiParticle({ x, color, delay }: { x: number; color: string; delay
   );
 }
 
-const CONFETTI_COLORS = ["#10b981", "#f59e0b", "#3b82f6", "#ec4899", "#8b5cf6", "#f97316"];
+// On-brand celebration confetti — burnt-peach, muted-teal, apricot-cream,
+// twilight-indigo and their shades (no colors outside the 5-color family).
+const CONFETTI_COLORS = ["#e07a5f", "#81b29a", "#f2cc8f", "#be6851", "#6e9783", "#3d405b"];
 
 function Confetti() {
   const particles = Array.from({ length: 40 }, (_, i) => ({
@@ -70,7 +72,7 @@ function AlertBanner({ message, type }: { message: string; type: string }) {
         isOverdue
           ? "border-rose-200 bg-rose-50 text-rose-700"
           : isWorsened
-          ? "border-amber-200 bg-amber-50 text-amber-800"
+          ? "border-cream-300 bg-cream-50 text-cream-800"
           : "border-zinc-200 bg-zinc-50 text-zinc-700",
       ].join(" ")}
     >
@@ -209,7 +211,7 @@ export default function ProgressPage() {
             <motion.p
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-1 text-emerald-600 font-semibold text-lg"
+              className="mt-1 text-teal-600 font-semibold text-lg"
             >
               {improvementLabel}
             </motion.p>

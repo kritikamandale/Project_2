@@ -10,7 +10,7 @@
 
 import { test, expect, Page } from "@playwright/test";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3100";
 
 const TEST_USER = {
   email: `e2e_user_${Date.now()}@test.example`,
