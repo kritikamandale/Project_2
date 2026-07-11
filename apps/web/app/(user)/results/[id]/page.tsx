@@ -567,7 +567,7 @@ export default function ResultsPage() {
               {rec.fitzpatrick_tone && (
                 <div className="mt-3 inline-flex items-center gap-1.5 bg-eggshell/10 px-3 py-1 rounded-full text-xs font-medium">
                   <Sparkles className="w-3.5 h-3.5" />
-                  Fitzpatrick {rec.fitzpatrick_tone}
+                  Skin Tone · {rec.fitzpatrick_tone}
                 </div>
               )}
             </div>
@@ -879,7 +879,7 @@ export default function ResultsPage() {
               <div>
                 <p className="text-sm font-bold text-gray-700">AI-Generated Recommendation</p>
                 <p className="text-xs text-gray-500">
-                  Powered by the SkinAI Intelligence Engine. For diagnosed conditions, consult a dermatologist.
+                  Powered by the Skinest Intelligence Engine. For diagnosed conditions, consult a dermatologist.
                 </p>
               </div>
             </>

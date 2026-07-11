@@ -545,7 +545,7 @@ export default function CaseDetailPage() {
               <InfoRow label="City" value={patient.city} />
               <InfoRow label="Skin type" value={patient.skin_type} />
               <InfoRow
-                label="Fitzpatrick"
+                label="Skin Tone"
                 value={
                   patient.fitzpatrick_tone
                     ? `Type ${patient.fitzpatrick_tone}`

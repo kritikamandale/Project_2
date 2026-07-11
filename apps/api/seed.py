@@ -42,70 +42,70 @@ from app.models import (
 # ---------------------------------------------------------------------------
 
 ADMIN_USERS = [
-    {"email": "admin1@skinai.in", "full_name": "Priya Sharma", "city": "Mumbai", "state": "Maharashtra"},
-    {"email": "admin2@skinai.in", "full_name": "Arjun Verma", "city": "Delhi", "state": "Delhi"},
-    {"email": "admin3@skinai.in", "full_name": "Kavitha Nair", "city": "Bangalore", "state": "Karnataka"},
-    {"email": "admin4@skinai.in", "full_name": "Rohit Gupta", "city": "Pune", "state": "Maharashtra"},
-    {"email": "admin5@skinai.in", "full_name": "Sneha Iyer", "city": "Chennai", "state": "Tamil Nadu"},
+    {"email": "admin1@skinest.in", "full_name": "Priya Sharma", "city": "Mumbai", "state": "Maharashtra"},
+    {"email": "admin2@skinest.in", "full_name": "Arjun Verma", "city": "Delhi", "state": "Delhi"},
+    {"email": "admin3@skinest.in", "full_name": "Kavitha Nair", "city": "Bangalore", "state": "Karnataka"},
+    {"email": "admin4@skinest.in", "full_name": "Rohit Gupta", "city": "Pune", "state": "Maharashtra"},
+    {"email": "admin5@skinest.in", "full_name": "Sneha Iyer", "city": "Chennai", "state": "Tamil Nadu"},
 ]
 
 DERMATOLOGIST_USERS = [
     {
-        "email": "dr.mehta@skinai.in", "full_name": "Dr. Anita Mehta",
+        "email": "dr.mehta@skinest.in", "full_name": "Dr. Anita Mehta",
         "city": "Mumbai", "state": "Maharashtra",
         "license": "MH-DERM-10234", "specialization": "Cosmetic Dermatology",
         "hospital": "Lilavati Hospital, Mumbai",
     },
     {
-        "email": "dr.kapoor@skinai.in", "full_name": "Dr. Rajesh Kapoor",
+        "email": "dr.kapoor@skinest.in", "full_name": "Dr. Rajesh Kapoor",
         "city": "Delhi", "state": "Delhi",
         "license": "DL-DERM-20891", "specialization": "Medical Dermatology",
         "hospital": "AIIMS, New Delhi",
     },
     {
-        "email": "dr.krishnan@skinai.in", "full_name": "Dr. Sita Krishnan",
+        "email": "dr.krishnan@skinest.in", "full_name": "Dr. Sita Krishnan",
         "city": "Bangalore", "state": "Karnataka",
         "license": "KA-DERM-30112", "specialization": "Pediatric Dermatology",
         "hospital": "Manipal Hospital, Bangalore",
     },
     {
-        "email": "dr.patel@skinai.in", "full_name": "Dr. Vivek Patel",
+        "email": "dr.patel@skinest.in", "full_name": "Dr. Vivek Patel",
         "city": "Ahmedabad", "state": "Gujarat",
         "license": "GJ-DERM-40567", "specialization": "Trichology & Dermatology",
         "hospital": "Apollo Hospital, Ahmedabad",
     },
     {
-        "email": "dr.reddy@skinai.in", "full_name": "Dr. Padma Reddy",
+        "email": "dr.reddy@skinest.in", "full_name": "Dr. Padma Reddy",
         "city": "Hyderabad", "state": "Telangana",
         "license": "TS-DERM-50789", "specialization": "Aesthetic Dermatology",
         "hospital": "Care Hospital, Hyderabad",
     },
     {
-        "email": "dr.banerjee@skinai.in", "full_name": "Dr. Arko Banerjee",
+        "email": "dr.banerjee@skinest.in", "full_name": "Dr. Arko Banerjee",
         "city": "Kolkata", "state": "West Bengal",
         "license": "WB-DERM-60234", "specialization": "Cosmetic Dermatology",
         "hospital": "AMRI Hospital, Kolkata",
     },
     {
-        "email": "dr.mishra@skinai.in", "full_name": "Dr. Neha Mishra",
+        "email": "dr.mishra@skinest.in", "full_name": "Dr. Neha Mishra",
         "city": "Jaipur", "state": "Rajasthan",
         "license": "RJ-DERM-70456", "specialization": "Medical Dermatology",
         "hospital": "SMS Hospital, Jaipur",
     },
     {
-        "email": "dr.thomas@skinai.in", "full_name": "Dr. Samuel Thomas",
+        "email": "dr.thomas@skinest.in", "full_name": "Dr. Samuel Thomas",
         "city": "Kochi", "state": "Kerala",
         "license": "KL-DERM-80123", "specialization": "Contact Dermatitis",
         "hospital": "Amrita Hospital, Kochi",
     },
     {
-        "email": "dr.joshi@skinai.in", "full_name": "Dr. Pooja Joshi",
+        "email": "dr.joshi@skinest.in", "full_name": "Dr. Pooja Joshi",
         "city": "Pune", "state": "Maharashtra",
         "license": "MH-DERM-90678", "specialization": "Cosmetic Dermatology",
         "hospital": "Ruby Hall Clinic, Pune",
     },
     {
-        "email": "dr.subramaniam@skinai.in", "full_name": "Dr. Karthik Subramaniam",
+        "email": "dr.subramaniam@skinest.in", "full_name": "Dr. Karthik Subramaniam",
         "city": "Chennai", "state": "Tamil Nadu",
         "license": "TN-DERM-10001", "specialization": "Phototherapy & Dermatology",
         "hospital": "Apollo Hospital, Chennai",
@@ -878,10 +878,12 @@ async def reset_seed_tables(session: AsyncSession) -> None:
 # ---------------------------------------------------------------------------
 
 async def main(reset: bool = False) -> None:
-    # Reuse the app engine — it coerces the DSN to asyncpg and applies the
-    # PgBouncer-safe connect_args (a fresh engine here would fall back to
-    # psycopg2 and/or break on the Supabase transaction pooler).
-    from app.core.database import engine
+    # Use the privileged (schema-owner) engine — seeding writes across users and
+    # into RLS-protected tables, so it must not run as the least-privilege runtime
+    # role. It also coerces the DSN to asyncpg and applies the PgBouncer-safe
+    # connect_args (a fresh engine here would fall back to psycopg2 and/or break
+    # on the Supabase transaction pooler).
+    from app.core.database import migration_engine as engine
     factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with factory() as session:

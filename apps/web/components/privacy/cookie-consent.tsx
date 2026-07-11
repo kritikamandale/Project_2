@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Cookie, X, ShieldCheck, ExternalLink } from "lucide-react";
 import { initPostHog } from "@/components/shared/posthog-provider";
 
-const CONSENT_KEY = "skinai_cookie_consent";
+const CONSENT_KEY = "skinest_cookie_consent";
 const CONSENT_VERSION = "1";
 
 type ConsentState = "pending" | "accepted" | "declined";

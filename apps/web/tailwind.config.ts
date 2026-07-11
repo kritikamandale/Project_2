@@ -40,7 +40,7 @@ const config: Config = {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
-        // ─── SkinAI 5-color brand palette ──────────────────────────────
+        // ─── Skinest 5-color brand palette ──────────────────────────────
         // eggshell (base bg) · burnt-peach (primary/CTA) · twilight-indigo
         // (text/dark surfaces) · muted-teal (AI/analysis accent) ·
         // apricot-cream (tertiary highlight). Every scale below is a tint/

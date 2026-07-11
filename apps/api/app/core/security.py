@@ -39,7 +39,7 @@ _COMMON_PASSWORDS: frozenset[str] = frozenset({
     "India@123", "India@1234", "India1234",
     "Test@1234", "test@1234", "Test1234!", "User@1234",
     "Hello@123", "hello123", "Hello1234",
-    "skinai123", "Skinai@1", "skin1234",
+    "skinest123", "Skinest@1", "skin1234",
 })
 
 # Lowercase lookup set for case-insensitive check
@@ -158,9 +158,16 @@ def generate_refresh_token() -> str:
 # ---------------------------------------------------------------------------
 
 def generate_otp() -> str:
-    """6-digit numeric OTP, zero-padded."""
-    if settings.is_development:
-        return "123456"
+    """
+    6-digit numeric OTP, zero-padded, cryptographically random in every
+    environment.
+
+    A previously hardcoded dev OTP ("123456") was a foot-gun: dev configs that
+    point at a real database (as this project's .env does) would then accept a
+    trivially guessable code for real accounts. In development the real OTP is
+    printed to the API terminal by the email service's dev fallback, so local
+    flows still work without a fixed value.
+    """
     return str(secrets.randbelow(1_000_000)).zfill(6)
 
 

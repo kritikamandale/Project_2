@@ -138,7 +138,7 @@ function LoginPageInner() {
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
               <span className="text-white text-sm font-bold">S</span>
             </div>
-            <span className="font-heading font-bold text-xl text-skin-800">SkinAI</span>
+            <span className="font-heading font-bold text-xl text-skin-800">Skinest</span>
           </Link>
           <div
             className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${config.accent} mb-4 shadow-lg transition-all duration-300`}

@@ -181,5 +181,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "${{ needs.deploy-backend.result == 'success' && needs.deploy-frontend.result == 'success' && '✅' || '❌' }} *SkinAI Deploy* — ${{ github.ref_name }} (`${{ github.sha }}` by ${{ github.actor }})\n*API:* ${{ needs.deploy-backend.result }} | *Web:* ${{ needs.deploy-frontend.result }}"
+              "text": "${{ needs.deploy-backend.result == 'success' && needs.deploy-frontend.result == 'success' && '✅' || '❌' }} *Skinest Deploy* — ${{ github.ref_name }} (`${{ github.sha }}` by ${{ github.actor }})\n*API:* ${{ needs.deploy-backend.result }} | *Web:* ${{ needs.deploy-frontend.result }}"
             }

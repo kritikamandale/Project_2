@@ -49,15 +49,15 @@ async def _send(to_email: str, subject: str, html_body: str, plain_body: str = "
 # ---------------------------------------------------------------------------
 
 async def send_verification_otp(to_email: str, full_name: str, otp: str) -> None:
-    subject = "Verify your SkinAI account"
-    plain = f"Hi {full_name},\n\nYour SkinAI verification OTP is: {otp}\n\nExpires in {settings.otp_expire_minutes} minutes. Never share this code."
+    subject = "Verify your Skinest account"
+    plain = f"Hi {full_name},\n\nYour Skinest verification OTP is: {otp}\n\nExpires in {settings.otp_expire_minutes} minutes. Never share this code."
     html = f"""
     <!DOCTYPE html>
     <html>
     <body style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 24px;">
       <div style="max-width: 480px; margin: auto; background: #fff;
                   border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,.08);">
-        <h2 style="color: #1a1a2e; margin-bottom: 8px;">Welcome to SkinAI</h2>
+        <h2 style="color: #1a1a2e; margin-bottom: 8px;">Welcome to Skinest</h2>
         <p style="color: #555;">Hi {full_name},</p>
         <p style="color: #555;">Use the code below to verify your email address.
            It expires in <strong>{settings.otp_expire_minutes} minutes</strong>.</p>
@@ -67,7 +67,7 @@ async def send_verification_otp(to_email: str, full_name: str, otp: str) -> None
                        border-radius: 8px;">{otp}</span>
         </div>
         <p style="color: #888; font-size: 13px;">
-          If you didn't create a SkinAI account, you can safely ignore this email.
+          If you didn't create a Skinest account, you can safely ignore this email.
           Never share this code with anyone.
         </p>
       </div>
@@ -83,7 +83,7 @@ async def send_verification_otp(to_email: str, full_name: str, otp: str) -> None
 
 async def send_password_reset(to_email: str, full_name: str, reset_token: str) -> None:
     reset_url = f"{settings.frontend_url}/reset-password?token={reset_token}"
-    subject = "Reset your SkinAI password"
+    subject = "Reset your Skinest password"
     plain = f"Hi {full_name},\n\nReset your password: {reset_url}\n\nExpires in {settings.password_reset_expire_minutes} minutes."
     html = f"""
     <!DOCTYPE html>
@@ -116,7 +116,7 @@ async def send_password_reset(to_email: str, full_name: str, reset_token: str) -
 # ---------------------------------------------------------------------------
 
 async def send_derm_pending_notification(to_email: str, full_name: str) -> None:
-    subject = "Your SkinAI dermatologist application is under review"
+    subject = "Your Skinest dermatologist application is under review"
     plain = f"Dear Dr. {full_name},\n\nYour application is under review. We'll email you within 2-3 business days."
     html = f"""
     <!DOCTYPE html>
@@ -127,10 +127,10 @@ async def send_derm_pending_notification(to_email: str, full_name: str) -> None:
         <h2 style="color: #1a1a2e;">Application received</h2>
         <p style="color: #555;">Dear Dr. {full_name},</p>
         <p style="color: #555;">
-          Thank you for applying as a dermatologist reviewer on SkinAI.
+          Thank you for applying as a dermatologist reviewer on Skinest.
           Our team will verify your credentials within <strong>2-3 business days</strong>.
         </p>
-        <p style="color: #888; font-size: 13px;">Questions? Contact support@skinai.in</p>
+        <p style="color: #888; font-size: 13px;">Questions? Contact support@skinest.in</p>
       </div>
     </body>
     </html>
@@ -139,7 +139,7 @@ async def send_derm_pending_notification(to_email: str, full_name: str) -> None:
 
 
 async def send_derm_approved_notification(to_email: str, full_name: str) -> None:
-    subject = "Your SkinAI dermatologist account is now active"
+    subject = "Your Skinest dermatologist account is now active"
     plain = f"Dear Dr. {full_name},\n\nYour account is now active. Log in at {settings.frontend_url}/login"
     html = f"""
     <!DOCTYPE html>

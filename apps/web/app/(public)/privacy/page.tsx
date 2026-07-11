@@ -3,9 +3,9 @@ import Link from "next/link";
 import { ShieldCheck, Database, Eye, Trash2, Download, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — SkinAI",
+  title: "Privacy Policy — Skinest",
   description:
-    "How SkinAI collects, uses, and protects your personal and biometric data under the DPDP Act 2023.",
+    "How Skinest collects, uses, and protects your personal and biometric data under the DPDP Act 2023.",
 };
 
 const LAST_UPDATED = "10 June 2026";
@@ -38,7 +38,7 @@ export default function PrivacyPolicyPage() {
               <span className="text-primary">1.</span> Who We Are
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              SkinAI is an AI-powered skin analysis and personalised skincare recommendation
+              Skinest is an AI-powered skin analysis and personalised skincare recommendation
               platform designed for Indian users. We are the <strong>Data Fiduciary</strong>{" "}
               under the DPDP Act 2023 and the <strong>Data Controller</strong> under GDPR.
               Contact: <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary underline">{CONTACT_EMAIL}</a>
@@ -57,7 +57,7 @@ export default function PrivacyPolicyPage() {
                 ["Full name", "Personalised recommendations", "2 years after last login"],
                 ["City / state", "Climate-aware skincare recommendations", "2 years after last login"],
                 ["Date of birth", "Age-appropriate recommendations", "2 years after last login"],
-                ["Fitzpatrick skin tone", "Bias-adjusted AI analysis", "2 years after last login"],
+                ["Skin tone classification", "Bias-adjusted AI analysis", "2 years after last login"],
                 ["512-dimension skin feature vector", "AI skin analysis (no image stored)", "1 year"],
                 ["Lifestyle questionnaire answers", "Personalised recommendations", "2 years after last login"],
                 ["IP address", "Security — rate limiting, audit logs", "90 days"],
@@ -185,7 +185,7 @@ export default function PrivacyPolicyPage() {
               ["next-auth.session-token", "Essential", "Authentication session — httpOnly, Secure, SameSite=Lax", "7 days"],
               ["__csrf", "Essential", "CSRF protection — double-submit pattern", "1 hour"],
               ["ph_*", "Analytics (opt-in)", "PostHog product analytics", "1 year"],
-              ["skinai_cookie_consent", "Essential", "Stores your cookie preference", "1 year"],
+              ["skinest_cookie_consent", "Essential", "Stores your cookie preference", "1 year"],
             ]} headers={["Cookie", "Type", "Purpose", "Expiry"]} />
             <p className="mt-3 text-sm text-muted-foreground">
               You can change your cookie preference at any time via the consent banner
@@ -223,7 +223,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-border flex flex-wrap gap-4 text-sm text-muted-foreground">
-          <Link href="/" className="hover:text-foreground transition-colors">← Back to SkinAI</Link>
+          <Link href="/" className="hover:text-foreground transition-colors">← Back to Skinest</Link>
           <Link href="/settings" className="hover:text-foreground transition-colors">Manage Your Data</Link>
         </div>
       </div>

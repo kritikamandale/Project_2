@@ -211,10 +211,10 @@ export default function RegisterPage() {
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
               <span className="text-white text-sm font-bold">S</span>
             </div>
-            <span className="font-heading font-bold text-xl text-skin-800">SkinAI</span>
+            <span className="font-heading font-bold text-xl text-skin-800">Skinest</span>
           </Link>
           <h1 className="text-xl font-bold font-heading text-gray-900">
-            Create your SkinAI account
+            Create your Skinest account
           </h1>
         </div>
 

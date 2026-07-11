@@ -166,26 +166,26 @@ async def export_account_data(
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr(
-            "my_skinai_data.json",
+            "my_skinest_data.json",
             json.dumps(export_data, indent=2, default=str),
         )
         zf.writestr(
             "README.txt",
             (
-                "SkinAI — Personal Data Export\n"
+                "Skinest — Personal Data Export\n"
                 "===============================\n"
                 f"Generated: {export_data['export_generated_at']}\n\n"
                 "This ZIP contains all personal data held about you under the\n"
                 "Digital Personal Data Protection (DPDP) Act 2023.\n\n"
                 "Files:\n"
-                "  my_skinai_data.json — All account, scan, and recommendation data\n\n"
+                "  my_skinest_data.json — All account, scan, and recommendation data\n\n"
                 "To request permanent deletion, use the Delete Account option\n"
                 "in Settings > Privacy, or contact privacy@yourdomain.com\n"
             ),
         )
     buf.seek(0)
 
-    filename = f"skinai_data_{user_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.zip"
+    filename = f"skinest_data_{user_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.zip"
     return StreamingResponse(
         buf,
         media_type="application/zip",

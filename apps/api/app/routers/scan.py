@@ -7,13 +7,14 @@ Every scan record is stored with image_permanently_deleted = TRUE.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import require_user
 from app.models.scan import SkinCondition, SkinScan
@@ -48,6 +49,25 @@ async def submit_scan(
     The scan is saved with image_permanently_deleted = TRUE regardless of
     the analysis outcome — the server never receives a raw image.
     """
+    # Enforce the per-user daily scan cap (MAX_SCANS_PER_USER_PER_DAY). Previously
+    # the setting existed but was never applied, so the limit was unbounded.
+    day_ago = datetime.now(timezone.utc) - timedelta(days=1)
+    scans_today_q = await db.execute(
+        select(func.count(SkinScan.id)).where(
+            SkinScan.user_id == current_user.id,
+            SkinScan.scan_timestamp >= day_ago,
+        )
+    )
+    if scans_today_q.scalar_one() >= settings.max_scans_per_user_per_day:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                f"Daily scan limit reached "
+                f"({settings.max_scans_per_user_per_day} per 24 hours). "
+                "Please try again later."
+            ),
+        )
+
     validation = _analysis_svc.validate_feature_vector(
         feature_vector=payload.feature_vector,
         skin_type=payload.skin_type,

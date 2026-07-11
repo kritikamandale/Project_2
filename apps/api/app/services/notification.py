@@ -28,17 +28,17 @@ class NotificationService:
 
     async def send_otp(self, to_email: str, otp: str) -> None:
         """Sends password-reset OTP email."""
-        subject = "Your SkinAI verification code"
+        subject = "Your Skinest verification code"
         body = f"Your OTP is: {otp}\n\nThis code expires in 10 minutes. Do not share it."
         await self._send(to_email, subject, body)
 
     async def send_recommendation_ready(self, to_email: str, scan_id: str) -> None:
         """Notifies user that their skincare recommendation is ready."""
-        subject = "Your SkinAI results are ready"
+        subject = "Your Skinest results are ready"
         body = (
             f"Hi,\n\nYour personalised skincare recommendation is ready.\n"
             f"View it at: {settings.frontend_url}/results/{scan_id}\n\n"
-            "– The SkinAI Team"
+            "– The Skinest Team"
         )
         await self._send(to_email, subject, body)
 
@@ -77,7 +77,7 @@ class NotificationService:
             f"{score_line}"
             "Regular check-ins help you see exactly how your skin is responding to your routine.\n\n"
             f"Re-scan now: {settings.frontend_url}/scan\n\n"
-            "– The SkinAI Team"
+            "– The Skinest Team"
         )
         await self._send(to_email, subject, body)
 
@@ -129,14 +129,14 @@ class NotificationService:
     ) -> None:
         """Send Gemini-generated personalised weekly tip email."""
         tip = await self.generate_weekly_tip(skin_conditions, skin_score)
-        subject = "Your weekly skin tip from SkinAI"
+        subject = "Your weekly skin tip from Skinest"
         body = (
             f"Hi {user_name},\n\n"
             f"Here is your personalised skin tip for this week:\n\n"
             f"{tip}\n\n"
             "Consistency is the biggest predictor of skin improvement — keep it up!\n\n"
             f"View your progress: {settings.frontend_url}/progress\n\n"
-            "– The SkinAI Team"
+            "– The Skinest Team"
         )
         await self._send(to_email, subject, body)
 

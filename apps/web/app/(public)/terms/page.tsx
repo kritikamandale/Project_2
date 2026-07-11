@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export const metadata = { title: "Terms of Service — SkinAI" };
+export const metadata = { title: "Terms of Service — Skinest" };
 
 export default function TermsPage() {
   return (
@@ -10,7 +10,7 @@ export default function TermsPage() {
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
             <span className="text-white font-bold text-base leading-none">S</span>
           </div>
-          <span className="font-bold text-lg text-skin-800">SkinAI</span>
+          <span className="font-bold text-lg text-skin-800">Skinest</span>
         </Link>
 
         <h1 className="text-3xl font-bold text-zinc-900 mb-2">Terms of Service</h1>
@@ -20,17 +20,17 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 mb-2">1. Acceptance of Terms</h2>
-            <p>By creating an account or using SkinAI ("the Service"), you agree to these Terms of Service and our <Link href="/privacy" className="text-skin-600 hover:underline">Privacy Policy</Link>. If you do not agree, do not use the Service.</p>
+            <p>By creating an account or using Skinest ("the Service"), you agree to these Terms of Service and our <Link href="/privacy" className="text-skin-600 hover:underline">Privacy Policy</Link>. If you do not agree, do not use the Service.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 mb-2">2. Nature of the Service</h2>
-            <p>SkinAI provides AI-powered skin analysis and personalised skincare recommendations for informational purposes only. The Service is <strong>not a substitute for professional medical advice, diagnosis, or treatment</strong>. Always consult a qualified dermatologist or physician for any medical concerns.</p>
+            <p>Skinest provides AI-powered skin analysis and personalised skincare recommendations for informational purposes only. The Service is <strong>not a substitute for professional medical advice, diagnosis, or treatment</strong>. Always consult a qualified dermatologist or physician for any medical concerns.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 mb-2">3. Eligibility</h2>
-            <p>You must be at least 13 years old to use SkinAI. If you are under 18, you represent that your parent or legal guardian has reviewed and agreed to these Terms.</p>
+            <p>You must be at least 13 years old to use Skinest. If you are under 18, you represent that your parent or legal guardian has reviewed and agreed to these Terms.</p>
           </section>
 
           <section>
@@ -44,7 +44,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 mb-2">5. Privacy &amp; Biometric Data</h2>
-            <p>SkinAI processes your facial images locally on your device. Only anonymised skin characteristics (not raw images) are transmitted to our servers. Your data is handled in accordance with our <Link href="/privacy" className="text-skin-600 hover:underline">Privacy Policy</Link> and India's Digital Personal Data Protection (DPDP) Act, 2023.</p>
+            <p>Skinest processes your facial images locally on your device. Only anonymised skin characteristics (not raw images) are transmitted to our servers. Your data is handled in accordance with our <Link href="/privacy" className="text-skin-600 hover:underline">Privacy Policy</Link> and India's Digital Personal Data Protection (DPDP) Act, 2023.</p>
           </section>
 
           <section>
@@ -59,7 +59,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 mb-2">7. Limitation of Liability</h2>
-            <p>To the fullest extent permitted by law, SkinAI and its operators are not liable for any indirect, incidental, or consequential damages arising from your use of the Service or reliance on any recommendations provided.</p>
+            <p>To the fullest extent permitted by law, Skinest and its operators are not liable for any indirect, incidental, or consequential damages arising from your use of the Service or reliance on any recommendations provided.</p>
           </section>
 
           <section>
@@ -74,7 +74,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 mb-2">10. Contact</h2>
-            <p>For questions about these Terms, email us at <a href="mailto:legal@skinai.in" className="text-skin-600 hover:underline">legal@skinai.in</a>.</p>
+            <p>For questions about these Terms, email us at <a href="mailto:legal@skinest.in" className="text-skin-600 hover:underline">legal@skinest.in</a>.</p>
           </section>
         </div>
 

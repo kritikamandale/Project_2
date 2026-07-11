@@ -96,7 +96,7 @@ function Navbar() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center">
             <span className="text-white text-sm font-bold">S</span>
           </div>
-          <span className="font-heading font-bold text-xl text-skin-800">SkinAI</span>
+          <span className="font-heading font-bold text-xl text-skin-800">Skinest</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
@@ -167,7 +167,7 @@ function HeroSection() {
             </motion.h1>
 
             <motion.p variants={fadeUp} className="text-xl text-gray-500 leading-relaxed mb-10">
-              SkinAI analyses your skin using advanced AI, detects conditions with clinical accuracy,
+              Skinest analyses your skin using advanced AI, detects conditions with clinical accuracy,
               and builds a <strong className="text-gray-700">personalised skincare routine</strong> — reviewed
               by real dermatologists.
             </motion.p>
@@ -187,15 +187,15 @@ function HeroSection() {
               <div className="flex -space-x-3">
                 {[6977987, 3762765, 32707142, 7622743].map((id, i) => (
                   <div key={id} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden relative" style={{ zIndex: 6 - i }}>
-                    <Image src={PX(id, 80, 80)} alt="SkinAI user" fill className="object-cover" sizes="40px" />
+                    <Image src={PX(id, 80, 80)} alt="Skinest user" fill className="object-cover" sizes="40px" />
                   </div>
                 ))}
                 {/* TODO: replace with real customer photography — pravatar.cc
                     placeholders used here only because these two extra faces
                     have no existing sourced photo in this asset pipeline. */}
-                {["skinai-user-5", "skinai-user-6"].map((seed, i) => (
+                {["skinest-user-5", "skinest-user-6"].map((seed, i) => (
                   <div key={seed} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden relative" style={{ zIndex: 2 - i }}>
-                    <Image src={`https://i.pravatar.cc/80?u=${seed}`} alt="SkinAI user" fill className="object-cover" sizes="40px" />
+                    <Image src={`https://i.pravatar.cc/80?u=${seed}`} alt="Skinest user" fill className="object-cover" sizes="40px" />
                   </div>
                 ))}
               </div>
@@ -219,7 +219,7 @@ function HeroSection() {
             <div className="relative w-80 h-[480px] md:w-96 md:h-[560px] rounded-3xl overflow-hidden shadow-2xl">
               <Image
                 src={PX(3762754, 800, 1000)}
-                alt="Woman with healthy, glowing skin — SkinAI analysis result"
+                alt="Woman with healthy, glowing skin — Skinest analysis result"
                 fill
                 className="object-cover object-top"
                 priority
@@ -242,7 +242,7 @@ function HeroSection() {
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AI</div>
                 <div>
                   <p className="text-xs text-gray-400">Analysis Complete</p>
-                  <p className="font-number text-sm font-bold text-gray-900">Fitzpatrick Type III</p>
+                  <p className="font-number text-sm font-bold text-gray-900">Skin Tone · Type III</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -331,7 +331,7 @@ function ConditionsSection() {
               15+ skin attributes. One scan.
             </h2>
             <p className="text-xl text-gray-500 max-w-xl mx-auto">
-              SkinAI detects every major skin concern with clinical detail — far beyond what you see in the mirror.
+              Skinest detects every major skin concern with clinical detail — far beyond what you see in the mirror.
             </p>
           </motion.div>
 
@@ -346,7 +346,7 @@ function ConditionsSection() {
                 <div className="relative h-52 overflow-hidden">
                   <Image
                     src={PX(id, 600, 600)}
-                    alt={`${label} — skin condition detected by SkinAI`}
+                    alt={`${label} — skin condition detected by Skinest`}
                     fill
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -395,12 +395,12 @@ function AboutSection() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}
           className="max-w-5xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-16">
-            <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">About SkinAI</span>
+            <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">About Skinest</span>
             <h2 className="font-heading text-4xl md:text-5xl font-medium text-gray-900 mt-3 mb-6">
-              What is SkinAI?
+              What is Skinest?
             </h2>
             <p className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-              SkinAI combines computer vision, the SkinAI Intelligence Engine, and dermatologist expertise to give you
+              Skinest combines computer vision, the Skinest Intelligence Engine, and dermatologist expertise to give you
               <strong className="text-gray-700"> personalised, science-backed skincare advice</strong> — from your phone.
             </p>
           </motion.div>
@@ -408,7 +408,7 @@ function AboutSection() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { icon: <IconScan />, title: "Scan in Seconds", desc: "Use your phone camera — no app needed. Our TensorFlow model detects 15+ skin conditions in real time.", cardCls: "border-skin-100 bg-white", iconCls: "bg-skin-100 text-skin-600" },
-              { icon: <IconBrain />, title: "AI That Understands You", desc: "Beyond the scan, our AI combines your skin type, Fitzpatrick tone, lifestyle, and diet into a complete profile.", cardCls: "border-skin-100 bg-white", iconCls: "bg-skin-100 text-skin-600" },
+              { icon: <IconBrain />, title: "AI That Understands You", desc: "Beyond the scan, our AI combines your skin type, tone classification, lifestyle, and diet into a complete profile.", cardCls: "border-skin-100 bg-white", iconCls: "bg-skin-100 text-skin-600" },
               { icon: <IconDoctor />, title: "Dermatologist Review", desc: "Every analysis is reviewed by a certified dermatologist who validates and refines the AI findings before you see results.", cardCls: "border-skin-100 bg-white", iconCls: "bg-skin-100 text-skin-600" },
             ].map(({ icon, title, desc, cardCls, iconCls }) => (
               <motion.div key={title} variants={fadeUp} className={`p-7 rounded-2xl border hover:shadow-lg transition-shadow ${cardCls}`}>
@@ -439,22 +439,22 @@ function WhyWeBuiltSection() {
                 Great skin advice shouldn't be a luxury.
               </h2>
               <p className="text-gray-500 leading-relaxed mb-5">
-                Most skincare advice is calibrated for Western skin. For India's diverse Fitzpatrick types, humidity-driven conditions, and unique dietary factors, that advice simply doesn't work.
+                Most skincare advice is calibrated for Western skin. For India's diverse skin tone spectrum, humidity-driven conditions, and unique dietary factors, that advice simply doesn't work.
               </p>
               <p className="text-gray-500 leading-relaxed mb-5">
                 A good dermatologist visit costs <strong className="text-gray-700">₹500–₹2,000</strong> with waiting rooms, repeat appointments, and generic prescriptions. Most people end up following influencer routines that damage their skin.
               </p>
               <p className="text-gray-500 leading-relaxed">
-                We built SkinAI to <strong className="text-gray-700">democratise expert skin analysis</strong>, surface products available in India (Nykaa, Minimalist, Dermaco), and make dermatologist expertise accessible to everyone — free.
+                We built Skinest to <strong className="text-gray-700">democratise expert skin analysis</strong>, surface products available in India (Nykaa, Minimalist, Dermaco), and make dermatologist expertise accessible to everyone — free.
               </p>
             </motion.div>
 
             <motion.div variants={fadeUp} className="space-y-4">
               {[
-                { emoji: "😩", title: "Generic Advice Fails Indian Skin", desc: "Advice optimised for Fitzpatrick I–II causes hyperpigmentation on darker tones. SkinAI is calibrated for all 6 types." },
-                { emoji: "💸", title: "Expensive Dermatologist Visits", desc: "Most people can't afford frequent consultations. SkinAI puts expert-level analysis in everyone's hands, free." },
-                { emoji: "🧴", title: "Product Overload with No Direction", desc: "Thousands of products, contradictory claims. SkinAI cuts through noise with ingredient-level, evidence-backed picks." },
-                { emoji: "📵", title: "No Way to Track Skin Changes", desc: "Progress is invisible without tracking. SkinAI logs your journey so you can see what's working." },
+                { emoji: "😩", title: "Generic Advice Fails Indian Skin", desc: "Advice optimised for lighter skin tones (Types I–II) causes hyperpigmentation on deeper complexions. Skinest is calibrated for all 6 tone categories." },
+                { emoji: "💸", title: "Expensive Dermatologist Visits", desc: "Most people can't afford frequent consultations. Skinest puts expert-level analysis in everyone's hands, free." },
+                { emoji: "🧴", title: "Product Overload with No Direction", desc: "Thousands of products, contradictory claims. Skinest cuts through noise with ingredient-level, evidence-backed picks." },
+                { emoji: "📵", title: "No Way to Track Skin Changes", desc: "Progress is invisible without tracking. Skinest logs your journey so you can see what's working." },
               ].map(({ emoji, title, desc }) => (
                 <div key={title} className="flex gap-4 p-4 bg-skin-50 rounded-xl border border-skin-100">
                   <span className="text-2xl flex-shrink-0">{emoji}</span>
@@ -477,7 +477,7 @@ function WhyWeBuiltSection() {
 const STEPS = [
   { step:"01", title:"Scan Your Skin",           desc:"Open the camera in your browser. Capture your face. Your image is processed instantly and never stored.",          icon:<IconScan />,  imgId:6977987 },
   { step:"02", title:"Tell Us About You",         desc:"Answer a short questionnaire about lifestyle, diet, sleep, and skin concerns for a personalised profile.",         icon:<IconBrain />, imgId:5069473 },
-  { step:"03", title:"AI Analyses Everything",    desc:"The SkinAI Intelligence Engine generates your personalised routine using your full skin profile, with ingredient-level justification.",  icon:<IconStar />,  imgId:3762756 },
+  { step:"03", title:"AI Analyses Everything",    desc:"The Skinest Intelligence Engine generates your personalised routine using your full skin profile, with ingredient-level justification.",  icon:<IconStar />,  imgId:3762756 },
   { step:"04", title:"Track Your Progress",       desc:"Follow your roadmap, log adherence, and rescan weekly to watch your skin transform over time.",                     icon:<IconChart />, imgId:6706877 },
 ];
 
@@ -532,7 +532,7 @@ function HowItWorksSection() {
 
 const FEATURES = [
   { icon:<IconScan />,   title:"Real-Time Skin Scan",         desc:"Browser-based TF.js detection — no app, no delay. 15+ conditions with confidence scores.",              tag:"AI"       },
-  { icon:<IconBrain />,  title:"AI Routine Engine",           desc:"Powered by the SkinAI Intelligence Engine. Your routine is generated from your full skin profile, not a template.",  tag:"AI"       },
+  { icon:<IconBrain />,  title:"AI Routine Engine",           desc:"Powered by the Skinest Intelligence Engine. Your routine is generated from your full skin profile, not a template.",  tag:"AI"       },
   // This card gets a human photo instead of an icon — dermatologist review is
   // inherently a human-in-the-loop feature, not a purely AI/icon one.
   // TODO: replace with real customer/dermatologist photography (stock Pexels photo).
@@ -540,7 +540,7 @@ const FEATURES = [
   { icon:<IconLeaf />,   title:"Indian Product Database",     desc:"Recommendations from Nykaa, Minimalist, Dermaco, Dot & Key. Vetted for Indian climate and skin tones.",  tag:"India"    },
   { icon:<IconChart />,  title:"Progress Tracking",           desc:"Weekly rescans, adherence heatmaps, and a progress timeline show your skin's full journey.",             tag:"Tracking" },
   { icon:<IconShield />, title:"Privacy by Design",           desc:"Images processed ephemerally — never stored. Delete your account and all data instantly.",              tag:"Privacy"  },
-  { icon:<IconLock />,   title:"Fitzpatrick-Aware AI",        desc:"Calibrated across all 6 skin tones. No more advice optimised only for lighter complexions.",            tag:"Inclusive"},
+  { icon:<IconLock />,   title:"Tone-Aware AI Engine",        desc:"Calibrated across all 6 skin tones. No more advice optimised only for lighter complexions.",            tag:"Inclusive"},
   { icon:<IconStar />,   title:"Personalised Roadmap",        desc:"Week-by-week morning & night routine with layering instructions and re-introduction timelines.",         tag:"Routine"  },
 ];
 
@@ -560,7 +560,7 @@ function FeaturesSection() {
             <h2 className="font-heading text-4xl md:text-5xl font-medium text-gray-900 mt-3 mb-4">
               Everything your skin needs.
             </h2>
-            <p className="text-xl text-gray-500 max-w-xl mx-auto">SkinAI combines AI, medical expertise, and Indian skincare intelligence.</p>
+            <p className="text-xl text-gray-500 max-w-xl mx-auto">Skinest combines AI, medical expertise, and Indian skincare intelligence.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
@@ -665,37 +665,37 @@ const TESTIMONIALS = [
   {
     imgId: 3762765,
     name: "Priya S.",
-    skin: "Combination · Fitzpatrick III",
-    quote: "I've spent ₹15,000+ on products that did nothing. SkinAI identified my dehydration barrier issue in one scan. The Minimalist routine it gave me cleared my texture in 3 weeks.",
+    skin: "Combination · Type III",
+    quote: "I've spent ₹15,000+ on products that did nothing. Skinest identified my dehydration barrier issue in one scan. The Minimalist routine it gave me cleared my texture in 3 weeks.",
   },
   {
     imgId: 32707142,
     name: "Ananya R.",
-    skin: "Oily · Fitzpatrick IV",
-    quote: "Finally an app that doesn't recommend SPF 30 for 'all skin types'. The Fitzpatrick-aware analysis gave me recommendations that actually account for my melanin levels. Game changer.",
+    skin: "Oily · Type IV",
+    quote: "Finally an app that doesn't recommend SPF 30 for 'all skin types'. The tone-aware analysis gave me recommendations that actually account for my melanin levels. Game changer.",
   },
   {
     imgId: 7622743,
     name: "Meera T.",
-    skin: "Dry · Fitzpatrick II",
+    skin: "Dry · Type II",
     quote: "The dermatologist caught that my AI analysis flagged something that turned out to be early-stage seborrheic dermatitis. The AI literally helped catch a condition I'd ignored for years.",
   },
   {
     imgId: 6977996,
     name: "Kavya N.",
-    skin: "Normal · Fitzpatrick V",
+    skin: "Normal · Type V",
     quote: "Finally, skincare advice that gets my skin tone right instead of defaulting to lighter-skin defaults.",
   },
   {
     imgId: 8783902,
     name: "Rhea D.",
-    skin: "Sensitive · Fitzpatrick II",
+    skin: "Sensitive · Type II",
     quote: "The weekly rescans actually show me progress instead of just guessing if a product is working.",
   },
   {
     imgId: 5253959,
     name: "Ishaan M.",
-    skin: "Oily · Fitzpatrick IV",
+    skin: "Oily · Type IV",
     quote: "Having a dermatologist review the AI's findings before I saw them made me trust the routine a lot more.",
   },
 ];
@@ -782,10 +782,10 @@ function PrivacySection() {
 // ─── FAQ ──────────────────────────────────────────────────────────────────────
 
 const FAQS = [
-  { q:"Is SkinAI free to use?",           a:"Yes — creating an account and running a full AI skin analysis is completely free. You get your personalised routine, dermatologist review, and progress tracking at no cost." },
+  { q:"Is Skinest free to use?",           a:"Yes — creating an account and running a full AI skin analysis is completely free. You get your personalised routine, dermatologist review, and progress tracking at no cost." },
   { q:"How accurate is the AI analysis?", a:"Our models achieve 95%+ accuracy on controlled test sets across 15 skin conditions. Every AI report is also reviewed by a certified dermatologist before delivery, adding clinical validation." },
   { q:"Does my photo get stored?",         a:"No. Your scan photo is processed ephemerally — analysed in server memory, then immediately discarded. Only the structured analysis results are stored with your account." },
-  { q:"What skin conditions can SkinAI detect?", a:"Acne (all grades), hyperpigmentation, melasma, rosacea, seborrheic dermatitis, dry skin, oily skin, open pores, fine lines, wrinkles, dark circles, puffiness — 15+ conditions with severity scoring." },
+  { q:"What skin conditions can Skinest detect?", a:"Acne (all grades), hyperpigmentation, melasma, rosacea, seborrheic dermatitis, dry skin, oily skin, open pores, fine lines, wrinkles, dark circles, puffiness — 15+ conditions with severity scoring." },
   { q:"Are products available in India?",  a:"Yes. All recommendations are sourced from brands available in India — Nykaa, Minimalist, Dermaco, Dot & Key, The Ordinary, Cetaphil, La Roche-Posay, and more." },
   { q:"How are dermatologists involved?", a:"Every completed scan creates a case in our dermatologist review queue. A certified dermatologist reviews within 24–48 hours and can approve, add notes, flag concerns, or escalate for in-person consultation." },
 ];
@@ -843,7 +843,7 @@ function CTASection() {
             Your skin deserves<br />better than guesswork.
           </motion.h2>
           <motion.p variants={fadeUp} className="text-xl text-skin-100 mb-10 max-w-xl mx-auto">
-            Join thousands who have discovered their personalised skincare routine with SkinAI. Free. Private. Science-backed.
+            Join thousands who have discovered their personalised skincare routine with Skinest. Free. Private. Science-backed.
           </motion.p>
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button size="lg" className="bg-white text-skin-700 hover:bg-skin-50 text-base px-10 h-12 font-semibold shadow-xl" asChild>
@@ -874,7 +874,7 @@ function Footer() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-skin-400 to-skin-500 flex items-center justify-center">
                 <span className="text-eggshell text-sm font-bold">S</span>
               </div>
-              <span className="font-heading font-bold text-xl text-eggshell">SkinAI</span>
+              <span className="font-heading font-bold text-xl text-eggshell">Skinest</span>
             </div>
             <p className="text-sm leading-relaxed max-w-xs mb-4 text-gray-300">AI-powered skin analysis for India. Personalised routines reviewed by real dermatologists — free, private, built for Indian skin.</p>
             <p className="text-xs text-gray-500">Made with care in India 🇮🇳</p>
@@ -882,7 +882,7 @@ function Footer() {
           <div>
             <h5 className="text-eggshell font-semibold text-sm mb-4">Platform</h5>
             <ul className="space-y-3 text-sm">
-              {[["#about","About SkinAI"],["#how-it-works","How It Works"],["#features","Features"],["#faq","FAQ"]].map(([h,l]) => (
+              {[["#about","About Skinest"],["#how-it-works","How It Works"],["#features","Features"],["#faq","FAQ"]].map(([h,l]) => (
                 <li key={h}><a href={h} className="hover:text-eggshell transition-colors">{l}</a></li>
               ))}
             </ul>
@@ -897,7 +897,7 @@ function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-700 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-gray-500">© {new Date().getFullYear()} SkinAI. All rights reserved.</p>
+          <p className="text-xs text-gray-500">© {new Date().getFullYear()} Skinest. All rights reserved.</p>
           <p className="text-xs text-gray-500">Not a substitute for professional medical advice. Always consult a qualified dermatologist for serious conditions.</p>
         </div>
       </div>

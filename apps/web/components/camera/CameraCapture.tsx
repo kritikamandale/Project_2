@@ -25,11 +25,17 @@ import {
 
 // localStorage flag set after the analysis models load successfully once —
 // used to show "first time takes longer" copy only on genuinely fresh visits.
-const MODELS_CACHED_KEY = "skinai_models_cached_v1";
+const MODELS_CACHED_KEY = "skinest_models_cached_v1";
 
-// Seconds for the auto-capture countdown that starts once the camera is ready.
+// Seconds for the auto-capture countdown that starts once a face is detected.
 // The user can skip the wait by tapping the shutter.
 const CAPTURE_SECONDS = 6;
+
+// Fallback: if no face is detected within this window of the camera becoming
+// ready (e.g. the face-detection model is unavailable on this device, or the
+// face just can't be detected), start the countdown anyway so the flow never
+// gets stuck waiting for a detection that will never arrive.
+const FACE_DETECT_GRACE_MS = 8000;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -502,13 +508,31 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   // ---------------------------------------------------------------------------
   // Auto-capture countdown
   // ---------------------------------------------------------------------------
-  // Kick off the timer once the camera is live and the model is ready.
+  // Start the timer once the camera is live, the model is ready, AND a face has
+  // actually been detected in frame — not the moment the camera turns on.
+  // `faceGuide.bounds` is non-null only when the detector has located a face.
+  const faceDetected = faceGuide.bounds !== null;
+
   useEffect(() => {
-    if (cameraReady && autoCountdown === null && !autoStartedRef.current) {
+    if (!cameraReady || autoStartedRef.current) return;
+
+    // Preferred trigger: a face is detected → begin the countdown immediately.
+    if (faceDetected) {
       autoStartedRef.current = true;
       setAutoCountdown(CAPTURE_SECONDS);
+      return;
     }
-  }, [cameraReady, autoCountdown]);
+
+    // Fallback: no face detected yet — arm a grace timer so devices without a
+    // working face detector (bounds stays null) still auto-capture eventually.
+    const graceTimer = setTimeout(() => {
+      if (!autoStartedRef.current) {
+        autoStartedRef.current = true;
+        setAutoCountdown(CAPTURE_SECONDS);
+      }
+    }, FACE_DETECT_GRACE_MS);
+    return () => clearTimeout(graceTimer);
+  }, [cameraReady, faceDetected]);
 
   // Tick down once per second and capture at zero. We stay in "active" status
   // the whole time, so the live oval and lighting guidance keep rendering.
@@ -688,7 +712,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               dispatch({ type: "ERROR", message: cameraErrorMessage(err) })
             }
             className="w-full h-full object-cover"
-            style={{ maxHeight: "calc(100vh - 120px)" }}
+            style={{ maxHeight: "calc(100dvh - 120px)" }}
           />
         )}
 
@@ -860,7 +884,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                   (<span className="font-number">{Math.round(state.result.skin_type_confidence * 100)}%</span> confidence)
                 </p>
                 <p className="text-white/60 text-sm">
-                  Fitzpatrick tone:{" "}
+                  Skin tone:{" "}
                   <span className="text-teal-300 font-medium">
                     Type {state.result.fitzpatrick_tone}
                   </span>
@@ -1110,9 +1134,9 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                 ))}
               </div>
 
-              {/* Fitzpatrick selector */}
+              {/* Skin tone selector */}
               <div>
-                <p className="text-white/80 text-sm font-medium mb-3">Select your skin tone (Fitzpatrick scale)</p>
+                <p className="text-white/80 text-sm font-medium mb-3">Select your skin tone</p>
                 <div className="flex gap-2">
                   {(["I", "II", "III", "IV", "V", "VI"] as FitzpatrickTone[]).map((tone, i) => {
                     const colors = ["#FDDBB4", "#F5C28A", "#E0A96D", "#C68642", "#8D5524", "#4A2912"];
@@ -1124,7 +1148,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                           state.manualFitzpatrick === tone ? "border-white scale-110" : "border-transparent"
                         }`}
                         style={{ backgroundColor: colors[i] }}
-                        aria-label={`Fitzpatrick Type ${tone}`}
+                        aria-label={`Skin Tone ${tone}`}
                         title={`Type ${tone}`}
                       />
                     );

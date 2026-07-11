@@ -298,13 +298,17 @@ async def register_user(
     if is_common_password(body.password):
         raise ValueError("Password is too common. Please choose a more secure password")
 
-    # Uniqueness check
-    existing = await db.execute(select(User).where(User.email == body.email))
+    email = body.email.lower()
+
+    # Uniqueness check — compare against the normalized (lowercased) email that we
+    # actually store, otherwise "Alice@x.com" slips past a check for "alice@x.com"
+    # and then trips the DB unique constraint as an uncaught 500.
+    existing = await db.execute(select(User).where(User.email == email))
     if existing.scalar_one_or_none():
         raise ValueError("An account with this email already exists")
 
     user = User(
-        email=body.email.lower(),
+        email=email,
         hashed_password=hash_password(body.password),
         full_name=body.full_name,
         role="USER",
@@ -348,12 +352,15 @@ async def register_dermatologist(
     if is_common_password(body.password):
         raise ValueError("Password is too common. Please choose a more secure password")
 
-    existing = await db.execute(select(User).where(User.email == body.email))
+    email = body.email.lower()
+
+    # Normalized uniqueness check — see register_user for the rationale.
+    existing = await db.execute(select(User).where(User.email == email))
     if existing.scalar_one_or_none():
         raise ValueError("An account with this email already exists")
 
     user = User(
-        email=body.email.lower(),
+        email=email,
         hashed_password=hash_password(body.password),
         full_name=body.full_name,
         role="DERMATOLOGIST",
@@ -459,6 +466,19 @@ async def rotate_refresh_token(
 ) -> TokenResponse:
     token_hash = hash_token(opaque_token)
 
+    # Concurrency guard: check if this token was already rotated in the last 30 seconds
+    cache_key = f"rotated_token:{token_hash}"
+    cached_data = await redis.get(cache_key)
+    if cached_data:
+        try:
+            cached = json.loads(cached_data)
+            result = await db.execute(select(User).where(User.id == uuid.UUID(cached["user_id"])))
+            user = result.scalar_one_or_none()
+            if user and user.is_active:
+                return _build_token_response(user, cached["access_token"], cached["refresh_token"])
+        except Exception as exc:
+            logger.warning("Failed to parse cached rotated token: %s", exc)
+
     # Check if this hash was already revoked (reuse detection)
     revoked_check = await db.execute(
         select(RefreshToken).where(
@@ -497,6 +517,20 @@ async def rotate_refresh_token(
     access_token, _ = create_access_token(str(user.id), user.role, user.email)
     new_refresh = generate_refresh_token()
     await create_db_refresh_token(db, user.id, new_refresh, ip_address, user_agent)
+
+    # Cache this rotation mapping in Redis for 30 seconds to handle concurrent requests
+    try:
+        await redis.set(
+            cache_key,
+            json.dumps({
+                "user_id": str(user.id),
+                "access_token": access_token,
+                "refresh_token": new_refresh,
+            }),
+            ex=30
+        )
+    except Exception as exc:
+        logger.warning("Failed to cache rotated token in Redis: %s", exc)
 
     return _build_token_response(user, access_token, new_refresh)
 

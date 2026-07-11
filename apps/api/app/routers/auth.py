@@ -163,6 +163,7 @@ async def login(
     response_model=TokenResponse,
     summary="Rotate refresh token and return a new token pair",
 )
+@limiter.limit("30/minute")
 async def refresh_token(
     request: Request,
     body: RefreshTokenRequest,
@@ -198,8 +199,8 @@ async def refresh_token(
 async def logout(
     request: Request,
     body: RefreshTokenRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
     current_user=Depends(get_current_user),
-    db: Annotated[AsyncSession, Depends(get_db)] = None,
     redis=Depends(get_redis),
     credentials: HTTPAuthorizationCredentials = Depends(_bearer),
 ):
@@ -216,6 +217,10 @@ async def logout(
     else:
         jti = ""
 
+    # NB: get_current_user has already opened a transaction on this shared session,
+    # so we can't use `async with db.begin()` here (it would raise "a transaction is
+    # already begun"). get_db() commits the session on success, so the explicit
+    # commit that used to live here is redundant and has been removed.
     await auth_service.logout_user(
         db, redis,
         user_id=current_user.id,
@@ -223,7 +228,6 @@ async def logout(
         access_token_remaining_ttl=remaining_ttl,
         opaque_refresh_token=body.refresh_token,
     )
-    await db.commit()
     return MessageResponse(message="Logged out successfully")
 
 
@@ -260,6 +264,7 @@ async def verify_email(
     response_model=MessageResponse,
     summary="Resend email verification OTP",
 )
+@limiter.limit("5/hour")
 async def resend_otp(
     request: Request,
     body: ResendOtpRequest,

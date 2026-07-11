@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* ─── SkinAI 5-color palette, as HSL tokens (shadcn/ui convention) ───
+    /* ─── Skinest 5-color palette, as HSL tokens (shadcn/ui convention) ───
        eggshell / burnt-peach / twilight-indigo / muted-teal / apricot-cream.
        Every semantic token below routes through one of these five — no
        pure black, pure white, or generic gray is used anywhere. */
@@ -57,4 +57,48 @@
 @layer base {
   * { @apply border-border; }
   body { @apply bg-background text-foreground; }
+}
+
+/* =========================================================================
+   Mobile compatibility (layout/alignment only — no design or content change)
+   Unlayered + placed after @tailwind utilities so these win over the matching
+   Tailwind utility by source order.
+   ========================================================================= */
+
+/* Guard against horizontal scroll from decorative/absolute elements (blur
+   blobs, floating cards) on small screens. `clip` — not `hidden` — because the
+   app relies on many position: sticky headers, which `overflow: hidden` on an
+   ancestor would break; `clip` never creates a scroll container. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* Honour the dynamic viewport height on mobile. Plain 100vh includes the
+   iOS/Android URL bar, so full-screen layouts (the camera capture screen,
+   centered auth cards) render taller than the visible area and push content
+   — most importantly the camera shutter — off-screen. Only applies where dvh
+   is supported; on desktop dvh == vh, so nothing changes there. */
+@supports (min-height: 100dvh) {
+  .min-h-screen { min-height: 100dvh; }
+  .h-screen { height: 100dvh; }
+}
+
+/* Stop iOS Safari from auto-zooming when a form field is focused (it does this
+   whenever the field's text is < 16px, which then leaves the page zoomed and
+   misaligned). Mobile only; desktop keeps the existing 14px inputs. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Smoother momentum scrolling for the in-app horizontal scrollers
+   (questionnaire steps, routine tabs, adherence heatmap) on touch devices. */
+@media (max-width: 640px) {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
 }

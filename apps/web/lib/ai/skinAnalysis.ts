@@ -126,8 +126,17 @@ export async function loadModel(): Promise<void> {
 
   loadPromise = (async () => {
     try {
-      await tf.setBackend("webgl");
-      await tf.ready();
+      // Prefer WebGL (GPU) — available on virtually all mobile browsers. If a
+      // device blocks or lacks WebGL (some Android WebViews, GPU blocklists),
+      // fall back to the CPU backend (bundled with @tensorflow/tfjs) so
+      // on-device AI still runs on mobile instead of dropping to manual input.
+      try {
+        await tf.setBackend("webgl");
+        await tf.ready();
+      } catch {
+        await tf.setBackend("cpu");
+        await tf.ready();
+      }
       // Model is a TF.js graph model (converted from SavedModel via tensorflowjs_converter)
       conditionModel = await tf.loadGraphModel(MODEL_URL);
     } catch {
@@ -442,7 +451,7 @@ export const MANUAL_SKIN_OPTIONS: ReadonlyArray<{
     label: "Oily Skin",
     description: "Shiny, enlarged pores, prone to acne and blackheads",
     signs: ["Shiny T-zone", "Enlarged pores", "Frequent breakouts", "Makeup doesn't last"],
-    fitzpatrickNote: "Common across all Fitzpatrick types",
+    fitzpatrickNote: "Common across all skin tone categories",
   },
   {
     type: "dry",
@@ -456,14 +465,14 @@ export const MANUAL_SKIN_OPTIONS: ReadonlyArray<{
     label: "Combination Skin",
     description: "Oily T-zone (forehead, nose, chin) with dry or normal cheeks",
     signs: ["Shiny nose & forehead", "Dry cheeks", "Mixed texture"],
-    fitzpatrickNote: "Very common across all Fitzpatrick types",
+    fitzpatrickNote: "Very common across all skin tone categories",
   },
   {
     type: "normal",
     label: "Normal Skin",
     description: "Balanced, minimal issues — not too oily or too dry",
     signs: ["Few imperfections", "Small pores", "No severe sensitivity", "Radiant complexion"],
-    fitzpatrickNote: "Appears across all Fitzpatrick types",
+    fitzpatrickNote: "Appears across all skin tone categories",
   },
   {
     type: "sensitive",

@@ -2,7 +2,7 @@
 
 ## Your photo never leaves your device
 
-When you use the SkinAI camera scan feature:
+When you use the Skinest camera scan feature:
 
 1. **Your camera feed is processed entirely in your browser.** The video stream from your camera is analysed by a TensorFlow.js model that runs locally on your device — not on our servers.
 
@@ -22,7 +22,7 @@ For each scan session we store only:
 |-------|---------|---------|
 | Skin type | "combination" | Recommendation engine |
 | Skin type confidence | 0.87 | Quality tracking |
-| Fitzpatrick tone (I–VI) | "IV" | Bias monitoring, retraining |
+| Skin tone classification (I–VI) | "IV" | Bias monitoring, retraining |
 | Detected conditions | ["acne", "pigmentation"] | Recommendations |
 | Lighting quality score | 0.92 | Quality tracking |
 | Scan timestamp | 2026-06-10T10:30:00Z | History |
@@ -33,15 +33,15 @@ We do **not** store: your photo, your face geometry, any biometric identifier de
 
 ---
 
-## Fitzpatrick skin tone — why we ask and how we use it
+## Skin tone classification — why we ask and how we use it
 
-The [Fitzpatrick scale](https://en.wikipedia.org/wiki/Fitzpatrick_scale) (Types I–VI) was developed in 1975 to classify human skin colour. We use it for two purposes:
+Our system classifies skin into six tone categories (Types I–VI) based on clinical dermatological standards. We use this classification for two key purposes:
 
 1. **Bias monitoring.** AI skin analysis models can perform less accurately on darker skin tones (IV–VI) due to underrepresentation in training data. We flag low-confidence results for darker tones and offer a manual override. We log confidence scores to Sentry to build a dataset for future model retraining.
 
-2. **Climate-personalised recommendations.** Melanin content (which the Fitzpatrick scale approximates) affects how skin responds to UV exposure, humidity, and pollution — factors that vary significantly across Indian climates.
+2. **Climate-personalised recommendations.** Melanin content (which the tone classification approximates) affects how skin responds to UV exposure, humidity, and pollution — factors that vary significantly across Indian climates.
 
-Your Fitzpatrick tone is stored alongside your scan data and is used only for these purposes. It is never shared with third parties.
+Your skin tone classification is stored alongside your scan data and is used only for these purposes. It is never shared with third parties.
 
 ---
 

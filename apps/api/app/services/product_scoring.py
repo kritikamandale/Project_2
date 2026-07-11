@@ -1,7 +1,7 @@
 """
 Transparent product Match Score + safety flags + honest multi-store links.
 
-This is SkinAI's USP made explicit: a deterministic, fully-explainable scorer
+This is Skinest's USP made explicit: a deterministic, fully-explainable scorer
 (no black box — that's the selling point). Every point is documented and
 attributable, and no brand can pay to rank higher.
 

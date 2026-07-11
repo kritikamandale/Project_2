@@ -41,6 +41,13 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:3000"
     trusted_hosts: list[str] = ["localhost", "127.0.0.1"]
 
+    # Only trust X-Forwarded-For / X-Forwarded-Proto when the API actually sits
+    # behind a trusted reverse proxy (the Next.js proxy / a load balancer that
+    # rewrites the header). If the API is ever directly reachable, a client can
+    # forge X-Forwarded-For to spoof its IP for rate-limiting and audit logs, so
+    # this MUST be false in that case.
+    trust_proxy_headers: bool = True
+
     @field_validator("allowed_origins", mode="before")
     @classmethod
     def parse_origins(cls, v: str | list[str]) -> list[str]:
@@ -99,7 +106,15 @@ class Settings(BaseSettings):
     # -------------------------------------------------------------------------
     # Database (PostgreSQL 15)
     # -------------------------------------------------------------------------
+    # Privileged connection — owns the schema. Used by Alembic migrations and
+    # seed scripts (DDL + RLS-bypass). Keep this as the postgres/owner role.
     database_url: PostgresDsn
+
+    # Least-privilege runtime connection (optional). When set, the running API
+    # uses THIS instead of database_url, so RLS policies are actually enforced
+    # (the role must NOT have BYPASSRLS). Leave blank to run everything on
+    # database_url (RLS then relies on the role not having BYPASSRLS).
+    app_database_url: str = ""
 
     # Connection pool settings
     db_pool_size: int = 10
@@ -160,7 +175,7 @@ class Settings(BaseSettings):
     # -------------------------------------------------------------------------
     resend_api_key: str = ""
     email_from: str = "onboarding@resend.dev"
-    email_from_name: str = "SkinAI"
+    email_from_name: str = "Skinest"
 
     # -------------------------------------------------------------------------
     # Climate API (OpenWeatherMap — India-specific skin factors)

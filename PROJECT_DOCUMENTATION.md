@@ -1,6 +1,6 @@
 # AI Skin Analysis Platform — Complete Project Reference
 
-> **Project:** SkinAI — AI-powered skin analysis and dermatologist-approved product recommendation platform for Indian users
+> **Project:** Skinest — AI-powered skin analysis and dermatologist-approved product recommendation platform for Indian users
 > **Architecture:** Full-stack monorepo (Next.js 14 + FastAPI + PostgreSQL + Redis)
 > **Status:** Phase 10 — Security Hardening & Production Deployment
 
@@ -34,7 +34,7 @@
 
 | Field | Value |
 |---|---|
-| Project Name | AI Skin Analysis Platform (SkinAI) |
+| Project Name | AI Skin Analysis Platform (Skinest) |
 | Version | 0.1.0 |
 | Package Manager | pnpm 9.12.3 |
 | Build System | Turborepo 2.3.1 |
@@ -685,7 +685,7 @@ class Settings(BaseSettings):
     # Email
     resend_api_key: str
     email_from: str = "noreply@yourdomain.com"
-    email_from_name: str = "SkinAI"
+    email_from_name: str = "Skinest"
 
     # Feature Flags
     enable_dermatologist_review: bool = True
@@ -773,7 +773,7 @@ PINECONE_INDEX_NAME=skin-products
 # ── Email (Resend) ────────────────────────────────────
 RESEND_API_KEY=
 EMAIL_FROM=noreply@yourdomain.com
-EMAIL_FROM_NAME=SkinAI
+EMAIL_FROM_NAME=Skinest
 
 # ── Weather ───────────────────────────────────────────
 OPEN_METEO_API_URL=https://api.open-meteo.com/v1   # free, no key needed

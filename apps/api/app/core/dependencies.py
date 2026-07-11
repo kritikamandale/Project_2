@@ -14,8 +14,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.database import get_db
+from app.core.database import apply_rls_context, get_db, set_rls_bypass, set_rls_user_id
 from app.core.security import decode_access_token
+
+# Roles that legitimately read/write rows across users (review queues, analytics)
+# and therefore bypass per-user RLS via the service_bypass policy.
+_RLS_BYPASS_ROLES = frozenset({"ADMIN", "DERMATOLOGIST"})
 
 logger = logging.getLogger(__name__)
 security = HTTPBearer()
@@ -124,6 +128,10 @@ async def get_current_user(
     except JWTError as exc:
         raise credentials_exception from exc
 
+    # Publish the user id for RLS BEFORE the first query so the whole request
+    # transaction is scoped to this user's rows at the database layer.
+    set_rls_user_id(user_id)
+
     # JTI revocation check (set on logout or password reset)
     if await redis.get(f"revoked_jti:{jti}"):
         raise credentials_exception
@@ -140,6 +148,12 @@ async def get_current_user(
     user = result.scalar_one_or_none()
     if user is None:
         raise credentials_exception
+
+    # Now that the role is known, allow cross-user access for admin/derm and push
+    # the updated RLS context onto the transaction the query above already opened.
+    if user.role in _RLS_BYPASS_ROLES:
+        set_rls_bypass(True)
+    await apply_rls_context(db)
 
     return user
 
@@ -181,10 +195,18 @@ require_admin = require_role("ADMIN")
 # ---------------------------------------------------------------------------
 
 def get_client_ip(request: Request) -> str:
-    """Extract real IP respecting X-Forwarded-For from proxies/load balancers."""
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    """
+    Return the caller's IP.
+
+    X-Forwarded-For is only honoured when settings.trust_proxy_headers is true
+    (i.e. the API genuinely sits behind a trusted reverse proxy). Otherwise the
+    header is client-controlled and must not be trusted, so we fall back to the
+    real socket peer to prevent IP spoofing of rate limits and audit logs.
+    """
+    if settings.trust_proxy_headers:
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
 
 

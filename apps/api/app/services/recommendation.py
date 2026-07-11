@@ -22,12 +22,14 @@ import numpy as np
 from app.core.sanitization import looks_like_prompt_injection, sanitize_text
 import httpx
 from sqlalchemy import select
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.models.admin import ReviewQueue
 from app.models.product import Product
+from app.models.progress import ProgressScan, ProgressMetric
 from app.models.questionnaire import EnvironmentProfile, QuestionnaireResponse, SkincareRoutineCurrent
 from app.models.recommendation import Recommendation, RecommendationProduct
 from app.models.scan import SkinScan
@@ -643,6 +645,81 @@ class RecommendationService:
                 status="pending",
             )
             db.add(queue_entry)
+
+        # Automatically link this scan to progress tracking (ProgressScan & ProgressMetric)
+        # Check if a ProgressScan already exists for this scan to prevent duplicates
+        progress_exists = await db.scalar(
+            select(ProgressScan).where(ProgressScan.scan_id == scan.id)
+        )
+        if not progress_exists:
+            # Count existing progress scans for the user to determine the scan number
+            count_result = await db.execute(
+                select(func.count(ProgressScan.id)).where(
+                    ProgressScan.user_id == user.id
+                )
+            )
+            scan_number = (count_result.scalar() or 0) + 1
+
+            # Fetch baseline for delta calculation
+            baseline_score = None
+            if scan_number > 1:
+                baseline = await db.scalar(
+                    select(ProgressScan).where(
+                        ProgressScan.user_id == user.id,
+                        ProgressScan.scan_number == 1,
+                    )
+                )
+                if baseline:
+                    baseline_score = baseline.overall_skin_score
+            
+            delta = round(claude_output.skin_score - baseline_score, 2) if baseline_score is not None else 0.0
+
+            progress_scan = ProgressScan(
+                id=uuid.uuid4(),
+                user_id=user.id,
+                recommendation_id=rec.id,
+                scan_id=scan.id,
+                scan_number=scan_number,
+                scanned_at=scan.scan_timestamp,
+                overall_skin_score=claude_output.skin_score,
+                delta_from_baseline=delta,
+            )
+            db.add(progress_scan)
+            await db.flush()
+
+            # Create ProgressMetric rows from the scan's conditions
+            # Compare to previous scan's condition scores where available
+            prev_condition_map: dict[str, float] = {}
+            if scan_number > 1:
+                prev_scan = await db.scalar(
+                    select(ProgressScan)
+                    .options(selectinload(ProgressScan.metrics))
+                    .where(
+                        ProgressScan.user_id == user.id,
+                        ProgressScan.scan_number == scan_number - 1,
+                    )
+                )
+                if prev_scan:
+                    prev_condition_map = {m.metric_name: m.current_value for m in prev_scan.metrics}
+
+            severity_map_local = {"none": 0.0, "mild": 1.0, "moderate": 2.0, "severe": 3.0}
+            for cond in (scan.conditions or []):
+                current_sev = float(severity_map_local.get(cond.severity, 0.0))
+                prev_val = prev_condition_map.get(cond.condition_name, current_sev)
+                improvement_pct = (
+                    round(((prev_val - current_sev) / max(prev_val, 1)) * 100, 2)
+                    if prev_val > 0
+                    else 0.0
+                )
+                metric = ProgressMetric(
+                    id=uuid.uuid4(),
+                    progress_scan_id=progress_scan.id,
+                    metric_name=cond.condition_name,
+                    previous_value=prev_val,
+                    current_value=current_sev,
+                    improvement_pct=improvement_pct,
+                )
+                db.add(metric)
 
         await db.commit()
         await db.refresh(rec, attribute_names=["products"])

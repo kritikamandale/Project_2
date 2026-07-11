@@ -62,7 +62,7 @@ function shouldShowMedicationName(medicationAffectsSkin: boolean | null): boolea
 // localStorage save/resume mock
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = "skinai_questionnaire_draft";
+const STORAGE_KEY = "skinest_questionnaire_draft";
 
 function saveDraft(data: Record<string, unknown>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, savedAt: Date.now() }));

@@ -14,7 +14,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
-from app.core.database import engine, Base
+from app.core.database import engine, migration_engine, Base
 from app.routers import (
     admin,
     auth,
@@ -73,7 +73,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 async def lifespan(app: FastAPI):
     if settings.is_development and settings.db_auto_create:
         try:
-            async with engine.begin() as conn:
+            # DDL requires the privileged (schema-owner) engine, not the
+            # least-privilege runtime engine.
+            async with migration_engine.begin() as conn:
                 # One cheap existence probe instead of letting create_all
                 # round-trip once per table/enum on every dev reload — with a
                 # remote database that used to add ~20s per restart.
@@ -92,6 +94,8 @@ async def lifespan(app: FastAPI):
             )
     yield
     await engine.dispose()
+    if migration_engine is not engine:
+        await migration_engine.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -100,9 +104,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    docs_url="/docs" if not settings.is_production else None,
-    redoc_url="/redoc" if not settings.is_production else None,
-    openapi_url="/openapi.json" if not settings.is_production else None,
+    # Hide interactive docs + the OpenAPI schema in every prod-like environment
+    # (production AND staging). Staging previously leaked /docs and the full
+    # /openapi.json to anyone.
+    docs_url="/docs" if not settings.is_prod_like else None,
+    redoc_url="/redoc" if not settings.is_prod_like else None,
+    openapi_url="/openapi.json" if not settings.is_prod_like else None,
     lifespan=lifespan,
 )
 
@@ -150,15 +157,19 @@ app.include_router(dermatologist.router,   prefix=f"{API_PREFIX}/dermatologist",
 app.include_router(admin.router,           prefix=f"{API_PREFIX}/admin",           tags=["admin"])
 app.include_router(privacy.router,         prefix=f"{API_PREFIX}/users",           tags=["privacy"])
 
-import sys
+import logging
 import traceback
+
+_logger = logging.getLogger("app.error")
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    print(f"GLOBAL EXCEPTION: {exc}", file=sys.stderr)
-    traceback.print_exc(file=sys.stderr)
+    # Log through the logging framework (captured by Sentry / log aggregation),
+    # not raw stdout/stderr prints.
+    _logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
     if settings.is_prod_like:
+        # Never leak internals (messages, stack traces) to clients in prod/staging.
         content = {"detail": "Internal server error"}
     else:
         content = {"detail": str(exc), "traceback": traceback.format_exc()}

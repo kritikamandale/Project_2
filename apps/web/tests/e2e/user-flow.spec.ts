@@ -38,7 +38,7 @@ async function registerAndVerify(page: Page) {
   await page.click('button:has-text("Next"), button:has-text("Continue")');
 
   // Step 3 — Fitzpatrick tone picker (select any option)
-  const toneBtn = page.locator('[data-tone], button[aria-label*="Fitzpatrick"]').first();
+  const toneBtn = page.locator('[data-tone], button[aria-label*="Skin Tone"]').first();
   await toneBtn.click().catch(() => {});
   await page.click('button:has-text("Next"), button:has-text("Continue")');
 
@@ -83,7 +83,7 @@ test.describe("Camera scan page", () => {
     // Requires a logged-in session; use storage state or skip if not available
     await page.goto(`${BASE_URL}/login`);
     // Check the page loads without crashing
-    await expect(page).toHaveTitle(/SkinAI|Skin Analysis/i);
+    await expect(page).toHaveTitle(/Skinest|Skin Analysis/i);
   });
 
   test("scan page has correct Permissions-Policy (camera allowed)", async ({ page }) => {
@@ -145,7 +145,7 @@ test.describe("Privacy pages", () => {
   test("cookie consent banner appears on first visit", async ({ page }) => {
     // Clear localStorage to simulate first visit
     await page.goto(`${BASE_URL}/`);
-    await page.evaluate(() => localStorage.removeItem("skinai_cookie_consent"));
+    await page.evaluate(() => localStorage.removeItem("skinest_cookie_consent"));
     await page.reload();
     // Banner appears after 1s delay
     const banner = page.locator('[role="dialog"][aria-label*="cookie"], [aria-label*="Cookie"]');
@@ -154,7 +154,7 @@ test.describe("Privacy pages", () => {
 
   test("accepting cookies hides the consent banner", async ({ page }) => {
     await page.goto(`${BASE_URL}/`);
-    await page.evaluate(() => localStorage.removeItem("skinai_cookie_consent"));
+    await page.evaluate(() => localStorage.removeItem("skinest_cookie_consent"));
     await page.reload();
     const banner = page.locator('[role="dialog"][aria-label*="cookie"]');
     await banner.waitFor({ timeout: 5_000 }).catch(() => {});

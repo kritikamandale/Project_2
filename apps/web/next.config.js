@@ -143,6 +143,11 @@ const nextConfig = {
 
   experimental: {
     serverComponentsExternalPackages: ["sharp"],
+    // Speed up dev/prod compilation: transform barrel imports from these heavy
+    // libraries into direct deep imports so Next only compiles the icons/exports
+    // actually used, instead of the whole package. Big win for on-demand dev
+    // compile times (lucide-react + framer-motion are used on nearly every page).
+    optimizePackageImports: ["lucide-react", "framer-motion"],
   },
 };
 

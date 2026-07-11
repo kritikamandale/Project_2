@@ -845,7 +845,7 @@ async def setup_totp(db: AsyncSession, user: User) -> TOTPSetupResponse:
     user.totp_enabled = False
     await db.commit()
 
-    issuer = "SkinAI Admin"
+    issuer = "Skinest Admin"
     otp_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=user.email, issuer_name=issuer)
 
     return TOTPSetupResponse(secret=secret, otpauth_uri=otp_uri)

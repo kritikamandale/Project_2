@@ -32,18 +32,18 @@ const sora = Sora({
 
 export const metadata: Metadata = {
   title: {
-    default: "SkinAI — AI Skin Analysis & Recommendations",
-    template: "%s | SkinAI",
+    default: "Skinest — AI Skin Analysis & Recommendations",
+    template: "%s | Skinest",
   },
   description:
     "Get a personalised skincare routine powered by AI skin analysis. Dermatologist-approved recommendations from Nykaa, Minimalist, and Dermaco.",
   keywords: ["skin analysis", "skincare", "AI", "dermatologist", "India"],
-  authors: [{ name: "SkinAI Team" }],
+  authors: [{ name: "Skinest Team" }],
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
     locale: "en_IN",
-    siteName: "SkinAI",
+    siteName: "Skinest",
   },
 };
 

@@ -74,8 +74,7 @@ const PUBLIC_PREFIXES = [
   "/privacy",
   "/terms",
   "/api/auth",
-  "/api/proxy",  // proxy handles its own Bearer token auth
-  "/api/csrf",
+  "/api/proxy",  // proxy handles its own Bearer token auth + Origin CSRF check
   "/_next",
   "/favicon.ico",
   "/public",
@@ -147,11 +146,13 @@ export default auth((req: NextRequest & { auth: any }) => {
     }
   }
 
-  // Attach role / user-id headers for downstream RSC / route handlers
-  const response = NextResponse.next();
-  response.headers.set("x-user-role", userRole);
-  response.headers.set("x-user-id", (session.user as any).id ?? "");
-  return response;
+  // Forward role / user-id to downstream RSC / route handlers on the REQUEST
+  // (previous code set them on the response, where server components can't read
+  // them and where they leaked the user's id/role to the browser on every hit).
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-user-role", userRole);
+  requestHeaders.set("x-user-id", (session.user as any).id ?? "");
+  return NextResponse.next({ request: { headers: requestHeaders } });
 });
 
 export const config = {

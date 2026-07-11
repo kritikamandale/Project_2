@@ -12,7 +12,9 @@ from app.core.config import settings
 # PgBouncer-safe connect_args (statement_cache_size=0, unique prepared-statement
 # names). Building a fresh engine here would fall back to psycopg2 and/or break
 # on the Supabase transaction pooler.
-from app.core.database import Base, engine as app_engine
+# Use the privileged (schema-owner) engine for DDL. The runtime `engine` may be
+# a least-privilege role that cannot alter the schema.
+from app.core.database import Base, migration_engine as app_engine
 
 config = context.config
 if config.config_file_name is not None:
