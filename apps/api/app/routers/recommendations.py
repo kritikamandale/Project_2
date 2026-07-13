@@ -95,6 +95,7 @@ def _build_detail(rec: Recommendation) -> RecommendationDetailResponse:
                 category=p.category,
                 price_inr=p.price_inr,
                 product_url=p.product_url,
+                image_url=p.image_url,
                 key_ingredients=p.key_ingredients,
                 targets_conditions=p.targets_conditions,
                 rating_avg=p.rating_avg,

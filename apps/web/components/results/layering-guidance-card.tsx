@@ -53,7 +53,7 @@ function RoutineColumn({ label, icon, steps }: { label: string; icon: React.Reac
 
 export function LayeringGuidanceCard({ layering }: { layering: LayeringPlan }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="glass-card rounded-2xl p-4">
       <h3 className="text-sm font-bold text-gray-900">How to layer this routine</h3>
       <p className="mt-0.5 text-xs text-gray-500">
         Thinnest to thickest, water before oil — the order that keeps actives working.

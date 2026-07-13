@@ -36,6 +36,36 @@ function AlertBanner({ message, type }: { message: string; type: string }) {
 }
 
 // ---------------------------------------------------------------------------
+// Water-fill glass ring — a circular gauge that "fills" like rising water,
+// used for the primary Skin Score stat instead of a bare icon.
+// ---------------------------------------------------------------------------
+
+function ScoreRing({ value, size = 48 }: { value: number | null; size?: number }) {
+  const pct = value != null ? Math.max(0, Math.min(100, value)) : 0;
+  return (
+    <div
+      className="relative shrink-0 rounded-full overflow-hidden glass-card shadow-water"
+      style={{ width: size, height: size }}
+    >
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-aquaglass-accent-dark to-aquaglass-accent"
+        initial={{ height: 0 }}
+        animate={{ height: value != null ? `${pct}%` : "0%" }}
+        transition={{ duration: 1.4, ease: "easeOut", delay: 0.3 }}
+      >
+        {/* Water-surface highlight line */}
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-white/50" />
+      </motion.div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="font-number text-sm font-bold text-aquaglass-navy drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
+          {value ?? "—"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Glassmorphism stat card
 // ---------------------------------------------------------------------------
 
@@ -46,6 +76,7 @@ function StatCard({
   icon,
   gradient,
   delay = 0,
+  ring,
 }: {
   label: string;
   value: string | number;
@@ -53,6 +84,7 @@ function StatCard({
   icon: React.ReactNode;
   gradient: string;
   delay?: number;
+  ring?: number | null;
 }) {
   return (
     <motion.div
@@ -60,15 +92,19 @@ function StatCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, type: "spring", stiffness: 200, damping: 20 }}
       whileHover={{ y: -4, scale: 1.02 }}
-      className="group relative bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.06)] p-5 overflow-hidden cursor-default"
+      className="group relative glass-card rounded-2xl p-5 overflow-hidden cursor-default"
     >
       {/* Accent glow */}
       <div className={`absolute -top-8 -right-8 w-24 h-24 rounded-full ${gradient} opacity-20 blur-2xl group-hover:opacity-30 transition-opacity duration-500`} />
-      
+
       <div className="relative z-10 flex items-start gap-3">
-        <div className={`w-12 h-12 rounded-2xl ${gradient} flex items-center justify-center text-xl shrink-0 shadow-lg`}>
-          {icon}
-        </div>
+        {ring !== undefined ? (
+          <ScoreRing value={ring} size={48} />
+        ) : (
+          <div className={`w-12 h-12 rounded-2xl ${gradient} flex items-center justify-center text-xl shrink-0 shadow-lg`}>
+            {icon}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <p className="text-xs text-zinc-400 font-medium tracking-wide uppercase">{label}</p>
           <p className="font-number text-2xl font-bold text-zinc-900 leading-tight mt-0.5">{value}</p>
@@ -108,7 +144,7 @@ function ActionCard({
     >
       <Link
         href={href}
-        className="group relative flex flex-col h-full bg-white/80 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)] transition-all duration-300 overflow-hidden"
+        className="group relative flex flex-col h-full glass-card rounded-2xl hover:shadow-glass-lg transition-all duration-300 overflow-hidden"
       >
         {/* Top gradient accent */}
         <div className={`h-1.5 ${gradient} transition-all duration-300 group-hover:h-2`} />
@@ -139,6 +175,28 @@ function ActionCard({
 // ---------------------------------------------------------------------------
 
 function FaceGallery() {
+  // Polaroid-style frame: thicker white bottom margin + tiny caption, so each
+  // face reads as a photo suspended over the gradient background rather than
+  // a plain rounded image.
+  const Polaroid = ({
+    src,
+    alt,
+    caption,
+    className,
+  }: {
+    src: string;
+    alt: string;
+    caption: string;
+    className: string;
+  }) => (
+    <div className={`${className} bg-white/70 backdrop-blur-md p-2 pb-5 rounded-2xl shadow-glass-lg border border-white/60`}>
+      <div className="w-full h-full rounded-lg overflow-hidden">
+        <img src={src} alt={alt} className="w-full h-full object-cover" />
+      </div>
+      <p className="text-center text-[10px] font-medium text-aquaglass-navy/60 mt-1.5 tracking-wide">{caption}</p>
+    </div>
+  );
+
   return (
     <div className="relative w-full h-full min-h-[320px]">
       {/* Decorative glow orbs */}
@@ -151,9 +209,9 @@ function FaceGallery() {
         initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
         animate={{ opacity: 1, scale: 1, rotate: -3 }}
         transition={{ delay: 0.3, type: "spring", stiffness: 150 }}
-        className="absolute top-4 left-[10%] w-44 h-44 sm:w-52 sm:h-52 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/60 z-20"
+        className="absolute top-4 left-[10%] z-20"
       >
-        <img src="/face1.jpg" alt="Radiant skin" className="w-full h-full object-cover" />
+        <Polaroid src="/face1.jpg" alt="Radiant skin" caption="Glow · Day 30" className="w-44 h-44 sm:w-52 sm:h-52" />
       </motion.div>
 
       {/* Face 2 — medium, offset right */}
@@ -161,9 +219,9 @@ function FaceGallery() {
         initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
         animate={{ opacity: 1, scale: 1, rotate: 4 }}
         transition={{ delay: 0.5, type: "spring", stiffness: 150 }}
-        className="absolute top-16 right-[5%] w-36 h-36 sm:w-44 sm:h-44 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/60 z-10"
+        className="absolute top-16 right-[5%] z-10"
       >
-        <img src="/face2.jpg" alt="Clear skin" className="w-full h-full object-cover" />
+        <Polaroid src="/face2.jpg" alt="Clear skin" caption="Clarity · Day 14" className="w-36 h-36 sm:w-44 sm:h-44" />
       </motion.div>
 
       {/* Face 3 — small, bottom center */}
@@ -171,9 +229,9 @@ function FaceGallery() {
         initial={{ opacity: 0, scale: 0.8, rotate: -2 }}
         animate={{ opacity: 1, scale: 1, rotate: 2 }}
         transition={{ delay: 0.7, type: "spring", stiffness: 150 }}
-        className="absolute bottom-2 left-[30%] w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/60 z-30"
+        className="absolute bottom-2 left-[30%] z-30"
       >
-        <img src="/face3.jpg" alt="Healthy skin" className="w-full h-full object-cover" />
+        <Polaroid src="/face3.jpg" alt="Healthy skin" caption="Baseline" className="w-32 h-32 sm:w-40 sm:h-40" />
       </motion.div>
 
       {/* Floating badges */}
@@ -181,7 +239,7 @@ function FaceGallery() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 1, type: "spring" }}
-        className="absolute top-2 right-[15%] bg-white/90 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/50 z-40"
+        className="absolute top-2 right-[15%] glass-card rounded-full px-3 py-1.5 z-40"
       >
         <span className="text-xs font-semibold text-teal-600">✨ AI Powered</span>
       </motion.div>
@@ -189,7 +247,7 @@ function FaceGallery() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 1.2, type: "spring" }}
-        className="absolute bottom-8 left-[5%] bg-white/90 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/50 z-40"
+        className="absolute bottom-8 left-[5%] glass-card rounded-full px-3 py-1.5 z-40"
       >
         <span className="text-xs font-semibold text-skin-600">🔬 Dermatologist Approved</span>
       </motion.div>
@@ -222,7 +280,7 @@ function SkinTipsCarousel() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="relative bg-gradient-to-br from-teal-500/10 via-white/50 to-skin-500/10 backdrop-blur-xl rounded-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.06)] p-6 overflow-hidden"
+      className="relative glass-card glass-shimmer rounded-3xl p-6 overflow-hidden"
     >
       <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-teal-300/10 blur-3xl" />
       <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4 relative z-10">💡 Daily Skin Tips</h3>
@@ -437,7 +495,7 @@ export default function DashboardPage() {
                 animate={{ scale: 1 }}
                 className="relative"
               >
-                <button className="p-2.5 rounded-xl bg-white/80 backdrop-blur-md border border-white/40 shadow-sm hover:shadow-md transition-all">
+                <button className="p-2.5 rounded-xl glass-card hover:shadow-glass-md transition-all">
                   <span className="text-lg">🔔</span>
                 </button>
                 <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-xs font-bold shadow-lg">
@@ -539,6 +597,7 @@ export default function DashboardPage() {
                   : "No scans yet"
               }
               gradient="bg-gradient-to-br from-teal-400 to-teal-600"
+              ring={skinScore}
               delay={0.1}
             />
             <StatCard
@@ -623,7 +682,7 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
-              className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.06)] p-6"
+              className="glass-card rounded-3xl p-6"
             >
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-heading text-lg font-bold text-zinc-800">Top Conditions</h2>
@@ -687,7 +746,7 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
-              className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.06)] p-8 text-center flex flex-col items-center justify-center"
+              className="glass-card rounded-3xl p-8 text-center flex flex-col items-center justify-center"
             >
               <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center text-4xl mx-auto mb-5 shadow-xl">
                 📸
@@ -746,7 +805,7 @@ export default function DashboardPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 + i * 0.08 }}
                 whileHover={{ y: -4 }}
-                className="relative bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm hover:shadow-lg transition-all duration-300 p-6 overflow-hidden group"
+                className="relative glass-card rounded-2xl hover:shadow-glass-lg transition-all duration-300 p-6 overflow-hidden group"
               >
                 <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br ${feature.gradient} opacity-[0.08] blur-2xl group-hover:opacity-[0.15] transition-opacity duration-500`} />
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-2xl mb-4 shadow-lg`}>

@@ -12,6 +12,7 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.main import app
+import os
 from app.core.config import settings
 from app.core.database import Base, get_db
 from app.core.dependencies import get_redis
@@ -20,7 +21,10 @@ from app.core.dependencies import get_redis
 from app.core.security import hash_password as get_password_hash, create_access_token
 from app.models.user import AuditLog, RefreshToken, User, UserProfile
 
-TEST_DATABASE_URL = "postgresql+asyncpg://skin_user:password@localhost:5432/skin_analysis_test"
+TEST_DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+asyncpg://skin_user:password@localhost:5432/skin_analysis_test"
+)
 
 
 # ---------------------------------------------------------------------------

@@ -54,6 +54,9 @@ class Product(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     brand_display: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
     product_name: Mapped[str] = mapped_column(String(255), nullable=False)
     product_url: Mapped[Optional[str]] = mapped_column(String(1000))
+    # Product photo shown on cards — resolved from the brand's own product page
+    # (og:image) where reachable; NULL falls back to a category icon in the UI.
+    image_url: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
     price_inr: Mapped[Optional[float]] = mapped_column(Float)
     # List/MRP price; discount % = (mrp_inr - price_inr) / mrp_inr when both set.
     mrp_inr: Mapped[Optional[float]] = mapped_column(Float, nullable=True)

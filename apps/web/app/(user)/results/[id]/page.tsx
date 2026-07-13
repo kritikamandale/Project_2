@@ -31,17 +31,17 @@ const BRAND_STYLES: Record<string, { bg: string; text: string; label: string }> 
   others:     { bg: "bg-cream-100",   text: "text-cream-800",  label: "Others" },
 };
 
-const SEVERITY_CONFIG: Record<string, { color: string; bg: string; width: string }> = {
-  severe:   { color: "text-red-600",   bg: "bg-red-500",    width: "w-full" },
-  moderate: { color: "text-skin-600", bg: "bg-skin-400",  width: "w-2/3" },
-  mild:     { color: "text-cream-700", bg: "bg-cream-400", width: "w-1/3" },
-  none:     { color: "text-teal-600", bg: "bg-teal-400",  width: "w-4" },
+const SEVERITY_CONFIG: Record<string, { color: string; bg: string; pct: number }> = {
+  severe:   { color: "text-red-600",   bg: "bg-red-500",   pct: 100 },
+  moderate: { color: "text-skin-600",  bg: "bg-skin-400",  pct: 66 },
+  mild:     { color: "text-cream-700", bg: "bg-cream-400", pct: 33 },
+  none:     { color: "text-teal-600",  bg: "bg-teal-400",  pct: 8 },
 };
 
 const PHASE_STYLES: Record<number, { border: string; bg: string; badge: string; text: string }> = {
-  1: { border: "border-teal-200",   bg: "bg-teal-50",    badge: "bg-teal-100 text-teal-700",   text: "text-teal-700" },
-  2: { border: "border-skin-200",  bg: "bg-skin-50",  badge: "bg-skin-100 text-skin-700",   text: "text-skin-700" },
-  3: { border: "border-cream-300", bg: "bg-cream-50", badge: "bg-cream-100 text-cream-800", text: "text-cream-800" },
+  1: { border: "border-teal-200/60",   bg: "bg-teal-50/50",    badge: "bg-teal-100/80 text-teal-700",   text: "text-teal-700" },
+  2: { border: "border-skin-200/60",  bg: "bg-skin-50/50",  badge: "bg-skin-100/80 text-skin-700",   text: "text-skin-700" },
+  3: { border: "border-cream-300/60", bg: "bg-cream-50/50", badge: "bg-cream-100/80 text-cream-800", text: "text-cream-800" },
 };
 
 const SKIN_TYPE_DESC: Record<string, string> = {
@@ -76,17 +76,19 @@ function SkinScoreDial({ score }: { score: number }) {
     return () => { controls.stop(); unsubscribe(); };
   }, [score, count]);
 
+  // Aqua Glass palette only — teal (healthy) → aqua accent (moderate) → red
+  // (needs attention; kept as the palette's dedicated usability-warning color).
   const color =
-    score >= 70 ? "#81b29a" :   // muted-teal — healthy
-    score >= 50 ? "#f2cc8f" :   // apricot-cream — moderate
-    "#e07a5f";                  // burnt-peach — needs attention
+    score >= 70 ? "#3E7C93" :   // aquaglass-accent-dark — healthy
+    score >= 50 ? "#7FC4DD" :   // aquaglass-accent — moderate
+    "#e07a5f";                  // warning — needs attention
 
   const offset = circumference - (displayed / 100) * circumference;
 
   return (
-    <div className="relative flex flex-col items-center">
+    <div className="relative flex flex-col items-center rounded-full glass-card shadow-water" style={{ width: 140, height: 140 }}>
       <svg width="140" height="140" className="-rotate-90">
-        <circle cx="70" cy="70" r={radius} fill="none" stroke="#3d405b" strokeWidth="12" />
+        <circle cx="70" cy="70" r={radius} fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="12" />
         <motion.circle
           cx="70" cy="70" r={radius} fill="none"
           stroke={color} strokeWidth="12"
@@ -99,8 +101,8 @@ function SkinScoreDial({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-number text-3xl font-bold text-eggshell">{displayed}</span>
-        <span className="text-xs text-gray-300 font-medium">/ 100</span>
+        <span className="font-number text-3xl font-bold text-white">{displayed}</span>
+        <span className="text-xs text-white/60 font-medium">/ 100</span>
       </div>
     </div>
   );
@@ -115,27 +117,30 @@ function ConditionCard({ cond }: { cond: ConditionSummary }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm"
+      className="glass-card rounded-xl p-4 flex gap-3"
     >
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-semibold text-gray-800 capitalize">
-          {cond.condition_name.replace(/_/g, " ")}
-        </span>
-        <span className={`text-xs font-medium capitalize ${sev.color}`}>
-          {cond.severity}
-        </span>
-      </div>
-      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      {/* Thin glass tube — fluid level rises to match severity */}
+      <div className="relative w-3 h-16 shrink-0 rounded-full overflow-hidden bg-white/30 backdrop-blur-sm border border-white/50">
         <motion.div
-          className={`h-full rounded-full ${sev.bg}`}
-          initial={{ width: 0 }}
-          animate={{ width: sev.width.replace("w-", "") === "full" ? "100%" : sev.width.replace("w-", "") === "2/3" ? "66%" : sev.width === "w-1/3" ? "33%" : "8px" }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          className={`absolute bottom-0 left-0 right-0 rounded-full ${sev.bg}`}
+          initial={{ height: 0 }}
+          animate={{ height: `${sev.pct}%` }}
+          transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
         />
       </div>
-      <p className="text-xs text-gray-400 mt-1.5 capitalize">
-        Zone: {cond.affected_zone.replace(/_/g, " ")}
-      </p>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <span className="text-sm font-semibold text-gray-800 capitalize truncate">
+            {cond.condition_name.replace(/_/g, " ")}
+          </span>
+          <span className={`text-xs font-medium capitalize shrink-0 ${sev.color}`}>
+            {cond.severity}
+          </span>
+        </div>
+        <p className="text-xs text-gray-400 capitalize">
+          Zone: {cond.affected_zone.replace(/_/g, " ")}
+        </p>
+      </div>
     </motion.div>
   );
 }
@@ -153,37 +158,54 @@ function ProductCard({ entry, index }: { entry: RecommendedProductEntry; index: 
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.1 }}
-      className={`bg-white rounded-2xl border ${phase.border} shadow-sm overflow-hidden`}
+      className="glass-card glass-shimmer rounded-2xl overflow-hidden"
     >
       {/* Header */}
-      <div className={`${phase.bg} px-5 pt-4 pb-3 flex items-start justify-between gap-3`}>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${brand.bg} ${brand.text}`}>
-              {brand.label}
-            </span>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${phase.badge}`}>
-              Phase {entry.phase}
-            </span>
-            {p.is_dermatologist_approved && (
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 flex items-center gap-1">
-                <Shield className="w-3 h-3" /> Derm approved
+      <div className={`${phase.bg}/40 backdrop-blur-sm px-5 pt-4 pb-3 flex items-start gap-3`}>
+        {/* Product photo — floats inside its own small glass frame. */}
+        <div className="w-16 h-16 shrink-0 rounded-xl glass-card overflow-hidden flex items-center justify-center">
+          {p.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={p.image_url}
+              alt={p.product_name}
+              className="w-full h-full object-contain p-1.5"
+              loading="lazy"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+            />
+          ) : (
+            <Leaf className="w-6 h-6 text-teal-400" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0 flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${brand.bg} ${brand.text}`}>
+                {brand.label}
               </span>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${phase.badge}`}>
+                Phase {entry.phase}
+              </span>
+              {p.is_dermatologist_approved && (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 flex items-center gap-1">
+                  <Shield className="w-3 h-3" /> Derm approved
+                </span>
+              )}
+            </div>
+            <h3 className="font-card font-bold text-gray-900 text-base leading-tight">{p.product_name}</h3>
+            <p className="font-card text-xs text-gray-500 capitalize mt-0.5">{p.category}</p>
+          </div>
+          <div className="text-right shrink-0">
+            {p.price_inr && (
+              <p className="font-card text-lg font-bold text-gray-900">₹{p.price_inr.toLocaleString("en-IN")}</p>
+            )}
+            {p.rating_avg > 0 && (
+              <div className="flex items-center gap-1 justify-end mt-0.5">
+                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                <span className="text-xs text-gray-500">{p.rating_avg.toFixed(1)}</span>
+              </div>
             )}
           </div>
-          <h3 className="font-card font-bold text-gray-900 text-base leading-tight">{p.product_name}</h3>
-          <p className="font-card text-xs text-gray-500 capitalize mt-0.5">{p.category}</p>
-        </div>
-        <div className="text-right shrink-0">
-          {p.price_inr && (
-            <p className="font-card text-lg font-bold text-gray-900">₹{p.price_inr.toLocaleString("en-IN")}</p>
-          )}
-          {p.rating_avg > 0 && (
-            <div className="flex items-center gap-1 justify-end mt-0.5">
-              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-              <span className="text-xs text-gray-500">{p.rating_avg.toFixed(1)}</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -231,7 +253,7 @@ function ProductCard({ entry, index }: { entry: RecommendedProductEntry; index: 
 
         {/* Usage instruction */}
         {entry.usage_instruction && (
-          <div className="bg-gray-50 rounded-lg px-3 py-2 text-xs text-gray-600 leading-relaxed border border-gray-100">
+          <div className="bg-white/40 backdrop-blur-sm rounded-lg px-3 py-2 text-xs text-gray-600 leading-relaxed border border-white/50">
             <strong>How to use:</strong> {entry.usage_instruction}
           </div>
         )}
@@ -270,7 +292,7 @@ function RoadmapTimeline({ phases }: { phases: RoadmapPhase[] }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.15 }}
-              className={`rounded-2xl border ${style.border} ${style.bg} p-4`}
+              className={`rounded-2xl border backdrop-blur-md ${style.border} ${style.bg} p-4`}
             >
               <div className="flex items-center gap-2 mb-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${style.badge}`}>
@@ -533,9 +555,9 @@ export default function ResultsPage() {
       ?.condition_name ?? null;
 
   return (
-    <div className="min-h-screen bg-eggshell">
+    <div className="min-h-screen">
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20 px-4 py-3 flex items-center justify-between">
+      <div className="glass-card sticky top-0 z-20 px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => router.push("/dashboard")}
           className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
@@ -552,7 +574,7 @@ export default function ResultsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 text-eggshell shadow-lg"
+          className="relative overflow-hidden rounded-3xl p-6 text-white shadow-glass-lg bg-gradient-to-br from-aquaglass-navy/95 to-aquaglass-accent-dark/90 backdrop-blur-xl border border-white/10"
         >
           <p className="text-teal-300 text-sm font-medium mb-1">Your Skin Health Score</p>
           <div className="flex items-center gap-6">
@@ -565,7 +587,7 @@ export default function ResultsPage() {
                 {SKIN_TYPE_DESC[rec.skin_type ?? ""] ?? ""}
               </p>
               {rec.fitzpatrick_tone && (
-                <div className="mt-3 inline-flex items-center gap-1.5 bg-eggshell/10 px-3 py-1 rounded-full text-xs font-medium">
+                <div className="mt-3 inline-flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full text-xs font-medium">
                   <Sparkles className="w-3.5 h-3.5" />
                   Skin Tone · {rec.fitzpatrick_tone}
                 </div>
@@ -603,7 +625,7 @@ export default function ResultsPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-teal-50 border border-teal-200 rounded-2xl p-4 flex gap-3"
+            className="bg-teal-50/50 backdrop-blur-md border border-teal-200/60 rounded-2xl p-4 flex gap-3"
           >
             <MapPin className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" />
             <div>
@@ -615,7 +637,7 @@ export default function ResultsPage() {
 
         {/* ---- 5. Monthly cost estimate ---- */}
         {rec.estimated_monthly_cost_inr && (
-          <div className="bg-cream-50 border border-cream-200 rounded-xl px-4 py-3 flex items-center gap-3">
+          <div className="bg-cream-50/50 backdrop-blur-md border border-cream-200/60 rounded-xl px-4 py-3 flex items-center gap-3">
             <span className="text-2xl">💰</span>
             <div>
               <p className="text-sm font-semibold text-cream-800">
@@ -628,7 +650,7 @@ export default function ResultsPage() {
 
         {/* ---- 5. Allergen / conflict flags ---- */}
         {rec.allergen_flags.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex gap-3">
+          <div className="bg-red-50/50 backdrop-blur-md border border-red-200/60 rounded-xl p-4 flex gap-3">
             <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-red-800 mb-1">Allergen Alert</p>
@@ -711,7 +733,7 @@ export default function ResultsPage() {
               <div className="mt-5 space-y-3">
                 <p className="text-sm font-semibold text-gray-700">Expected Results Timeline</p>
                 {rec.roadmap.condition_timelines.map((ct) => (
-                  <div key={ct.condition} className="bg-white rounded-xl border border-gray-100 px-4 py-3">
+                  <div key={ct.condition} className="glass-card rounded-xl px-4 py-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-semibold capitalize text-gray-800">
                         {ct.condition.replace(/_/g, " ")}
@@ -737,7 +759,7 @@ export default function ResultsPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {meta.morning_routine.length > 0 && (
-                <div className="bg-cream-50 border border-cream-200 rounded-2xl p-4">
+                <div className="bg-cream-50/50 backdrop-blur-md border border-cream-200/60 rounded-2xl p-4">
                   <p className="text-sm font-bold text-cream-800 mb-3 flex items-center gap-1.5">
                     <Sun className="w-4 h-4" /> Morning Routine
                   </p>
@@ -754,7 +776,7 @@ export default function ResultsPage() {
                 </div>
               )}
               {meta.night_routine.length > 0 && (
-                <div className="bg-gray-100 border border-gray-200 rounded-2xl p-4">
+                <div className="bg-gray-100/50 backdrop-blur-md border border-gray-200/60 rounded-2xl p-4">
                   <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
                     🌙 Night Routine
                   </p>
@@ -783,7 +805,7 @@ export default function ResultsPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {meta.ingredients_to_use.length > 0 && (
-                <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4">
+                <div className="bg-teal-50/50 backdrop-blur-md border border-teal-200/60 rounded-2xl p-4">
                   <p className="text-sm font-bold text-teal-800 mb-2 flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4" /> Look for
                   </p>
@@ -797,7 +819,7 @@ export default function ResultsPage() {
                 </div>
               )}
               {meta.ingredients_to_avoid.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+                <div className="bg-red-50/50 backdrop-blur-md border border-red-200/60 rounded-2xl p-4">
                   <p className="text-sm font-bold text-red-800 mb-2 flex items-center gap-1.5">
                     <AlertTriangle className="w-4 h-4" /> Avoid
                   </p>
@@ -821,7 +843,7 @@ export default function ResultsPage() {
               <Droplets className="w-5 h-5 text-teal-500" />
               Lifestyle Tips
             </h2>
-            <div className="bg-white border border-gray-100 rounded-2xl divide-y divide-gray-50 shadow-sm">
+            <div className="glass-card rounded-2xl divide-y divide-white/30">
               {meta.lifestyle_tips.map((tip, i) => (
                 <div key={i} className="px-4 py-3 flex gap-3 text-sm text-gray-700">
                   <Zap className="w-4 h-4 text-skin-500 shrink-0 mt-0.5" />
@@ -834,7 +856,7 @@ export default function ResultsPage() {
 
         {/* ---- 11. Dermatologist note ---- */}
         {meta.dermatologist_note && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+          <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <Shield className="w-5 h-5 text-teal-500" />
               <span className="text-sm font-bold text-gray-900">Dermatologist Note</span>
@@ -846,12 +868,12 @@ export default function ResultsPage() {
         )}
 
         {/* ---- 12. Derm review badge ---- */}
-        <div className={`rounded-2xl p-4 flex items-center gap-3 ${
+        <div className={`rounded-2xl p-4 flex items-center gap-3 backdrop-blur-md border ${
           rec.is_dermatologist_reviewed
-            ? "bg-teal-50 border border-teal-200"
+            ? "bg-teal-50/50 border-teal-200/60"
             : rec.requires_derm_review
-            ? "bg-cream-50 border border-cream-200"
-            : "bg-gray-50 border border-gray-200"
+            ? "bg-cream-50/50 border-cream-200/60"
+            : "bg-gray-50/50 border-gray-200/60"
         }`}>
           {rec.is_dermatologist_reviewed ? (
             <>
@@ -887,7 +909,7 @@ export default function ResultsPage() {
         </div>
 
         {/* ---- 13. Feedback ---- */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+        <div className="glass-card rounded-2xl p-5">
           <FeedbackSection recommendationId={rec.id} />
         </div>
 

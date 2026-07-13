@@ -66,6 +66,7 @@ class ProductInRecommendation(BaseModel):
     category: str
     price_inr: Optional[float] = None
     product_url: Optional[str] = None
+    image_url: Optional[str] = None
     key_ingredients: Optional[list[str]] = None
     targets_conditions: Optional[list[str]] = None
     rating_avg: float

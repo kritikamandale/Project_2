@@ -37,9 +37,12 @@ const NAV: Record<Area, NavItem[]> = {
     { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
     { href: "/scan", label: "New Scan", Icon: Camera },
     { href: "/progress", label: "Progress", Icon: TrendingUp },
-    { href: "/roadmap", label: "Roadmap", Icon: Map },
+    // "Skincare" — your generated routine/roadmap, in plainer language.
+    { href: "/roadmap", label: "Skincare", Icon: Map },
     { href: "/history", label: "History", Icon: History },
-    { href: "/results", label: "Results", Icon: BarChart3 },
+    // "Products" — same destination as before ("Results"), renamed since this
+    // is exactly where the recommended-product grid (RoutineSelector) lives.
+    { href: "/results", label: "Products", Icon: BarChart3 },
     { href: "/profile", label: "Profile", Icon: User },
   ],
   derm: [

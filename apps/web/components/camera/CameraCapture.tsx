@@ -225,9 +225,11 @@ function drawFaceGuide(
     ? "rgba(234, 179, 8, 0.9)"    // yellow — lighting issue
     : "rgba(239, 68, 68, 0.7)";   // red — position issue
 
-  // Outer dim overlay (darken everything outside oval)
+  // Outer dim overlay (darken everything outside oval) — aquaglass-navy tint,
+  // kept light since the HTML frosted-glass layer beneath already dims/blurs
+  // the same region.
   ctx.save();
-  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.fillStyle = "rgba(31, 58, 71, 0.22)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.globalCompositeOperation = "destination-out";
@@ -675,10 +677,10 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="relative w-full h-full min-h-screen bg-black flex flex-col overflow-hidden">
+    <div className="relative w-full h-full min-h-screen bg-aquaglass-navy flex flex-col overflow-hidden">
 
       {/* ── Privacy banner ──────────────────────────────────────────────── */}
-      <div className="relative z-20 flex items-center gap-2 px-4 py-2 bg-black/70 border-b border-white/10 text-xs text-white/80">
+      <div className="relative z-20 flex items-center gap-2 px-4 py-2 bg-aquaglass-navy/70 backdrop-blur-md border-b border-white/10 text-xs text-white/80">
         <ShieldCheck className="w-4 h-4 text-teal-400 shrink-0" />
         <span>
           Your photo never leaves your device. We analyse your skin locally and only
@@ -696,7 +698,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
       <canvas ref={lightingCanvasRef} className="hidden" />
 
       {/* ── Main camera area ────────────────────────────────────────────── */}
-      <div className="relative flex-1 flex items-center justify-center bg-black">
+      <div className="relative flex-1 flex items-center justify-center bg-aquaglass-navy">
 
         {/* Camera feed — mounted only after the user opts in on the intro screen,
             so react-webcam's getUserMedia call (and thus the browser permission
@@ -716,6 +718,32 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           />
         )}
 
+        {/* Frosted glass screen — dims/blurs everything outside the face oval so
+            the guide reads as a clear window cut into a frosted pane, matching
+            the aquaglass-navy dim the canvas guide (below) draws inside. */}
+        {state.status === "active" && (
+          <div
+            className="absolute inset-0 backdrop-blur-sm bg-aquaglass-navy/10 pointer-events-none"
+            style={{
+              WebkitMaskImage:
+                "radial-gradient(ellipse 30% 40% at 50% 42%, transparent 60%, black 72%)",
+              maskImage:
+                "radial-gradient(ellipse 30% 40% at 50% 42%, transparent 60%, black 72%)",
+            }}
+          />
+        )}
+
+        {/* Pulsing aquatic guide ring — purely decorative ambiance around the
+            functional face oval drawn on the canvas just below. */}
+        {state.status === "active" && (
+          <motion.div
+            className="absolute rounded-[50%] border-2 border-aquaglass-accent/50 pointer-events-none"
+            style={{ width: "30%", height: "40%", top: "22%", left: "35%" }}
+            animate={{ scale: [1, 1.04, 1], opacity: [0.5, 0.9, 0.5] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
+
         {/* Face detection overlay canvas */}
         {state.status === "active" && (
           <canvas
@@ -730,7 +758,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="absolute top-4 left-4 flex items-center gap-2 bg-black/60 rounded-full px-3 py-1.5 backdrop-blur-sm"
+              className="absolute top-4 left-4 flex items-center gap-2 bg-aquaglass-navy/60 rounded-full px-3 py-1.5 backdrop-blur-md border border-white/10"
             >
               <span className="text-sm">{lightingIcons[lighting.quality]}</span>
               <span className={`text-xs font-medium ${lightingColors[lighting.quality]}`}>
@@ -749,7 +777,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               animate={{ opacity: 1, y: 0 }}
               className="absolute bottom-28 left-0 right-0 flex justify-center"
             >
-              <div className="bg-black/60 rounded-full px-4 py-2 backdrop-blur-sm">
+              <div className="bg-aquaglass-navy/60 rounded-full px-4 py-2 backdrop-blur-md border border-white/10">
                 <span className="text-sm text-white">{faceGuide.instruction}</span>
               </div>
             </motion.div>
@@ -768,7 +796,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               {modelState === "error" ? (
                 <button
                   onClick={retryModelLoad}
-                  className="flex items-center gap-2 bg-rose-500/90 rounded-full px-4 py-2 backdrop-blur-sm hover:bg-rose-500 transition-colors"
+                  className="flex items-center gap-2 bg-rose-500/90 rounded-full px-4 py-2 backdrop-blur-md border border-white/10 hover:bg-rose-500 transition-colors"
                 >
                   <AlertTriangle className="w-3.5 h-3.5 text-white" />
                   <span className="text-xs text-white font-medium">
@@ -776,7 +804,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                   </span>
                 </button>
               ) : (
-                <div className="flex items-center gap-2.5 bg-black/60 rounded-full px-4 py-2 backdrop-blur-sm">
+                <div className="flex items-center gap-2.5 bg-aquaglass-navy/60 rounded-full px-4 py-2 backdrop-blur-md border border-white/10">
                   <span className="w-3.5 h-3.5 rounded-full border-2 border-teal-400 border-t-transparent animate-spin shrink-0" />
                   <span className="text-xs text-white/90">
                     {firstTime
@@ -806,7 +834,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                 {autoCountdown}
               </motion.span>
             </AnimatePresence>
-            <span className="mt-2 text-white/80 text-sm bg-black/50 rounded-full px-4 py-1.5 backdrop-blur-sm">
+            <span className="mt-2 text-white/80 text-sm bg-aquaglass-navy/50 rounded-full px-4 py-1.5 backdrop-blur-md border border-white/10">
               Auto-capturing in {autoCountdown}s — hold still, or tap the shutter
             </span>
           </div>
@@ -819,7 +847,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-6"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy/80 gap-6"
             >
               <div className="w-16 h-16 rounded-full border-4 border-teal-500 border-t-transparent animate-spin" />
               <div className="text-center space-y-2">
@@ -855,7 +883,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 gap-6 p-6"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy/90 gap-6 p-6"
             >
               {/* Blurred preview — user confirms they see only a blurred version */}
               <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-2xl">
@@ -867,7 +895,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                   style={{ filter: "blur(20px)", transform: "scale(1.1)" }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-black/60 rounded-xl px-3 py-1.5 text-xs text-white/80 text-center">
+                  <div className="bg-aquaglass-navy/60 rounded-xl px-3 py-1.5 text-xs text-white/80 text-center">
                     Photo blurred<br />for privacy
                   </div>
                 </div>
@@ -938,13 +966,22 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 gap-4"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy/90 gap-4"
             >
               <div className="text-6xl">✅</div>
               <h3 className="text-white font-semibold text-xl">Scan saved!</h3>
               <p className="text-teal-400 text-sm text-center max-w-xs px-4">
                 Your photo has been deleted. Only skin data was saved.
               </p>
+              {/* Explicit way forward — onComplete already redirects to the
+                  results/products page, but this covers any lag and gives the
+                  user a clear, tappable next step instead of a dead end. */}
+              <Button
+                className="bg-skin-500 hover:bg-skin-600 text-white mt-2"
+                onClick={() => state.scanId && onComplete(state.result!, state.scanId)}
+              >
+                View My Products
+              </Button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -955,7 +992,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-4 p-6"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy/80 gap-4 p-6"
             >
               <div className="text-5xl">⚠️</div>
               <p className="text-white text-center max-w-sm">{state.errorMessage}</p>
@@ -976,7 +1013,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex flex-col items-center justify-center bg-black px-6 text-center"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy px-6 text-center"
           >
             <div className="w-16 h-16 rounded-2xl bg-skin-500/15 flex items-center justify-center mb-5">
               <Camera className="w-8 h-8 text-skin-400" />
@@ -1007,7 +1044,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
 
         {/* ── Requesting permission ────────────────────────────────── */}
         {state.status === "requesting" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+          <div className="absolute inset-0 flex items-center justify-center bg-aquaglass-navy/80">
             <div className="text-center text-white/70 space-y-3">
               <Camera className="w-12 h-12 mx-auto animate-pulse" />
               <p>Requesting camera access…</p>
@@ -1026,7 +1063,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="relative z-20 flex items-center justify-center gap-6 py-6 bg-black"
+            className="relative z-20 flex items-center justify-center gap-6 py-6 bg-aquaglass-navy/70 backdrop-blur-md border-t border-white/10"
           >
             <div className="text-center text-xs text-white/50 w-24">
               {!cameraReady ? (
@@ -1039,9 +1076,9 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <button
               onClick={runCapture}
               disabled={!cameraReady}
-              className={`w-20 h-20 rounded-full border-4 transition-all duration-300 flex items-center justify-center
+              className={`w-20 h-20 rounded-full border-4 backdrop-blur-md transition-all duration-300 flex items-center justify-center
                 ${cameraReady
-                  ? "border-white bg-white/10 hover:bg-white/20 active:scale-95 shadow-[0_0_24px_rgba(255,255,255,0.3)]"
+                  ? "border-white/80 bg-white/10 hover:bg-white/20 active:scale-95 shadow-water"
                   : "border-white/20 bg-white/5 cursor-not-allowed opacity-50"
                 }`}
               aria-label={autoCountdown !== null ? "Capture now" : "Capture"}
@@ -1066,7 +1103,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute inset-0 z-30 bg-slate-950 overflow-y-auto p-6"
+            className="absolute inset-0 z-30 bg-aquaglass-navy overflow-y-auto p-6"
           >
             <div className="max-w-lg mx-auto space-y-6">
               <div className="flex items-center justify-between">

@@ -63,6 +63,7 @@ export interface Product {
   brand_display: string | null;
   product_name: string;
   product_url: string | null;
+  image_url: string | null;
   price_inr: number | null;
   mrp_inr: number | null;
   pack_size: number;

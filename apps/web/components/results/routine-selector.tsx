@@ -436,7 +436,7 @@ function ProductCard({ product }: { product: Product }) {
   const hasDiscount = p.mrp_inr != null && p.price_inr != null && p.mrp_inr > p.price_inr;
 
   return (
-    <div className="flex h-full flex-col gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="flex h-full flex-col gap-3 rounded-xl glass-card glass-shimmer p-4">
       {/* Match score + combo/new badges */}
       <div className="flex flex-wrap items-center gap-1.5">
         {p.match_score != null && <MatchScoreBadge score={p.match_score} />}
@@ -452,14 +452,31 @@ function ProductCard({ product }: { product: Product }) {
         )}
       </div>
 
-      {/* Name + brand + price */}
+      {/* Photo + Name + brand + price */}
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="font-card text-sm font-bold leading-tight text-gray-900">{p.product_name}</p>
-          <p className="font-card mt-0.5 text-xs font-medium text-gray-500">{brandLabel(p)}</p>
-          {p.match_reason && (
-            <p className="font-card mt-1.5 text-xs leading-relaxed text-gray-500">{p.match_reason}</p>
-          )}
+        <div className="flex min-w-0 flex-1 gap-3">
+          {/* Product photo — floats inside its own small glass frame. */}
+          <div className="h-12 w-12 shrink-0 rounded-lg glass-card overflow-hidden flex items-center justify-center">
+            {p.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={p.image_url}
+                alt={p.product_name}
+                className="h-full w-full object-contain p-1"
+                loading="lazy"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : (
+              <Leaf className="h-4 w-4 text-teal-400" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-card text-sm font-bold leading-tight text-gray-900">{p.product_name}</p>
+            <p className="font-card mt-0.5 text-xs font-medium text-gray-500">{brandLabel(p)}</p>
+            {p.match_reason && (
+              <p className="font-card mt-1.5 text-xs leading-relaxed text-gray-500">{p.match_reason}</p>
+            )}
+          </div>
         </div>
         <div className="shrink-0 text-right">
           {p.price_inr != null && (

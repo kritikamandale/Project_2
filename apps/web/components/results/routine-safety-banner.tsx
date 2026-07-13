@@ -45,8 +45,8 @@ export function RoutineSafetyBanner({ conflicts, duplicateActives, gaps }: Props
   return (
     <div
       className={[
-        "flex items-start gap-3 rounded-xl border px-4 py-3",
-        hasUrgent ? "border-skin-200 bg-skin-50" : "border-teal-200 bg-teal-50",
+        "flex items-start gap-3 rounded-xl border backdrop-blur-md px-4 py-3",
+        hasUrgent ? "border-skin-200/60 bg-skin-50/70" : "border-teal-200/60 bg-teal-50/70",
       ].join(" ")}
       role="status"
     >

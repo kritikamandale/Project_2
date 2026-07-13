@@ -36,6 +36,7 @@ export interface ProductInRecommendation {
   category: string;
   price_inr: number | null;
   product_url: string | null;
+  image_url: string | null;
   key_ingredients: string[] | null;
   targets_conditions: string[] | null;
   rating_avg: number;

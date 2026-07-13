@@ -46,6 +46,7 @@ class ProductCreate(BaseModel):
     brand_display: Optional[str] = Field(None, max_length=120)
     product_name: str = Field(min_length=1, max_length=255)
     product_url: Optional[str] = Field(None, max_length=1000)
+    image_url: Optional[str] = Field(None, max_length=1000)
     price_inr: Optional[float] = Field(None, ge=0)
     mrp_inr: Optional[float] = Field(None, ge=0)
     pack_size: int = Field(default=1, ge=1)
@@ -61,7 +62,7 @@ class ProductCreate(BaseModel):
     is_new: bool = False
     is_dermatologist_approved: bool = False
 
-    @field_validator("product_url")
+    @field_validator("product_url", "image_url")
     @classmethod
     def _validate_product_url(cls, v: Optional[str]) -> Optional[str]:
         return _require_http_scheme(v)
@@ -71,6 +72,7 @@ class ProductUpdate(BaseModel):
     brand_display: Optional[str] = Field(None, max_length=120)
     product_name: Optional[str] = Field(None, max_length=255)
     product_url: Optional[str] = Field(None, max_length=1000)
+    image_url: Optional[str] = Field(None, max_length=1000)
     price_inr: Optional[float] = Field(None, ge=0)
     mrp_inr: Optional[float] = Field(None, ge=0)
     pack_size: Optional[int] = Field(None, ge=1)
@@ -89,7 +91,7 @@ class ProductUpdate(BaseModel):
     rating_avg: Optional[float] = Field(None, ge=0, le=5)
     review_count: Optional[int] = Field(None, ge=0)
 
-    @field_validator("product_url")
+    @field_validator("product_url", "image_url")
     @classmethod
     def _validate_product_url(cls, v: Optional[str]) -> Optional[str]:
         return _require_http_scheme(v)
@@ -101,6 +103,7 @@ class ProductResponse(BaseModel):
     brand_display: Optional[str] = None
     product_name: str
     product_url: Optional[str] = None
+    image_url: Optional[str] = None
     price_inr: Optional[float] = None
     mrp_inr: Optional[float] = None
     pack_size: int = 1
@@ -139,6 +142,7 @@ class ProductListItem(BaseModel):
     brand: ProductBrandStr
     brand_display: Optional[str] = None
     product_name: str
+    image_url: Optional[str] = None
     category: ProductCategoryStr
     price_inr: Optional[float] = None
     mrp_inr: Optional[float] = None

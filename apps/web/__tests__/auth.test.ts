@@ -194,8 +194,8 @@ describe("Token refresh timing", () => {
   });
 
   it("refreshes when less than 10% of lifetime left", () => {
-    const issuedAt = now - 13 * 60 * 1000;      // 13min ago
-    const expiresAt = now + 90 * 1000;           // 1.5min left out of 14.5min total
+    const issuedAt = now - 14 * 60 * 1000;      // 14min ago
+    const expiresAt = now + 90 * 1000;           // 1.5min left out of 15.5min total
     const percentLeft = 90000 / (14 * 60 * 1000 + 90 * 1000);
     if (percentLeft < 0.1) {
       expect(shouldRefreshToken(issuedAt, expiresAt, now)).toBe(true);

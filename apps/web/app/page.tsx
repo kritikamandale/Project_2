@@ -90,7 +90,7 @@ const StarFill = () => (
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-skin-100 shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/60 backdrop-blur-xl border-b border-white/40 shadow-glass">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center">
@@ -124,7 +124,7 @@ function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div initial={{ height:0,opacity:0 }} animate={{ height:"auto",opacity:1 }} exit={{ height:0,opacity:0 }}
-            transition={{ duration:0.2 }} className="md:hidden overflow-hidden bg-white border-t border-skin-100">
+            transition={{ duration:0.2 }} className="md:hidden overflow-hidden bg-white/70 backdrop-blur-xl border-t border-white/40">
             <div className="container mx-auto px-6 py-4 flex flex-col gap-4">
               {[["#about","About"],["#how-it-works","How It Works"],["#features","Features"],["#faq","FAQ"]].map(([h,l]) => (
                 <a key={h} href={h} className="text-sm font-medium text-gray-600" onClick={() => setMobileOpen(false)}>{l}</a>
@@ -145,15 +145,15 @@ function Navbar() {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center pt-16 overflow-hidden bg-gradient-to-br from-skin-50 via-white to-skin-100/40">
+    <section className="relative min-h-screen flex items-center pt-16 overflow-hidden bg-gradient-to-b from-aquaglass-bg-start via-white to-aquaglass-bg-end/60">
       <div className="absolute top-20 -left-40 w-96 h-96 rounded-full bg-skin-200/40 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-20 -right-40 w-96 h-96 rounded-full bg-skin-100/60 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-20 -right-40 w-96 h-96 rounded-full bg-teal-100/50 blur-3xl pointer-events-none" />
 
       <div className="container relative z-10 mx-auto px-6 py-24">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left — text */}
           <motion.div initial="hidden" animate="visible" variants={stagger}>
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-100 text-teal-700 text-sm font-medium mb-6 border border-teal-200">
+            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-card text-teal-700 text-sm font-medium mb-6">
               <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
               AI-Powered · Dermatologist-Reviewed · Made for India
             </motion.div>
@@ -215,70 +215,107 @@ function HeroSection() {
             transition={{ delay: 0.3, duration: 0.7, ease: "easeOut" }}
             className="relative flex justify-center"
           >
-            {/* Main portrait */}
-            <div className="relative w-80 h-[480px] md:w-96 md:h-[560px] rounded-3xl overflow-hidden shadow-2xl">
-              <Image
-                src={PX(3762754, 800, 1000)}
-                alt="Woman with healthy, glowing skin — Skinest analysis result"
-                fill
-                className="object-cover object-top"
-                priority
-                sizes="(max-width: 768px) 320px, 384px"
-              />
-              {/* Subtle gradient at bottom */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-              {/* Scan line animation overlay */}
-              <div className="absolute inset-0 flex flex-col justify-center pointer-events-none">
-                <div className="mx-6 h-0.5 bg-gradient-to-r from-transparent via-skin-400/80 to-transparent animate-[scan-line_3s_ease-in-out_infinite]" />
-              </div>
-            </div>
-
-            {/* Floating: Analysis complete — teal tags the AI-analysis output specifically */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9, duration: 0.5 }}
-              className="absolute -bottom-4 -left-4 md:-left-8 bg-white rounded-2xl shadow-xl p-4 border border-teal-100 min-w-[200px]"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AI</div>
-                <div>
-                  <p className="text-xs text-gray-400">Analysis Complete</p>
-                  <p className="font-number text-sm font-bold text-gray-900">Skin Tone · Type III</p>
+            {/* Single positioning root — given the portrait's EXACT rendered
+                box (image size + glass-frame padding) as fixed dimensions,
+                rather than relying on shrink-to-fit sizing (which flex items
+                don't reliably honour), so every floating badge below is
+                offset from the IMAGE's edges — not the wide flex row's. */}
+            <div className="relative w-[312px] h-[464px] md:w-[376px] md:h-[544px] shrink-0">
+              {/* Main portrait — glass-framed so the "looking through water" motif
+                  extends to the hero image, not just flat cards. */}
+              <div className="relative p-3 rounded-[2rem] glass-card glass-shimmer shadow-glass-lg">
+                <div className="relative w-72 h-[440px] md:w-[22rem] md:h-[520px] rounded-[1.5rem] overflow-hidden">
+                  <Image
+                    src={PX(3762754, 800, 1000)}
+                    alt="Woman with healthy, glowing skin — Skinest analysis result"
+                    fill
+                    className="object-cover object-top"
+                    priority
+                    sizes="(max-width: 768px) 320px, 384px"
+                  />
+                  {/* Subtle gradient at bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-aquaglass-navy/40 via-transparent to-transparent" />
+                  {/* Scan line animation overlay */}
+                  <div className="absolute inset-0 flex flex-col justify-center pointer-events-none">
+                    <div className="mx-6 h-0.5 bg-gradient-to-r from-transparent via-aquaglass-accent/90 to-transparent animate-[scan-line_3s_ease-in-out_infinite]" />
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                {[["Hydration","78%","bg-teal-100 text-teal-700"],["UV Damage","Low","bg-teal-50 text-teal-600"]].map(([l,v,c]) => (
-                  <div key={l} className={`font-number rounded-lg px-2 py-1 text-xs font-semibold ${c}`}>{l}: {v}</div>
+
+              {/* Floating: Interactive live-scan demo — the "watch it work" card,
+                  distinct from the static analysis-complete summary below. */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+                whileHover={{ y: -4 }}
+                className="absolute top-6 -left-8 md:-left-24 h-fit w-[168px] glass-card glass-shimmer rounded-2xl p-4 cursor-default"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-500" />
+                  </span>
+                  <p className="text-xs font-bold text-aquaglass-navy">Live Skin Scan</p>
+                </div>
+                {/* Mini scanning oval */}
+                <div className="relative w-16 h-20 mx-auto rounded-full border-2 border-dashed border-aquaglass-accent/70 overflow-hidden">
+                  <motion.div
+                    className="absolute left-0 right-0 h-0.5 bg-aquaglass-accent shadow-water"
+                    animate={{ top: ["10%", "90%", "10%"] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </div>
+                <p className="text-[11px] text-aquaglass-navy/60 text-center mt-2 font-medium">Scanning in real time…</p>
+              </motion.div>
+
+              {/* Floating: Analysis complete — teal tags the AI-analysis output specifically */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9, duration: 0.5 }}
+                className="absolute -bottom-4 -left-4 md:-left-8 h-fit w-[200px] glass-card glass-shimmer rounded-2xl p-4"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AI</div>
+                  <div>
+                    <p className="text-xs text-gray-400">Analysis Complete</p>
+                    <p className="font-number text-sm font-bold text-gray-900">Skin Tone · Type III</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {[["Hydration","78%","bg-teal-100 text-teal-700"],["UV Damage","Low","bg-teal-50 text-teal-600"]].map(([l,v,c]) => (
+                    <div key={l} className={`font-number rounded-lg px-2 py-1 text-xs font-semibold ${c}`}>{l}: {v}</div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Floating: Detected conditions — AI output, teal-tagged */}
+              <motion.div
+                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1, duration: 0.5 }}
+                className="absolute -top-4 -right-4 md:-right-8 h-fit w-[188px] glass-card glass-shimmer rounded-2xl p-4"
+              >
+                <p className="text-xs font-bold text-gray-900 mb-2">Conditions Detected</p>
+                {[
+                  ["Mild Acne", "Low severity"],
+                  ["Hyperpigmentation", "Moderate"],
+                  ["Dehydration", "High"],
+                ].map(([c, s]) => (
+                  <div key={c} className="flex items-center gap-2 mb-1.5">
+                    <div className="w-2 h-2 rounded-full bg-teal-400 flex-shrink-0" />
+                    <span className="text-xs text-gray-700 font-medium truncate">{c}</span>
+                    <span className="text-xs text-gray-400 ml-auto shrink-0">{s}</span>
+                  </div>
                 ))}
-              </div>
-            </motion.div>
+              </motion.div>
 
-            {/* Floating: Detected conditions — AI output, teal-tagged */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1, duration: 0.5 }}
-              className="absolute -top-4 -right-4 md:-right-8 bg-white rounded-2xl shadow-xl p-4 border border-teal-100"
-            >
-              <p className="text-xs font-bold text-gray-900 mb-2">Conditions Detected</p>
-              {[
-                ["Mild Acne", "Low severity"],
-                ["Hyperpigmentation", "Moderate"],
-                ["Dehydration", "High"],
-              ].map(([c, s]) => (
-                <div key={c} className="flex items-center gap-2 mb-1.5">
-                  <div className="w-2 h-2 rounded-full bg-teal-400 flex-shrink-0" />
-                  <span className="text-xs text-gray-700 font-medium">{c}</span>
-                  <span className="text-xs text-gray-400 ml-auto">{s}</span>
-                </div>
-              ))}
-            </motion.div>
-
-            {/* Trust badge — a confidence percentage, teal-tagged */}
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3, duration: 0.5 }}
-              className="absolute bottom-24 -right-4 md:-right-8 bg-teal-600 text-white rounded-xl shadow-lg px-3 py-2"
-            >
-              <p className="font-number text-xs font-bold">95% Accurate</p>
-              <p className="text-xs opacity-80">Dermatologist Verified</p>
-            </motion.div>
+              {/* Trust badge — a confidence percentage, teal-tagged */}
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3, duration: 0.5 }}
+                className="absolute -bottom-4 -right-4 md:-right-8 h-fit bg-aquaglass-accent-dark/85 backdrop-blur-md border border-white/20 text-white rounded-xl shadow-glass-md px-3 py-2"
+              >
+                <p className="font-number text-xs font-bold">95% Accurate</p>
+                <p className="text-xs opacity-80">Dermatologist Verified</p>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </div>
@@ -312,17 +349,17 @@ function StatsSection() {
 // ─── What We Detect (Minimalist-inspired) ────────────────────────────────────
 
 const CONDITIONS = [
-  { id: 6977987, label: "Acne & Breakouts",       desc: "Grade I–IV acne, comedones, pustules, cystic spots",          badge: "Most Common" },
-  { id: 5069473, label: "Dryness & Dehydration",  desc: "Moisture barrier assessment, transepidermal water loss",       badge: null },
-  { id: 6706877, label: "Dark Circles",            desc: "Periorbital pigmentation, puffiness, hollowness detection",   badge: null },
-  { id: 3762765, label: "Radiance & Glow",         desc: "Luminosity score, dullness analysis, skin vitality index",    badge: "New" },
-  { id: 5253959, label: "Texture & Pores",         desc: "Pore size mapping, skin roughness, fine texture scoring",     badge: null },
-  { id: 3762758, label: "Hyperpigmentation",       desc: "Melasma, sunspots, post-inflammatory marks, tone unevenness", badge: null },
+  { id: 6977987, label: "Acne & Breakouts",       desc: "From mild spots to deeper, stubborn breakouts",          badge: "Most Common" },
+  { id: 5069473, label: "Dryness & Dehydration",  desc: "How well your skin holds on to moisture",       badge: null },
+  { id: 6706877, label: "Dark Circles",            desc: "Under-eye darkness, puffiness, and tired-looking skin",   badge: null },
+  { id: 3762765, label: "Radiance & Glow",         desc: "How bright, dull, or tired your skin looks",    badge: "New" },
+  { id: 5253959, label: "Texture & Pores",         desc: "Bumpy texture, visible pores, and rough patches",     badge: null },
+  { id: 3762758, label: "Uneven Skin Tone",       desc: "Dark spots, sun spots, and patchy skin tone", badge: null },
 ];
 
 function ConditionsSection() {
   return (
-    <section className="py-24 bg-white">
+    <section className="py-24">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}>
           <motion.div variants={fadeUp} className="text-center mb-14">
@@ -340,7 +377,7 @@ function ConditionsSection() {
               <motion.div
                 key={label}
                 variants={fadeUp}
-                className="group rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 bg-white"
+                className="group rounded-2xl overflow-hidden glass-card glass-shimmer hover:shadow-glass-lg transition-all duration-300"
               >
                 {/* Image */}
                 <div className="relative h-52 overflow-hidden">
@@ -390,7 +427,7 @@ function ConditionsSection() {
 
 function AboutSection() {
   return (
-    <section id="about" className="py-24 bg-skin-50">
+    <section id="about" className="py-24">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}
           className="max-w-5xl mx-auto">
@@ -407,11 +444,11 @@ function AboutSection() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: <IconScan />, title: "Scan in Seconds", desc: "Use your phone camera — no app needed. Our TensorFlow model detects 15+ skin conditions in real time.", cardCls: "border-skin-100 bg-white", iconCls: "bg-skin-100 text-skin-600" },
-              { icon: <IconBrain />, title: "AI That Understands You", desc: "Beyond the scan, our AI combines your skin type, tone classification, lifestyle, and diet into a complete profile.", cardCls: "border-skin-100 bg-white", iconCls: "bg-skin-100 text-skin-600" },
-              { icon: <IconDoctor />, title: "Dermatologist Review", desc: "Every analysis is reviewed by a certified dermatologist who validates and refines the AI findings before you see results.", cardCls: "border-skin-100 bg-white", iconCls: "bg-skin-100 text-skin-600" },
-            ].map(({ icon, title, desc, cardCls, iconCls }) => (
-              <motion.div key={title} variants={fadeUp} className={`p-7 rounded-2xl border hover:shadow-lg transition-shadow ${cardCls}`}>
+              { icon: <IconScan />, title: "Scan in Seconds", desc: "Use your phone camera — no app needed. Our smart AI spots 15+ skin concerns in real time.", iconCls: "bg-skin-100 text-skin-600" },
+              { icon: <IconBrain />, title: "AI That Understands You", desc: "Beyond the scan, our AI combines your skin type, tone classification, lifestyle, and diet into a complete profile.", iconCls: "bg-skin-100 text-skin-600" },
+              { icon: <IconDoctor />, title: "Dermatologist Review", desc: "Every analysis is reviewed by a certified dermatologist who validates and refines the AI findings before you see results.", iconCls: "bg-skin-100 text-skin-600" },
+            ].map(({ icon, title, desc, iconCls }) => (
+              <motion.div key={title} variants={fadeUp} className="p-7 rounded-2xl glass-card glass-shimmer hover:shadow-glass-lg transition-shadow">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${iconCls}`}>{icon}</div>
                 <h3 className="font-heading text-xl font-semibold text-gray-900 mb-3">{title}</h3>
                 <p className="text-gray-500 leading-relaxed text-sm">{desc}</p>
@@ -428,7 +465,7 @@ function AboutSection() {
 
 function WhyWeBuiltSection() {
   return (
-    <section className="py-24 bg-white">
+    <section className="py-24">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}
           className="max-w-5xl mx-auto">
@@ -456,7 +493,7 @@ function WhyWeBuiltSection() {
                 { emoji: "🧴", title: "Product Overload with No Direction", desc: "Thousands of products, contradictory claims. Skinest cuts through noise with ingredient-level, evidence-backed picks." },
                 { emoji: "📵", title: "No Way to Track Skin Changes", desc: "Progress is invisible without tracking. Skinest logs your journey so you can see what's working." },
               ].map(({ emoji, title, desc }) => (
-                <div key={title} className="flex gap-4 p-4 bg-skin-50 rounded-xl border border-skin-100">
+                <div key={title} className="flex gap-4 p-4 glass-card rounded-xl">
                   <span className="text-2xl flex-shrink-0">{emoji}</span>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1 text-sm">{title}</h4>
@@ -483,7 +520,7 @@ const STEPS = [
 
 function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="py-24 bg-skin-50">
+    <section id="how-it-works" className="py-24">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}>
           <motion.div variants={fadeUp} className="text-center mb-16">
@@ -498,7 +535,7 @@ function HowItWorksSection() {
             {STEPS.map(({ step, title, desc, icon, imgId }, i) => (
               <motion.div key={step} variants={fadeUp} className="relative">
                 {i < 3 && <div className="hidden md:block absolute top-10 left-[calc(100%-12px)] w-6 h-0.5 bg-skin-200 z-10" />}
-                <div className="bg-white rounded-2xl overflow-hidden border border-skin-100 shadow-sm hover:shadow-md transition-shadow h-full">
+                <div className="glass-card glass-shimmer rounded-2xl overflow-hidden hover:shadow-glass-lg transition-shadow h-full">
                   {/* Step image */}
                   <div className="relative h-40 overflow-hidden">
                     <Image
@@ -531,28 +568,25 @@ function HowItWorksSection() {
 // ─── Features ─────────────────────────────────────────────────────────────────
 
 const FEATURES = [
-  { icon:<IconScan />,   title:"Real-Time Skin Scan",         desc:"Browser-based TF.js detection — no app, no delay. 15+ conditions with confidence scores.",              tag:"AI"       },
-  { icon:<IconBrain />,  title:"AI Routine Engine",           desc:"Powered by the Skinest Intelligence Engine. Your routine is generated from your full skin profile, not a template.",  tag:"AI"       },
-  // This card gets a human photo instead of an icon — dermatologist review is
-  // inherently a human-in-the-loop feature, not a purely AI/icon one.
-  // TODO: replace with real customer/dermatologist photography (stock Pexels photo).
-  { icon:<IconDoctor />, title:"Dermatologist Review",        desc:"Real dermatologists review every AI report. They approve, flag concerns, or add clinical notes.",        tag:"Medical", img: 8783902 },
-  { icon:<IconLeaf />,   title:"Indian Product Database",     desc:"Recommendations from Nykaa, Minimalist, Dermaco, Dot & Key. Vetted for Indian climate and skin tones.",  tag:"India"    },
-  { icon:<IconChart />,  title:"Progress Tracking",           desc:"Weekly rescans, adherence heatmaps, and a progress timeline show your skin's full journey.",             tag:"Tracking" },
-  { icon:<IconShield />, title:"Privacy by Design",           desc:"Images processed ephemerally — never stored. Delete your account and all data instantly.",              tag:"Privacy"  },
-  { icon:<IconLock />,   title:"Tone-Aware AI Engine",        desc:"Calibrated across all 6 skin tones. No more advice optimised only for lighter complexions.",            tag:"Inclusive"},
-  { icon:<IconStar />,   title:"Personalised Roadmap",        desc:"Week-by-week morning & night routine with layering instructions and re-introduction timelines.",         tag:"Routine"  },
+  { icon:<IconScan />,   title:"Instant Skin Scan",       desc:"Just use your phone's camera — no app to download. Get a full skin check-up in seconds, with an easy-to-read breakdown of what your skin needs.", tag:"Instant" },
+  { icon:<IconBrain />,  title:"Smart Routine Builder",   desc:"Your skincare plan is built just for you, based on your own skin — never a generic, one-size-fits-all template.", tag:"Smart" },
+  { icon:<IconDoctor />, title:"Dermatologist Reviewed",  desc:"A real, certified dermatologist checks every result — approving it, adding helpful notes, or flagging anything that needs extra attention.", tag:"Medical" },
+  { icon:<IconLeaf />,   title:"Products You Can Buy in India", desc:"Handpicked picks from trusted brands like Nykaa, Minimalist, Dermaco, and Dot & Key — chosen to suit your skin tone and India's weather.", tag:"Local" },
+  { icon:<IconChart />,  title:"See Your Progress",       desc:"Rescan every week and watch a simple, visual timeline show exactly how your skin is improving over time.", tag:"Tracking" },
+  { icon:<IconShield />, title:"Your Privacy, Protected", desc:"Your photos are checked instantly and never saved anywhere. Delete your account anytime and everything goes with it.", tag:"Privacy" },
+  { icon:<IconLock />,   title:"Made for Every Skin Tone", desc:"Our advice works beautifully for all skin tones — not just the lighter complexions most beauty apps assume.", tag:"Inclusive" },
+  { icon:<IconStar />,   title:"Your Step-by-Step Plan",  desc:"A simple morning and night routine, mapped out week by week, so you always know exactly what to do next.", tag:"Routine" },
 ];
 
 // Tag color: "AI" tags route through muted-teal (the AI/analysis accent per
 // the palette's role mapping); every other category stays in the primary
 // burnt-peach family. Style-only lookup, mirrors existing badge-color maps
 // elsewhere in the app (e.g. severity/brand badges) — no new logic.
-const TAG_COLOR: Record<string, string> = { AI: "text-teal-500" };
+const TAG_COLOR: Record<string, string> = { Instant: "text-teal-500", Smart: "text-teal-500" };
 
 function FeaturesSection() {
   return (
-    <section id="features" className="py-24 bg-gradient-to-b from-skin-50 to-white">
+    <section id="features" className="py-24 bg-gradient-to-b from-aquaglass-bg-end/40 to-white">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}>
           <motion.div variants={fadeUp} className="text-center mb-16">
@@ -564,18 +598,12 @@ function FeaturesSection() {
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
-            {FEATURES.map(({ icon, title, desc, tag, img }) => (
+            {FEATURES.map(({ icon, title, desc, tag }) => (
               <motion.div key={title} variants={fadeUp}
-                className="group p-6 rounded-2xl bg-white border border-skin-100 hover:border-skin-300 hover:shadow-lg transition-all duration-300">
-                {img ? (
-                  <div className="w-12 h-12 rounded-xl overflow-hidden relative mb-4">
-                    <Image src={PX(img, 96, 96)} alt="" fill className="object-cover" sizes="48px" />
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 rounded-xl bg-skin-100 text-skin-600 flex items-center justify-center mb-4 group-hover:bg-skin-500 group-hover:text-white transition-colors">
-                    {icon}
-                  </div>
-                )}
+                className="group p-6 rounded-2xl glass-card glass-shimmer hover:shadow-glass-lg transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-skin-100 text-skin-600 flex items-center justify-center mb-4 group-hover:bg-skin-200 transition-colors">
+                  {icon}
+                </div>
                 <span className={`text-xs font-bold tracking-widest uppercase mb-2 block ${TAG_COLOR[tag] ?? "text-skin-500"}`}>{tag}</span>
                 <h3 className="font-heading text-sm font-semibold text-gray-900 mb-2">{title}</h3>
                 <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
@@ -603,15 +631,15 @@ function ForEveryoneSection() {
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Users */}
-            <motion.div variants={fadeUp} className="rounded-2xl overflow-hidden border border-skin-200 shadow-sm">
+            <motion.div variants={fadeUp} className="rounded-2xl overflow-hidden glass-card glass-shimmer">
               <div className="relative h-56 overflow-hidden">
                 <Image src={PX(6977996, 700, 500)} alt="Woman following personalised skincare routine" fill className="object-cover object-top" sizes="(max-width: 768px) 100vw, 50vw" />
-                <div className="absolute inset-0 bg-gradient-to-t from-skin-900/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-aquaglass-navy/80 to-transparent" />
                 <div className="absolute bottom-4 left-5">
                   <span className="text-white font-heading text-2xl font-bold">For Individuals</span>
                 </div>
               </div>
-              <div className="p-7 bg-gradient-to-b from-skin-50 to-white">
+              <div className="p-7">
                 <p className="text-gray-600 mb-5 leading-relaxed text-sm">Tired of buying products that don't work? Get a personalised, evidence-based routine in minutes.</p>
                 <ul className="space-y-2.5 mb-6">
                   {["Free AI skin analysis","Routine built for your skin type & tone","Indian products you can actually buy","Weekly progress tracking & rescans","Dermatologist review included"].map(item => (
@@ -627,15 +655,15 @@ function ForEveryoneSection() {
             </motion.div>
 
             {/* Dermatologists */}
-            <motion.div variants={fadeUp} className="rounded-2xl overflow-hidden border border-skin-200 shadow-sm">
+            <motion.div variants={fadeUp} className="rounded-2xl overflow-hidden glass-card glass-shimmer">
               <div className="relative h-56 overflow-hidden">
                 <Image src={PX(8783902, 700, 500)} alt="Dermatologist reviewing patient skin analysis" fill className="object-cover object-center" sizes="(max-width: 768px) 100vw, 50vw" />
-                <div className="absolute inset-0 bg-gradient-to-t from-skin-900/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-aquaglass-navy/80 to-transparent" />
                 <div className="absolute bottom-4 left-5">
                   <span className="text-white font-heading text-2xl font-bold">For Dermatologists</span>
                 </div>
               </div>
-              <div className="p-7 bg-gradient-to-b from-skin-50 to-white">
+              <div className="p-7">
                 <p className="text-gray-600 mb-5 leading-relaxed text-sm">Scale your practice and serve more patients with AI-assisted pre-analysis. Focus your expertise where it matters.</p>
                 <ul className="space-y-2.5 mb-6">
                   {["Review AI-analysed cases asynchronously","Approve, refine, or flag AI recommendations","Full patient history & progress timeline","Expand reach without extra clinic hours","Contribute to better AI with your expertise"].map(item => (
@@ -672,7 +700,7 @@ const TESTIMONIALS = [
     imgId: 32707142,
     name: "Ananya R.",
     skin: "Oily · Type IV",
-    quote: "Finally an app that doesn't recommend SPF 30 for 'all skin types'. The tone-aware analysis gave me recommendations that actually account for my melanin levels. Game changer.",
+    quote: "Finally an app that doesn't recommend SPF 30 for 'all skin types'. It actually gave me advice that suits my exact skin tone. Game changer.",
   },
   {
     imgId: 7622743,
@@ -702,7 +730,7 @@ const TESTIMONIALS = [
 
 function TestimonialsSection() {
   return (
-    <section className="py-24 bg-skin-50">
+    <section className="py-24 bg-gradient-to-b from-aquaglass-bg-end/30 to-transparent">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}>
           <motion.div variants={fadeUp} className="text-center mb-14">
@@ -714,7 +742,7 @@ function TestimonialsSection() {
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {TESTIMONIALS.map(({ imgId, name, skin, quote }) => (
               <motion.div key={name} variants={fadeUp}
-                className="bg-white rounded-2xl p-6 border border-skin-100 shadow-sm hover:shadow-md transition-shadow">
+                className="glass-card glass-shimmer rounded-2xl p-6 hover:shadow-glass-lg transition-shadow">
                 <div className="flex gap-0.5 mb-4">
                   {[1,2,3,4,5].map(i => <StarFill key={i} />)}
                 </div>
@@ -753,16 +781,16 @@ function PrivacySection() {
             <span className="text-teal-300 font-semibold text-sm tracking-widest uppercase">Privacy First</span>
             <h2 className="font-heading text-4xl font-medium text-eggshell mt-3 mb-5">Your face is never stored. Ever.</h2>
             <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Skin analysis is deeply personal. Your photos are processed ephemerally and permanently deleted after analysis.
+              Skin analysis is deeply personal. We look at your photo just long enough to give you your results, then it's gone for good.
             </p>
           </motion.div>
           <motion.div variants={stagger} className="grid sm:grid-cols-3 gap-6">
             {[
-              { icon:"🔒", title:"Ephemeral Processing", desc:"Photos analysed in memory, never written to disk or cloud. No image database, ever." },
-              { icon:"🛡️", title:"End-to-End Encrypted",  desc:"TLS 1.3 in transit. AES-256 at rest. We can't read your data without your keys." },
-              { icon:"🗑️", title:"Right to be Forgotten", desc:"Delete your account anytime. All data permanently erased within 24 hours." },
+              { icon:"🔒", title:"Checked, Then Deleted", desc:"Your photo is looked at just once, then permanently removed. It's never saved or stored anywhere." },
+              { icon:"🛡️", title:"Locked & Secure",       desc:"Your information is fully locked down — nobody, including us, can access it without your permission." },
+              { icon:"🗑️", title:"Delete Anytime",        desc:"Close your account whenever you like. Everything you've shared is wiped for good within 24 hours." },
             ].map(({ icon, title, desc }) => (
-              <motion.div key={title} variants={fadeUp} className="p-6 rounded-xl bg-gray-700/40 border border-teal-700/40 text-left">
+              <motion.div key={title} variants={fadeUp} className="p-6 rounded-xl bg-gray-700/40 backdrop-blur-md border border-teal-700/40 text-left">
                 <span className="text-3xl mb-4 block">{icon}</span>
                 <h4 className="font-semibold text-eggshell mb-2">{title}</h4>
                 <p className="text-sm text-gray-300 leading-relaxed">{desc}</p>
@@ -782,18 +810,18 @@ function PrivacySection() {
 // ─── FAQ ──────────────────────────────────────────────────────────────────────
 
 const FAQS = [
-  { q:"Is Skinest free to use?",           a:"Yes — creating an account and running a full AI skin analysis is completely free. You get your personalised routine, dermatologist review, and progress tracking at no cost." },
-  { q:"How accurate is the AI analysis?", a:"Our models achieve 95%+ accuracy on controlled test sets across 15 skin conditions. Every AI report is also reviewed by a certified dermatologist before delivery, adding clinical validation." },
-  { q:"Does my photo get stored?",         a:"No. Your scan photo is processed ephemerally — analysed in server memory, then immediately discarded. Only the structured analysis results are stored with your account." },
-  { q:"What skin conditions can Skinest detect?", a:"Acne (all grades), hyperpigmentation, melasma, rosacea, seborrheic dermatitis, dry skin, oily skin, open pores, fine lines, wrinkles, dark circles, puffiness — 15+ conditions with severity scoring." },
+  { q:"Is Skinest free to use?",           a:"Yes — creating an account and running a full AI skin scan is completely free. You get your personalised routine, dermatologist check, and progress tracking at no cost." },
+  { q:"How accurate is the AI analysis?", a:"Our AI gets it right 95%+ of the time in our tests, across 15 skin concerns. Every result is also double-checked by a certified dermatologist before it reaches you." },
+  { q:"Does my photo get stored?",         a:"No. Your scan photo is looked at just long enough to get your results, then deleted right away. Only your skin results are saved to your account — never the photo itself." },
+  { q:"What skin concerns can Skinest detect?", a:"Acne (mild to severe), dark spots and uneven tone, redness, dryness, oiliness, open pores, fine lines, wrinkles, dark circles, and puffiness — 15+ concerns, each with a simple severity rating." },
   { q:"Are products available in India?",  a:"Yes. All recommendations are sourced from brands available in India — Nykaa, Minimalist, Dermaco, Dot & Key, The Ordinary, Cetaphil, La Roche-Posay, and more." },
-  { q:"How are dermatologists involved?", a:"Every completed scan creates a case in our dermatologist review queue. A certified dermatologist reviews within 24–48 hours and can approve, add notes, flag concerns, or escalate for in-person consultation." },
+  { q:"How are dermatologists involved?", a:"Every scan you complete goes into our dermatologist's review queue. A certified dermatologist checks it within 24–48 hours and can approve it, add helpful notes, flag a concern, or suggest an in-person visit." },
 ];
 
 function FAQSection() {
   const [open, setOpen] = useState<number|null>(null);
   return (
-    <section id="faq" className="py-24 bg-skin-50">
+    <section id="faq" className="py-24">
       <div className="container mx-auto px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}
           className="max-w-3xl mx-auto">
@@ -804,7 +832,7 @@ function FAQSection() {
           <div className="space-y-3">
             {FAQS.map(({ q, a }, i) => (
               <motion.div key={q} variants={fadeUp}>
-                <button className="w-full flex items-start justify-between gap-4 p-6 rounded-xl bg-white border border-skin-100 text-left hover:border-skin-400 hover:shadow-sm transition-all"
+                <button className="w-full flex items-start justify-between gap-4 p-6 rounded-xl glass-card text-left hover:shadow-glass-md transition-all"
                   onClick={() => setOpen(open === i ? null : i)}>
                   <span className="font-semibold text-gray-900 text-sm leading-relaxed">{q}</span>
                   <span className="text-skin-500 flex-shrink-0"><IconChevron open={open === i} /></span>
@@ -813,7 +841,7 @@ function FAQSection() {
                   {open === i && (
                     <motion.div initial={{ height:0, opacity:0 }} animate={{ height:"auto", opacity:1 }} exit={{ height:0, opacity:0 }}
                       transition={{ duration:0.25 }} className="overflow-hidden">
-                      <div className="px-6 pb-6 pt-2 bg-white rounded-b-xl border-x border-b border-skin-100 -mt-2 text-sm text-gray-500 leading-relaxed">{a}</div>
+                      <div className="px-6 pb-6 pt-2 bg-white/50 backdrop-blur-md rounded-b-xl border-x border-b border-white/40 -mt-2 text-sm text-gray-500 leading-relaxed">{a}</div>
                     </motion.div>
                   )}
                 </AnimatePresence>

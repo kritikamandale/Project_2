@@ -250,6 +250,7 @@ MINIMALIST_PRODUCTS = [
         "climate_zones_suitable": ["tropical", "semi_arid", "temperate", "coastal"],
         "is_dermatologist_approved": True,
         "product_url": "https://www.beminimalist.co/products/alpha-arbutin-2",
+        "image_url": "https://sfycdn.speedsize.com/56385b25-4e17-4a9a-9bec-c421c18686fb/https://beminimalist.co/cdn/shop/files/AlphaArNew.png?v=1721397838",
         "rating_avg": 4.6, "review_count": 22400,
     },
     {
@@ -274,6 +275,7 @@ MINIMALIST_PRODUCTS = [
         "climate_zones_suitable": ["tropical", "coastal"],
         "is_dermatologist_approved": True,
         "product_url": "https://www.beminimalist.co/products/salicylic-acid-2",
+        "image_url": "https://sfycdn.speedsize.com/56385b25-4e17-4a9a-9bec-c421c18686fb/https://beminimalist.co/cdn/shop/products/SalicylicAcid2_1200-1-min.png?v=1646458899",
         "rating_avg": 4.5, "review_count": 28900,
     },
     {
@@ -503,6 +505,7 @@ REEQUIL_PRODUCTS = [
         "climate_zones_suitable": ["tropical", "coastal", "arid"],
         "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
         "product_url": "https://www.reequil.com/products/ultra-matte-dry-touch-sunscreen-gel-spf-50-pa",
+        "image_url": "https://www.reequil.com/cdn/shop/files/Ultra_Matte_Dry_Touch_Sunscreen_614567c4-00eb-48fe-90ab-f44b09b708fa.png?v=1770666705",
         "rating_avg": 4.5, "review_count": 12400,
     },
     {
@@ -548,6 +551,7 @@ CERAVE_PRODUCTS = [
         "climate_zones_suitable": ["tropical", "coastal", "temperate"],
         "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
         "product_url": "https://www.cerave.com/skincare/cleansers/foaming-facial-cleanser",
+        "image_url": "https://www.cerave.com/-/media/project/loreal/brand-sites/cerave/americas/us/cerave-x-love-island-2026---temporary-pdp-packshots/700x785/foaming-facial-cleanser_love_island_700x785-v2.jpg?rev=b6b8f4b37e804d9e85d2fe6e11fe6368",
         "rating_avg": 4.6, "review_count": 21800,
     },
     {
@@ -562,6 +566,7 @@ CERAVE_PRODUCTS = [
         "climate_zones_suitable": ["arid", "semi_arid", "temperate"],
         "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
         "product_url": "https://www.cerave.com/skincare/moisturizers/moisturizing-cream",
+        "image_url": "https://www.cerave.com/-/media/project/loreal/brand-sites/cerave/americas/us/products-v4/moisturizing-cream/cerave_moisturizing_cream_16oz_jar_front-700x700-v3.jpg?rev=7e37e9cc45754615b1532d77df5a0b52",
         "rating_avg": 4.7, "review_count": 34500,
     },
     {
@@ -809,6 +814,8 @@ async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> N
                 existing.pack_size = p["pack_size"]; changed = True
             if p.get("pregnancy_safe") is not None and existing.pregnancy_safe is None:
                 existing.pregnancy_safe = p["pregnancy_safe"]; changed = True
+            if existing.image_url is None and p.get("image_url"):
+                existing.image_url = p["image_url"]; changed = True
             print(f"    ~ backfill {p['brand']}/{p['product_name']}" if changed else f"    skip {p['brand']}/{p['product_name']} (exists)")
             continue
         product = Product(
@@ -817,6 +824,7 @@ async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> N
             brand_display=p.get("brand_display"),
             product_name=p["product_name"],
             product_url=p.get("product_url"),
+            image_url=p.get("image_url"),
             price_inr=p.get("price_inr"),
             mrp_inr=p.get("mrp_inr"),
             pack_size=p.get("pack_size", 1),
