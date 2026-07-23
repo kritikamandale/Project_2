@@ -9,12 +9,14 @@ import {
 } from "react";
 import Webcam from "react-webcam";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import { ShieldCheck, Camera, RefreshCw, AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   analyzeFrame,
   buildManualResult,
+  getActiveBackend,
   loadSkinModel,
   MANUAL_SKIN_OPTIONS,
   type FaceBounds,
@@ -498,6 +500,13 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
     loadSkinModel()
       .then(() => {
         setModelState("ready");
+        // WebGL failures are caught and silently retried on the CPU backend
+        // inside loadSkinModel — that keeps the scan working on devices that
+        // block/lack WebGL, but inference is noticeably slower there, so
+        // surface it instead of leaving the user wondering why capture lags.
+        if (getActiveBackend() === "cpu") {
+          toast.info("Running in compatibility mode on this device — analysis may take a little longer.");
+        }
         try {
           localStorage.setItem(MODELS_CACHED_KEY, "1");
         } catch { /* private mode — treat every visit as first-time */ }
@@ -685,11 +694,11 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
         <span>
           Your photo never leaves your device. We analyse your skin locally and only
           send skin characteristics — not your image.{" "}
-          <a href="/DATA_PRIVACY.md" target="_blank" rel="noreferrer" className="underline text-teal-300">
+          <a href="/privacy" target="_blank" rel="noreferrer" className="underline text-teal-300">
             Learn more
           </a>
         </span>
-        <button onClick={onCancel} className="ml-auto text-white/60 hover:text-white">
+        <button onClick={onCancel} aria-label="Close scan and go back" className="ml-auto text-white/60 hover:text-white">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -1108,7 +1117,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <div className="max-w-lg mx-auto space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-white font-semibold text-xl">Tell us about your skin</h2>
-                <button onClick={onCancel} className="text-white/40 hover:text-white">
+                <button onClick={onCancel} aria-label="Close scan and go back" className="text-white/40 hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>

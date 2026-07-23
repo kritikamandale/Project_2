@@ -20,7 +20,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 mb-2">1. Acceptance of Terms</h2>
-            <p>By creating an account or using Skinest ("the Service"), you agree to these Terms of Service and our <Link href="/privacy" className="text-skin-600 hover:underline">Privacy Policy</Link>. If you do not agree, do not use the Service.</p>
+            <p>By creating an account or using Skinest (&ldquo;the Service&rdquo;), you agree to these Terms of Service and our <Link href="/privacy" className="text-skin-600 hover:underline">Privacy Policy</Link>. If you do not agree, do not use the Service.</p>
           </section>
 
           <section>
@@ -44,7 +44,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-bold text-zinc-900 mb-2">5. Privacy &amp; Biometric Data</h2>
-            <p>Skinest processes your facial images locally on your device. Only anonymised skin characteristics (not raw images) are transmitted to our servers. Your data is handled in accordance with our <Link href="/privacy" className="text-skin-600 hover:underline">Privacy Policy</Link> and India's Digital Personal Data Protection (DPDP) Act, 2023.</p>
+            <p>Skinest processes your facial images locally on your device. Only anonymised skin characteristics (not raw images) are transmitted to our servers. Your data is handled in accordance with our <Link href="/privacy" className="text-skin-600 hover:underline">Privacy Policy</Link> and India&apos;s Digital Personal Data Protection (DPDP) Act, 2023.</p>
           </section>
 
           <section>

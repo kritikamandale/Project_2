@@ -2,9 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { CameraCapture } from "@/components/camera/CameraCapture";
-import { loadSkinModel, type SkinAnalysisResult } from "@/lib/ai/skinAnalysis";
+import type { SkinAnalysisResult } from "@/lib/ai/skinAnalysis";
+
+// Code-split TensorFlow.js + the camera/ML pipeline out of the initial route
+// chunk — it's ~100MB+ of model weights and WebGL setup that should only be
+// fetched once we know the user is actually about to scan (gate === "ready"),
+// not on every visit to /scan (including ones that bounce to the
+// questionnaire gate below).
+const CameraCapture = dynamic(
+  () => import("@/components/camera/CameraCapture").then((m) => m.CameraCapture),
+  { ssr: false }
+);
 
 type GateStatus = "checking" | "ready" | "needs_questionnaire";
 
@@ -16,13 +26,17 @@ export default function ScanPage() {
     fetch("/api/proxy/questionnaire/latest")
       .then((r) => setGate(r.ok ? "ready" : "needs_questionnaire"))
       .catch(() => setGate("needs_questionnaire"));
-
-    // Kick off the ~105MB model download + WebGL warm-up as soon as the page
-    // opens, so it runs in the background while the user grants camera access
-    // and frames their face — instead of only starting once the camera is live.
-    // Fire-and-forget; CameraCapture/analyzeFrame handle any load failure.
-    loadSkinModel().catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (gate !== "ready") return;
+    // Kick off the ~105MB model download + WebGL warm-up as soon as we know
+    // the user is proceeding to the camera, so it runs in the background
+    // while they grant camera access and frame their face — instead of only
+    // starting once the camera is live. Fire-and-forget; CameraCapture/
+    // analyzeFrame handle any load failure.
+    import("@/lib/ai/skinAnalysis").then(({ loadSkinModel }) => loadSkinModel().catch(() => {}));
+  }, [gate]);
 
   function handleComplete(_result: SkinAnalysisResult, scanId: string) {
     router.push(`/results/${scanId}`);

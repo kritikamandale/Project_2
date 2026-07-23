@@ -1,24 +1,36 @@
 """Users router — profile management."""
 
+import uuid
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
-from app.models.user import UserProfile
-from app.schemas.user import UserProfileUpdate
+from app.models.user import User, UserProfile
+from app.schemas.user import UserProfileUpdate, UserWithProfileResponse
 
 router = APIRouter()
 
 
-@router.get("/me")
-async def get_me(current_user=Depends(get_current_user)):
-    # TODO: return UserSchema.model_validate(current_user)
-    return {"id": str(current_user.id), "email": current_user.email, "role": current_user.role}
+async def _load_with_profile(db: AsyncSession, user_id: uuid.UUID) -> User:
+    result = await db.execute(
+        select(User).options(selectinload(User.profile)).where(User.id == user_id)
+    )
+    return result.scalar_one()
 
 
-@router.patch("/me")
+@router.get("/me", response_model=UserWithProfileResponse)
+async def get_me(
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    return await _load_with_profile(db, current_user.id)
+
+
+@router.patch("/me", response_model=UserWithProfileResponse)
 async def update_me(
     body: UserProfileUpdate,
     db: AsyncSession = Depends(get_db),
@@ -42,22 +54,8 @@ async def update_me(
         setattr(profile, field, value)
 
     await db.commit()
-    await db.refresh(profile)
 
-    return {
-        "id": str(current_user.id),
-        "email": current_user.email,
-        "role": current_user.role,
-        "profile": {
-            "date_of_birth": profile.date_of_birth,
-            "gender": profile.gender,
-            "city": profile.city,
-            "state": profile.state,
-            "country": profile.country,
-            "skin_tone_category": profile.skin_tone_category,
-            "consent_given_at": profile.consent_given_at,
-        },
-    }
+    return await _load_with_profile(db, current_user.id)
 
 
 # DELETE /me is handled by the privacy router (DPDP erasure implementation).

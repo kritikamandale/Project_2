@@ -473,10 +473,10 @@ function WhyWeBuiltSection() {
             <motion.div variants={fadeUp}>
               <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">Why We Built This</span>
               <h2 className="font-heading text-4xl font-medium text-gray-900 mt-3 mb-6 leading-tight">
-                Great skin advice shouldn't be a luxury.
+                Great skin advice shouldn&apos;t be a luxury.
               </h2>
               <p className="text-gray-500 leading-relaxed mb-5">
-                Most skincare advice is calibrated for Western skin. For India's diverse skin tone spectrum, humidity-driven conditions, and unique dietary factors, that advice simply doesn't work.
+                Most skincare advice is calibrated for Western skin. For India&apos;s diverse skin tone spectrum, humidity-driven conditions, and unique dietary factors, that advice simply doesn&apos;t work.
               </p>
               <p className="text-gray-500 leading-relaxed mb-5">
                 A good dermatologist visit costs <strong className="text-gray-700">₹500–₹2,000</strong> with waiting rooms, repeat appointments, and generic prescriptions. Most people end up following influencer routines that damage their skin.
@@ -528,7 +528,7 @@ function HowItWorksSection() {
             <h2 className="font-heading text-4xl md:text-5xl font-medium text-gray-900 mt-3 mb-4">
               From scan to skincare routine in minutes
             </h2>
-            <p className="text-xl text-gray-500 max-w-xl mx-auto">Four steps to the most personalised skincare plan you've ever had.</p>
+            <p className="text-xl text-gray-500 max-w-xl mx-auto">Four steps to the most personalised skincare plan you&apos;ve ever had.</p>
           </motion.div>
 
           <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
@@ -625,7 +625,7 @@ function ForEveryoneSection() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once:true, margin:"-80px" }} variants={stagger}
           className="max-w-5xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-16">
-            <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">Who It's For</span>
+            <span className="text-skin-500 font-semibold text-sm tracking-widest uppercase">Who It&apos;s For</span>
             <h2 className="font-heading text-4xl md:text-5xl font-medium text-gray-900 mt-3">Built for everyone</h2>
           </motion.div>
 
@@ -640,7 +640,7 @@ function ForEveryoneSection() {
                 </div>
               </div>
               <div className="p-7">
-                <p className="text-gray-600 mb-5 leading-relaxed text-sm">Tired of buying products that don't work? Get a personalised, evidence-based routine in minutes.</p>
+                <p className="text-gray-600 mb-5 leading-relaxed text-sm">Tired of buying products that don&apos;t work? Get a personalised, evidence-based routine in minutes.</p>
                 <ul className="space-y-2.5 mb-6">
                   {["Free AI skin analysis","Routine built for your skin type & tone","Indian products you can actually buy","Weekly progress tracking & rescans","Dermatologist review included"].map(item => (
                     <li key={item} className="flex items-center gap-3 text-sm text-gray-600">
@@ -746,7 +746,7 @@ function TestimonialsSection() {
                 <div className="flex gap-0.5 mb-4">
                   {[1,2,3,4,5].map(i => <StarFill key={i} />)}
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed mb-5 italic">"{quote}"</p>
+                <p className="text-gray-600 text-sm leading-relaxed mb-5 italic">&ldquo;{quote}&rdquo;</p>
                 <div className="flex items-center gap-3">
                   <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0 border-2 border-skin-100">
                     <Image src={PX(imgId, 120, 120)} alt={name} fill className="object-cover" sizes="44px" />
@@ -781,7 +781,7 @@ function PrivacySection() {
             <span className="text-teal-300 font-semibold text-sm tracking-widest uppercase">Privacy First</span>
             <h2 className="font-heading text-4xl font-medium text-eggshell mt-3 mb-5">Your face is never stored. Ever.</h2>
             <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Skin analysis is deeply personal. We look at your photo just long enough to give you your results, then it's gone for good.
+              Skin analysis is deeply personal. We look at your photo just long enough to give you your results, then it&apos;s gone for good.
             </p>
           </motion.div>
           <motion.div variants={stagger} className="grid sm:grid-cols-3 gap-6">
@@ -798,7 +798,7 @@ function PrivacySection() {
             ))}
           </motion.div>
           <motion.p variants={fadeUp} className="mt-10 text-sm text-gray-300">
-            Compliant with India's <strong className="text-teal-200">DPDPA 2023</strong> and GDPR.{" "}
+            Compliant with India&apos;s <strong className="text-teal-200">DPDPA 2023</strong> and GDPR.{" "}
             <Link href="/privacy" className="text-teal-200 hover:underline">Read our Privacy Policy →</Link>
           </motion.p>
         </motion.div>

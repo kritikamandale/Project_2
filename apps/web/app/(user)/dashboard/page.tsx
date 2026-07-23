@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -190,8 +191,8 @@ function FaceGallery() {
     className: string;
   }) => (
     <div className={`${className} bg-white/70 backdrop-blur-md p-2 pb-5 rounded-2xl shadow-glass-lg border border-white/60`}>
-      <div className="w-full h-full rounded-lg overflow-hidden">
-        <img src={src} alt={alt} className="w-full h-full object-cover" />
+      <div className="relative w-full h-full rounded-lg overflow-hidden">
+        <Image src={src} alt={alt} fill sizes="220px" className="object-cover" />
       </div>
       <p className="text-center text-[10px] font-medium text-aquaglass-navy/60 mt-1.5 tracking-wide">{caption}</p>
     </div>

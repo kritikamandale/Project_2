@@ -4,7 +4,7 @@ FastAPI application entry point.
 
 import sentry_sdk
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -15,6 +15,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.core.database import engine, migration_engine, Base
+from app.core.dependencies import enforce_admin_ip_allowlist
 from app.routers import (
     admin,
     auth,
@@ -154,7 +155,7 @@ app.include_router(recommendations.router, prefix=f"{API_PREFIX}/recommendations
 app.include_router(products.router,        prefix=f"{API_PREFIX}/products",        tags=["products"])
 app.include_router(progress.router,        prefix=f"{API_PREFIX}/progress",        tags=["progress"])
 app.include_router(dermatologist.router,   prefix=f"{API_PREFIX}/dermatologist",   tags=["dermatologist"])
-app.include_router(admin.router,           prefix=f"{API_PREFIX}/admin",           tags=["admin"])
+app.include_router(admin.router,           prefix=f"{API_PREFIX}/admin",           tags=["admin"], dependencies=[Depends(enforce_admin_ip_allowlist)])
 app.include_router(privacy.router,         prefix=f"{API_PREFIX}/users",           tags=["privacy"])
 
 import logging

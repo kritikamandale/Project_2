@@ -4,10 +4,13 @@ import type { NextRequest } from "next/server";
 
 // ---------------------------------------------------------------------------
 // Role → default dashboard mapping
+// Exported so unit tests exercise this real table instead of a hand-copied
+// duplicate that silently drifts out of sync (see __tests__/auth.test.ts).
 // ---------------------------------------------------------------------------
-const ROLE_HOME: Record<string, string> = {
+export const ROLE_HOME: Record<string, string> = {
   USER: "/dashboard",
   DERMATOLOGIST: "/derm-dashboard",
+  ADMIN: "/admin/dashboard",
 };
 
 // ---------------------------------------------------------------------------
@@ -16,7 +19,7 @@ const ROLE_HOME: Record<string, string> = {
 // is reachable. Each status maps to the single onboarding sub-route the user is
 // allowed to be on; "completed" unlocks the rest of the app.
 // ---------------------------------------------------------------------------
-const ONBOARDING_STEP_PATH: Record<string, string> = {
+export const ONBOARDING_STEP_PATH: Record<string, string> = {
   not_started: "/onboarding/questionnaire",
   questionnaire_done: "/onboarding/scan",
   scan_done: "/onboarding/recommendations",
@@ -26,13 +29,13 @@ const ONBOARDING_STEP_PATH: Record<string, string> = {
 // ---------------------------------------------------------------------------
 // Route protection rules (checked in order)
 // ---------------------------------------------------------------------------
-type RouteRule = {
+export type RouteRule = {
   pattern: RegExp;
   allowedRoles: string[];
   redirectTo: string; // redirect wrong-role users here
 };
 
-const ROUTE_RULES: RouteRule[] = [
+export const ROUTE_RULES: RouteRule[] = [
   // User routes
   {
     pattern: /^\/(scan|questionnaire|results|roadmap|progress|profile|onboarding|history)(\/|$)/,
@@ -51,6 +54,12 @@ const ROUTE_RULES: RouteRule[] = [
     allowedRoles: ["DERMATOLOGIST"],
     redirectTo: "/dashboard",
   },
+  // Admin routes
+  {
+    pattern: /^\/admin(\/|$)/,
+    allowedRoles: ["ADMIN"],
+    redirectTo: "/dashboard",
+  },
   // Legacy group-prefixed routes (from Phase 1 scaffold)
   {
     pattern: /^\/(user)\//,
@@ -65,7 +74,7 @@ const ROUTE_RULES: RouteRule[] = [
 ];
 
 // Public paths — skip auth entirely
-const PUBLIC_PREFIXES = [
+export const PUBLIC_PREFIXES = [
   "/login",
   "/register",
   "/forgot-password",
@@ -80,6 +89,26 @@ const PUBLIC_PREFIXES = [
   "/public",
   "/models",
 ];
+
+// ---------------------------------------------------------------------------
+// Pure role-based route decision — extracted so it can be unit-tested
+// directly instead of via a hand-maintained copy of this logic.
+// ---------------------------------------------------------------------------
+export function checkRoleBasedAccess(
+  pathname: string,
+  userRole: string
+): { allowed: boolean; redirectTo?: string } {
+  for (const rule of ROUTE_RULES) {
+    if (rule.pattern.test(pathname)) {
+      if (!rule.allowedRoles.includes(userRole)) {
+        const home = ROLE_HOME[userRole] ?? rule.redirectTo;
+        return { allowed: false, redirectTo: home };
+      }
+      break;
+    }
+  }
+  return { allowed: true };
+}
 
 export default auth((req: NextRequest & { auth: any }) => {
   const { pathname } = req.nextUrl;
@@ -113,15 +142,9 @@ export default auth((req: NextRequest & { auth: any }) => {
   const userRole: string = (session.user as any).role ?? "USER";
 
   // Check role-based access for each matching rule
-  for (const rule of ROUTE_RULES) {
-    if (rule.pattern.test(pathname)) {
-      if (!rule.allowedRoles.includes(userRole)) {
-        // Wrong role — redirect to that role's own home
-        const home = ROLE_HOME[userRole] ?? rule.redirectTo;
-        return NextResponse.redirect(new URL(home, req.url));
-      }
-      break;
-    }
+  const access = checkRoleBasedAccess(pathname, userRole);
+  if (!access.allowed) {
+    return NextResponse.redirect(new URL(access.redirectTo!, req.url));
   }
 
   // First-time onboarding gate — USER role only. DERMATOLOGIST/ADMIN untouched.

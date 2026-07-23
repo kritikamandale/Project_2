@@ -103,6 +103,18 @@ class Settings(BaseSettings):
             return [m.strip() for m in v.split(",")]
         return v
 
+    # Admin IP allowlist (comma-separated) — only these IPs can reach
+    # /api/v1/admin/*. Empty = allow all (the documented dev default).
+    # Enforced in app.core.dependencies.enforce_admin_ip_allowlist.
+    admin_ip_allowlist: list[str] = []
+
+    @field_validator("admin_ip_allowlist", mode="before")
+    @classmethod
+    def parse_admin_ip_allowlist(cls, v: str | list[str]) -> list[str]:
+        if isinstance(v, str):
+            return [ip.strip() for ip in v.split(",") if ip.strip()]
+        return v
+
     # -------------------------------------------------------------------------
     # Database (PostgreSQL 15)
     # -------------------------------------------------------------------------

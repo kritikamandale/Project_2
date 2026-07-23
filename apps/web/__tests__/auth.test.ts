@@ -1,89 +1,49 @@
 /**
  * Unit tests for auth utilities — route guard logic and token refresh.
- * Tests the pure functions extracted from lib/auth.ts and middleware.ts.
+ *
+ * Route guard assertions import the real ROUTE_RULES / ROLE_HOME /
+ * PUBLIC_PREFIXES / checkRoleBasedAccess from middleware.ts (rather than a
+ * hand-copied duplicate) so a real regression in the middleware actually
+ * fails these tests. `middleware.ts` imports `@/lib/auth`, which pulls in
+ * next-auth server config — that's mocked out below since these tests only
+ * exercise the pure routing-decision logic, not the auth() wrapper itself.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@/lib/auth", () => ({ auth: (handler: unknown) => handler }));
+
+import {
+  ROUTE_RULES,
+  ROLE_HOME,
+  PUBLIC_PREFIXES,
+  checkRoleBasedAccess,
+} from "../middleware";
 
 // ---------------------------------------------------------------------------
-// Route guard logic (mirrors middleware.ts ROUTE_RULES)
+// Route guard logic — mirrors the public-path / no-session checks in
+// middleware.ts's default export, built on the real ROUTE_RULES table above.
 // ---------------------------------------------------------------------------
-
-type Role = "USER" | "DERMATOLOGIST";
-
-interface RouteRule {
-  pattern: RegExp;
-  allowedRoles: Role[];
-  redirectTo: string;
-}
-
-const ROUTE_RULES: RouteRule[] = [
-  {
-    pattern: /^\/(scan|questionnaire|results|roadmap|progress)(\/|$)/,
-    allowedRoles: ["USER", "DERMATOLOGIST"],
-    redirectTo: "/login",
-  },
-  {
-    pattern: /^\/dashboard(\/|$)/,
-    allowedRoles: ["USER", "DERMATOLOGIST"],
-    redirectTo: "/login",
-  },
-  {
-    pattern: /^\/(derm-dashboard|review-queue|case)(\/|$)/,
-    allowedRoles: ["DERMATOLOGIST"],
-    redirectTo: "/dashboard",
-  },
-];
-
-const ROLE_HOME: Record<Role, string> = {
-  USER: "/dashboard",
-  DERMATOLOGIST: "/derm-dashboard",
-};
-
-const PUBLIC_PREFIXES = [
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/reset-password",
-  "/verify-email",
-  "/api/auth",
-  "/_next",
-  "/favicon.ico",
-  "/privacy",
-];
 
 function getRouteDecision(
   pathname: string,
   session: { user?: { role?: string } } | null
 ): { allow: boolean; redirectTo?: string } {
-  // Public paths
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return { allow: true };
   if (pathname === "/") return { allow: true };
 
-  // No session
   if (!session?.user) {
     return { allow: false, redirectTo: `/login?callbackUrl=${pathname}` };
   }
 
-  const role = (session.user.role ?? "USER") as Role;
-
-  for (const rule of ROUTE_RULES) {
-    if (rule.pattern.test(pathname)) {
-      if (!rule.allowedRoles.includes(role)) {
-        return { allow: false, redirectTo: ROLE_HOME[role] ?? rule.redirectTo };
-      }
-      break;
-    }
-  }
-
-  return { allow: true };
+  const role = session.user.role ?? "USER";
+  const access = checkRoleBasedAccess(pathname, role);
+  return access.allowed ? { allow: true } : { allow: false, redirectTo: access.redirectTo };
 }
 
 // ---------------------------------------------------------------------------
 // Token refresh helpers (pure logic from lib/auth.ts)
 // ---------------------------------------------------------------------------
-
-const REFRESH_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
 
 function shouldRefreshToken(
   issuedAt: number,
@@ -161,16 +121,40 @@ describe("Route guard — role-based access", () => {
     ).toBe(true);
   });
 
-  it("allows DERMATOLOGIST to access /scan", () => {
-    expect(
-      getRouteDecision("/scan", { user: { role: "DERMATOLOGIST" } }).allow
-    ).toBe(true);
+  it("blocks DERMATOLOGIST from USER-only /scan", () => {
+    // ROUTE_RULES restricts /scan to USER only — DERMATOLOGIST is redirected
+    // to their own dashboard, not allowed through.
+    const result = getRouteDecision("/scan", { user: { role: "DERMATOLOGIST" } });
+    expect(result.allow).toBe(false);
+    expect(result.redirectTo).toBe(ROLE_HOME.DERMATOLOGIST);
   });
 
   it("allows DERMATOLOGIST to access /derm-dashboard", () => {
     expect(
       getRouteDecision("/derm-dashboard", { user: { role: "DERMATOLOGIST" } }).allow
     ).toBe(true);
+  });
+
+  it("blocks USER from /admin and redirects to their home", () => {
+    const result = getRouteDecision("/admin/dashboard", { user: { role: "USER" } });
+    expect(result.allow).toBe(false);
+    expect(result.redirectTo).toBe(ROLE_HOME.USER);
+  });
+
+  it("allows ADMIN to access /admin routes", () => {
+    expect(
+      getRouteDecision("/admin/dashboard", { user: { role: "ADMIN" } }).allow
+    ).toBe(true);
+  });
+});
+
+describe("ROUTE_RULES table shape", () => {
+  it("every rule has a valid pattern, at least one allowed role, and a redirect", () => {
+    for (const rule of ROUTE_RULES) {
+      expect(rule.pattern).toBeInstanceOf(RegExp);
+      expect(rule.allowedRoles.length).toBeGreaterThan(0);
+      expect(typeof rule.redirectTo).toBe("string");
+    }
   });
 });
 

@@ -1,7 +1,13 @@
 name: Deploy to Production
 
 on:
-  push:
+  # Deploy only after the CI workflow has finished running on main — this is
+  # the staging gate: a red CI run (tests/lint/security scan) never reaches
+  # production. workflow_run fires independently of the push event, so this
+  # can't race the CI workflow that triggered it.
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -17,11 +23,26 @@ concurrency:
 jobs:
 
   # ==========================================================================
+  # Gate — only proceed if CI succeeded (or this was manually dispatched)
+  # ==========================================================================
+  gate:
+    name: Require CI success
+    runs-on: ubuntu-latest
+    # Manual dispatch is only honoured from main — without this, anyone with
+    # workflow-run permission could deploy an arbitrary branch straight to
+    # production. (GitHub Environment protection rules on `production`, set
+    # separately in repo settings, are the second layer restricting *who*.)
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - run: echo "CI passed on main (or manual dispatch from main) — proceeding to deploy."
+
+  # ==========================================================================
   # Run Alembic migrations
   # ==========================================================================
   migrate:
     name: Run Database Migrations
     runs-on: ubuntu-latest
+    needs: gate
     if: ${{ github.event.inputs.skip_migrations != 'true' }}
 
     steps:
@@ -48,9 +69,9 @@ jobs:
   deploy-backend:
     name: Deploy API (Railway)
     runs-on: ubuntu-latest
-    needs: migrate
-    # Deploy even when migrations are skipped; only block on migration failure
-    if: ${{ always() && needs.migrate.result != 'failure' }}
+    needs: [gate, migrate]
+    # Deploy even when migrations are skipped; only block on gate/migration failure
+    if: ${{ always() && needs.gate.result == 'success' && needs.migrate.result != 'failure' }}
     environment: production
 
     steps:
@@ -70,10 +91,14 @@ jobs:
 
   # ==========================================================================
   # Deploy Next.js to Vercel
+  # Runs only after the backend deploy succeeds, so the frontend never ships
+  # pointing at API routes/migrations that aren't live yet.
   # ==========================================================================
   deploy-frontend:
     name: Deploy Frontend (Vercel)
     runs-on: ubuntu-latest
+    needs: deploy-backend
+    if: ${{ needs.deploy-backend.result == 'success' }}
     environment: production
 
     steps:
@@ -93,12 +118,40 @@ jobs:
           vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
 
   # ==========================================================================
+  # Post-deploy smoke test — verifies both services actually came up healthy
+  # before declaring the deploy a success. Failure here surfaces in Slack so
+  # a bad deploy gets noticed immediately instead of silently serving errors.
+  # ==========================================================================
+  smoke-test:
+    name: Post-deploy Smoke Test
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: ${{ needs.deploy-backend.result == 'success' && needs.deploy-frontend.result == 'success' }}
+
+    steps:
+      - name: Wait for API health check
+        run: |
+          for i in $(seq 1 10); do
+            if curl -fsS "${{ secrets.PRODUCTION_API_URL }}/health"; then
+              echo "API is healthy."
+              exit 0
+            fi
+            echo "API not ready yet (attempt $i/10), retrying in 10s..."
+            sleep 10
+          done
+          echo "API failed health check after deploy." >&2
+          exit 1
+
+      - name: Check frontend responds
+        run: curl -fsS -o /dev/null "${{ secrets.PRODUCTION_WEB_URL }}"
+
+  # ==========================================================================
   # Slack notification
   # ==========================================================================
   notify:
     name: Notify Slack
     runs-on: ubuntu-latest
-    needs: [deploy-backend, deploy-frontend]
+    needs: [deploy-backend, deploy-frontend, smoke-test]
     if: always()
 
     steps:
@@ -109,5 +162,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "${{ needs.deploy-backend.result == 'success' && needs.deploy-frontend.result == 'success' && '✅' || '❌' }} *Skinest Deploy* — ${{ github.ref_name }} (`${{ github.sha }}` by ${{ github.actor }})\n*API:* ${{ needs.deploy-backend.result }} | *Web:* ${{ needs.deploy-frontend.result }}"
+              "text": "${{ needs.deploy-backend.result == 'success' && needs.deploy-frontend.result == 'success' && needs.smoke-test.result == 'success' && '✅' || '❌' }} *Skinest Deploy* — ${{ github.ref_name }} (`${{ github.sha }}` by ${{ github.actor }})\n*API:* ${{ needs.deploy-backend.result }} | *Web:* ${{ needs.deploy-frontend.result }} | *Smoke test:* ${{ needs.smoke-test.result }}"
             }

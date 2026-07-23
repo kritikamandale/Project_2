@@ -212,3 +212,21 @@ def get_client_ip(request: Request) -> str:
 
 def get_user_agent(request: Request) -> str:
     return request.headers.get("User-Agent", "")
+
+
+async def enforce_admin_ip_allowlist(request: Request) -> None:
+    """
+    Network-layer gate for the entire /admin/* surface. Mirrors the documented
+    ADMIN_IP_ALLOWLIST env var (.env.example) — previously declared there but
+    never actually checked anywhere. Empty allowlist = allow all, matching the
+    documented "leave blank in development" default; a non-empty list rejects
+    any caller whose IP isn't on it, regardless of role/JWT.
+    """
+    if not settings.admin_ip_allowlist:
+        return
+    client_ip = get_client_ip(request)
+    if client_ip not in settings.admin_ip_allowlist:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access to admin routes is not permitted from this network.",
+        )

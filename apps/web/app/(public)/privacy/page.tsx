@@ -200,7 +200,7 @@ export default function PrivacyPolicyPage() {
             </h2>
             <p className="text-sm text-muted-foreground">
               We will notify you by email at least 30 days before any material change. The
-              "Last updated" date at the top of this page reflects the most recent revision.
+              &ldquo;Last updated&rdquo; date at the top of this page reflects the most recent revision.
               Continued use after changes constitutes acceptance.
             </p>
           </section>

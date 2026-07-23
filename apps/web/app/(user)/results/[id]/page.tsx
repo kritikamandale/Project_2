@@ -862,7 +862,7 @@ export default function ResultsPage() {
               <span className="text-sm font-bold text-gray-900">Dermatologist Note</span>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed italic">
-              "{meta.dermatologist_note}"
+              &ldquo;{meta.dermatologist_note}&rdquo;
             </p>
           </div>
         )}

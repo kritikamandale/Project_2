@@ -9,16 +9,22 @@ This platform is designed with **privacy-by-default** for Indian users. Face ima
 ## Image Data — Lifecycle
 
 ```
-Capture ──▶ EXIF Strip ──▶ S3 Upload (60s presign) ──▶ Analysis ──▶ DELETE
-   0s           0s             < 5s                   < 30s        ≤ 60s
+Capture ──▶ On-device TF.js analysis ──▶ 512-dim feature vector + labels sent to server
+   0s              < 5s (browser/device only)              never leaves the device as an image
 ```
 
-1. **No raw image stored on our servers.** The client uploads directly to S3 via a presigned PUT URL.
-2. **EXIF metadata removed** server-side using Sharp before any image leaves the client context.
-3. **Presigned S3 URL expires in 60 seconds.** The URL is single-use and time-bound.
-4. **S3 Lifecycle Policy** deletes objects after 1 day as a hard backstop.
-5. **Face blur applied** after analysis completion before any human review.
-6. **Dermatologist reviewers see only blurred images** — they review text analysis results, not raw photos.
+1. **The raw face image never reaches our servers, ever.** Skin analysis (skin type, tone, condition
+   detection) runs entirely on-device in the browser via TensorFlow.js. Only the resulting 512-dimension
+   feature vector and classification labels — never pixel data — are transmitted to the API
+   (see `app/schemas/scan.py`: "Privacy contract: raw images are NEVER accepted by the API").
+2. Every stored scan record is persisted with `image_permanently_deleted = TRUE`, since no image was ever
+   received to begin with.
+3. **Dermatologist reviewers see only the structured analysis results** (skin type, detected conditions,
+   severities, confidence scores) — there is no image, blurred or otherwise, in the review queue.
+4. An earlier design (presigned S3 PUT + server-side EXIF strip + face-blur-before-review) was superseded
+   by the on-device architecture above and was never shipped; the corresponding upload/presign code path
+   in `app/services/image_processor.py` exists but has no route wired to it and is not part of the live
+   analysis flow.
 
 ---
 
@@ -30,7 +36,7 @@ Capture ──▶ EXIF Strip ──▶ S3 Upload (60s presign) ──▶ Analysi
 | Name, age, gender, city | Personalised recommendations | Until account deleted | Yes |
 | Skin analysis results | Historical trend tracking | 2 years | Yes |
 | Questionnaire answers | Recommendation context | 2 years | Yes |
-| Progress photos | Optional self-tracking | Until user deletes | Yes |
+| Progress photos | Optional self-tracking | Until user deletes | Yes — *planned; not yet implemented* |
 | Session tokens | Auth security | 7 days (Redis TTL) | Yes |
 
 ---

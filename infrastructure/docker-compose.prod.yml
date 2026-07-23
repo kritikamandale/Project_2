@@ -30,6 +30,12 @@ services:
     image: pgvector/pgvector:pg15
     restart: always
     networks: [internal]
+    # Blocks privilege escalation (setuid binaries etc.) without touching the
+    # image's own entrypoint, which needs to run as root briefly to fix volume
+    # ownership before it drops privileges to its own `postgres` user — an
+    # explicit `user:` override here would break that and fail to start.
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -95,6 +101,8 @@ services:
     image: redis:7-alpine
     restart: always
     networks: [internal]
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - redis_data:/data
     command: >
@@ -123,6 +131,8 @@ services:
     image: clamav/clamav:stable
     restart: always
     networks: [internal]
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - clamav_db:/var/lib/clamav
     environment:
@@ -224,6 +234,8 @@ services:
     image: nginx:1.27-alpine
     restart: always
     networks: [internal, external]
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "80:80"
       - "443:443"

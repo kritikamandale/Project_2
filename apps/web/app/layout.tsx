@@ -30,7 +30,10 @@ const sora = Sora({
   display: "swap",
 });
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3100";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: {
     default: "Skinest — AI Skin Analysis & Recommendations",
     template: "%s | Skinest",
@@ -40,10 +43,12 @@ export const metadata: Metadata = {
   keywords: ["skin analysis", "skincare", "AI", "dermatologist", "India"],
   authors: [{ name: "Skinest Team" }],
   robots: { index: true, follow: true },
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_IN",
     siteName: "Skinest",
+    url: "/",
   },
 };
 
@@ -56,6 +61,29 @@ export const viewport: Viewport = {
   ],
 };
 
+// Organization + WebSite structured data — deliberately NOT schema.org
+// MedicalWebPage/MedicalOrganization. Those types assert clinical authority,
+// which conflicts with this product's own disclaimer that it is not a
+// substitute for professional medical advice; Organization/WebSite describes
+// what this actually is without overclaiming.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      name: "Skinest",
+      url: APP_URL,
+      description:
+        "AI-powered skin analysis and personalised skincare recommendations for Indian skin tones and climate.",
+    },
+    {
+      "@type": "WebSite",
+      name: "Skinest",
+      url: APP_URL,
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -64,6 +92,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${spaceGrotesk.variable} ${manrope.variable} ${sora.variable} font-sans antialiased`}>
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <Providers>
           {children}
           <Toaster />

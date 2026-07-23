@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import {
@@ -310,6 +310,7 @@ function RangeSlider({
   max,
   step,
   formatLabel,
+  ariaLabel,
 }: {
   value: number;
   onChange: (v: number) => void;
@@ -317,6 +318,7 @@ function RangeSlider({
   max: number;
   step: number;
   formatLabel: (v: number) => string;
+  ariaLabel: string;
 }) {
   return (
     <div className="space-y-3">
@@ -334,7 +336,7 @@ function RangeSlider({
         </SliderPrimitive.Track>
         <SliderPrimitive.Thumb
           className="block w-6 h-6 bg-white border-2 border-skin-500 rounded-full shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-skin-400 transition-shadow"
-          aria-label="value"
+          aria-label={ariaLabel}
         />
       </SliderPrimitive.Root>
       <div className="flex justify-between text-xs text-gray-400">
@@ -529,36 +531,77 @@ function QuestionBlock({ label, children }: { label: string; children: React.Rea
 function CityAutocomplete({ value, onChange }: { value: string; onChange: (city: string) => void }) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const listboxId = useId();
   const filtered = INDIAN_CITIES.filter((c) =>
     c.toLowerCase().startsWith(query.toLowerCase())
   ).slice(0, 8);
+
+  function selectCity(city: string) {
+    setQuery(city);
+    onChange(city);
+    setOpen(false);
+    setActiveIndex(-1);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!open || filtered.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((i) => (i + 1) % filtered.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((i) => (i <= 0 ? filtered.length - 1 : i - 1));
+    } else if (e.key === "Enter") {
+      if (activeIndex >= 0 && activeIndex < filtered.length) {
+        e.preventDefault();
+        selectCity(filtered[activeIndex]);
+      }
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setActiveIndex(-1);
+    }
+  }
 
   return (
     <div className="relative">
       <input
         type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={open && filtered.length > 0}
+        aria-controls={listboxId}
+        aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
           setOpen(true);
+          setActiveIndex(-1);
           if (!e.target.value) onChange("");
         }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onKeyDown={handleKeyDown}
         placeholder="Start typing your city…"
         className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-skin-400 focus:outline-none transition-colors"
       />
       {open && filtered.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
-          {filtered.map((city) => (
+        <ul
+          id={listboxId}
+          role="listbox"
+          className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden"
+        >
+          {filtered.map((city, i) => (
             <li
               key={city}
-              onMouseDown={() => {
-                setQuery(city);
-                onChange(city);
-                setOpen(false);
-              }}
-              className="px-4 py-2.5 text-sm text-gray-700 hover:bg-skin-50 cursor-pointer"
+              id={`${listboxId}-option-${i}`}
+              role="option"
+              aria-selected={i === activeIndex}
+              onMouseDown={() => selectCity(city)}
+              onMouseEnter={() => setActiveIndex(i)}
+              className={`px-4 py-2.5 text-sm text-gray-700 cursor-pointer ${
+                i === activeIndex ? "bg-skin-50" : "hover:bg-skin-50"
+              }`}
             >
               📍 {city}
             </li>
@@ -577,7 +620,7 @@ function Section1Sleep({ answers, update }: { answers: Answers; update: <K exten
   return (
     <div className="space-y-8">
       <QuestionBlock label="How many hours of sleep do you get on average per night?">
-        <RangeSlider value={answers.sleepHours} onChange={(v) => update("sleepHours", v)} min={3} max={10} step={0.5} formatLabel={(v) => `${v}h`} />
+        <RangeSlider value={answers.sleepHours} onChange={(v) => update("sleepHours", v)} min={3} max={10} step={0.5} formatLabel={(v) => `${v}h`} ariaLabel="Hours of sleep per night" />
       </QuestionBlock>
       <QuestionBlock label="How would you rate your sleep quality?">
         <StarRating value={answers.sleepQuality} onChange={(v) => update("sleepQuality", v)} />
@@ -593,7 +636,7 @@ function Section2Diet({ answers, update }: { answers: Answers; update: <K extend
   return (
     <div className="space-y-8">
       <QuestionBlock label="How much water do you drink daily?">
-        <RangeSlider value={answers.waterIntake} onChange={(v) => update("waterIntake", v)} min={0.5} max={4} step={0.5} formatLabel={(v) => `${v}L`} />
+        <RangeSlider value={answers.waterIntake} onChange={(v) => update("waterIntake", v)} min={0.5} max={4} step={0.5} formatLabel={(v) => `${v}L`} ariaLabel="Litres of water consumed daily" />
       </QuestionBlock>
       <QuestionBlock label="What best describes your diet?">
         <SingleSelect<DietType>
@@ -699,7 +742,7 @@ function Section4Screen({ answers, update }: { answers: Answers; update: <K exte
   return (
     <div className="space-y-8">
       <QuestionBlock label="How many hours a day do you spend in front of screens?">
-        <RangeSlider value={answers.screenTime} onChange={(v) => update("screenTime", v)} min={0} max={16} step={0.5} formatLabel={(v) => `${v}h`} />
+        <RangeSlider value={answers.screenTime} onChange={(v) => update("screenTime", v)} min={0} max={16} step={0.5} formatLabel={(v) => `${v}h`} ariaLabel="Hours of screen time per day" />
       </QuestionBlock>
       <QuestionBlock label="Where do you spend most of your working day?">
         <SingleSelect<WorkEnvironment>
@@ -1289,7 +1332,7 @@ export function QuestionnaireForm({
         <div className="text-6xl">🎉</div>
         <h2 className="text-2xl font-bold text-gray-900">All done!</h2>
         <p className="text-gray-500 text-sm max-w-sm leading-relaxed">
-          Your lifestyle profile is saved. We're generating your personalised skin recommendations.
+          Your lifestyle profile is saved. We&apos;re generating your personalised skin recommendations.
         </p>
         <div className="w-full max-w-xs h-2 bg-gray-100 rounded-full overflow-hidden mt-2">
           <motion.div

@@ -1,0 +1,11 @@
+# Explicit browser support floor for this app — it depends on getUserMedia
+# (react-webcam) and WebGL (TensorFlow.js) for the core scan flow, so we
+# target browser versions that reliably support both instead of relying on
+# Next.js's implicit default.
+last 2 Chrome versions
+last 2 Firefox versions
+last 2 Safari versions
+last 2 Edge versions
+iOS >= 14
+not dead
+not IE 11

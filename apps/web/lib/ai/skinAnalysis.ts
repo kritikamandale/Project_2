@@ -185,6 +185,15 @@ export async function loadModel(): Promise<void> {
 
 export const loadSkinModel = loadModel;
 
+// After loadModel() resolves, reports which TF.js backend actually won —
+// "webgl" (GPU) or "cpu" (the device blocked/lacks WebGL). Callers can use
+// this to warn the user that analysis will be noticeably slower on this
+// device, since the CPU fallback above swallows the WebGL failure silently.
+export function getActiveBackend(): "webgl" | "cpu" | "unknown" {
+  const backend = tf.getBackend();
+  return backend === "webgl" || backend === "cpu" ? backend : "unknown";
+}
+
 // ---------------------------------------------------------------------------
 // Preprocessing
 // ---------------------------------------------------------------------------
