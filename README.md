@@ -1,6 +1,6 @@
 # AI Skin Analysis Platform
 
-A production-grade AI-powered skin analysis and product recommendation platform for Indian users. Users capture their face via camera, the AI analyzes skin type and conditions, a lifestyle questionnaire adds contextual data, and the system recommends dermatologist-approved products from **Nykaa**, **Minimalist**, and **Dermaco**.
+A production-grade AI-powered skin analysis and product recommendation platform for Indian users. Users capture their face via camera, the AI analyzes skin type and conditions, a lifestyle questionnaire adds contextual data, and the system recommends dermatologist-approved products from **Nykaa**, **Minimalist**, and **Dermaco**, **Nykaa**.
 
 ---
 
