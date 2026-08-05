@@ -19,10 +19,9 @@ export default function OnboardingQuestionnairePage() {
     try {
       const s = await getOnboardingStatus(); // authoritative status after submit
       await update({ onboardingStatus: s.onboarding_status });
-      // Brief pause so the form's done-animation plays before navigating.
-      setTimeout(() => router.push(s.next_path), 1200);
+      router.push(s.next_path);
     } catch {
-      setTimeout(() => router.push("/onboarding/scan"), 1200);
+      router.push("/onboarding/scan");
     }
   }
 

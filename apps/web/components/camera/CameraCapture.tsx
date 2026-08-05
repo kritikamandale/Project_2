@@ -489,13 +489,13 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   }, [state.status, faceGuide, lighting]);
 
   // ---------------------------------------------------------------------------
-  // Pre-load the on-device analysis models while the camera is active.
-  // The download + GPU warm-up can take a while (especially on a first visit
-  // when nothing is browser-cached), so surface a visible, reassuring loading
-  // state and hold the shutter disabled until everything is ready.
+  // Pre-load the on-device analysis models immediately on mount.
+  // Starting early (before the user enables the camera) hides the large
+  // download + GPU warm-up time behind the intro screen and permission prompt
+  // so the camera is ready to shoot immediately once the user opts in.
   // ---------------------------------------------------------------------------
   useEffect(() => {
-    if (state.status !== "active" || modelState !== "idle") return;
+    if (modelState !== "idle") return;
     setModelState("loading");
     loadSkinModel()
       .then(() => {
@@ -512,7 +512,8 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
         } catch { /* private mode — treat every visit as first-time */ }
       })
       .catch(() => setModelState("error"));
-  }, [state.status, modelState]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount only — model singleton handles duplicate calls
 
   const retryModelLoad = useCallback(() => setModelState("idle"), []);
 
@@ -686,7 +687,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="relative w-full h-full min-h-screen bg-aquaglass-navy flex flex-col overflow-hidden">
+    <div className="relative w-full h-full bg-aquaglass-navy flex flex-col overflow-hidden">
 
       {/* ── Privacy banner ──────────────────────────────────────────────── */}
       <div className="relative z-20 flex items-center gap-2 px-4 py-2 bg-aquaglass-navy/70 backdrop-blur-md border-b border-white/10 text-xs text-white/80">
@@ -951,8 +952,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
 
               <div className="flex gap-3 w-full max-w-xs">
                 <Button
-                  variant="outline"
-                  className="flex-1 border-white/20 text-white hover:bg-white/10"
+                  className="flex-1 bg-white text-gray-800 hover:bg-gray-100 border border-gray-200 font-semibold"
                   onClick={() => dispatch({ type: "RETAKE" })}
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
@@ -969,7 +969,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           )}
         </AnimatePresence>
 
-        {/* ── Done overlay ───────────────────────────────────────────── */}
+        {/* ── Done overlay — auto-redirects to recommendations ──────── */}
         <AnimatePresence>
           {state.status === "done" && (
             <motion.div
@@ -977,20 +977,27 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               animate={{ opacity: 1, scale: 1 }}
               className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy/90 gap-4"
             >
-              <div className="text-6xl">✅</div>
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="text-6xl"
+              >
+                ✅
+              </motion.div>
               <h3 className="text-white font-semibold text-xl">Scan saved!</h3>
               <p className="text-teal-400 text-sm text-center max-w-xs px-4">
-                Your photo has been deleted. Only skin data was saved.
+                Your photo has been deleted. Taking you to your recommendations…
               </p>
-              {/* Explicit way forward — onComplete already redirects to the
-                  results/products page, but this covers any lag and gives the
-                  user a clear, tappable next step instead of a dead end. */}
-              <Button
-                className="bg-skin-500 hover:bg-skin-600 text-white mt-2"
-                onClick={() => state.scanId && onComplete(state.result!, state.scanId)}
-              >
-                View My Products
-              </Button>
+              {/* Progress bar showing auto-redirect countdown */}
+              <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden mt-2">
+                <motion.div
+                  className="h-full bg-skin-500 rounded-full"
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1.2, ease: "easeInOut" }}
+                />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1031,10 +1038,27 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <p className="text-white/60 text-sm max-w-sm mb-1">
               We&apos;ll ask your browser for camera access so you can take a quick face scan.
             </p>
-            <p className="text-teal-300/80 text-xs max-w-sm mb-7 inline-flex items-center gap-1.5 justify-center">
+            <p className="text-teal-300/80 text-xs max-w-sm mb-5 inline-flex items-center gap-1.5 justify-center">
               <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
               Your photo is analysed on your device and never uploaded.
             </p>
+
+            {/* Model pre-loading status shown while waiting */}
+            {modelState !== "ready" && (
+              <div className="flex items-center gap-2 mb-5 bg-white/5 rounded-full px-4 py-2 border border-white/10">
+                <span className="w-3 h-3 rounded-full border-2 border-teal-400 border-t-transparent animate-spin shrink-0" />
+                <span className="text-xs text-white/70">
+                  {firstTime ? "Preparing AI analysis for first use…" : "Loading AI models…"}
+                </span>
+              </div>
+            )}
+            {modelState === "ready" && (
+              <div className="flex items-center gap-2 mb-5 bg-teal-500/10 rounded-full px-4 py-2 border border-teal-500/30">
+                <span className="text-teal-400 text-sm">✓</span>
+                <span className="text-xs text-teal-300">AI ready — scan will be instant</span>
+              </div>
+            )}
+
             <Button
               onClick={() => dispatch({ type: "REQUEST" })}
               className="bg-skin-500 hover:bg-skin-600 text-white px-8 h-12 text-base"

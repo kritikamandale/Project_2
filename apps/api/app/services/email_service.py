@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 async def _send(to_email: str, subject: str, html_body: str, plain_body: str = "") -> None:
+    sent_via_resend = False
     if settings.resend_api_key:
         resend.api_key = settings.resend_api_key
         params: resend.Emails.SendParams = {
@@ -31,17 +32,19 @@ async def _send(to_email: str, subject: str, html_body: str, plain_body: str = "
         try:
             result = await asyncio.to_thread(resend.Emails.send, params)
             logger.info("Email sent via Resend to %s — id=%s", to_email, result.get("id"))
-            return
+            sent_via_resend = True
         except Exception as exc:
             logger.warning("Resend could not deliver to %s: %s", to_email, exc)
 
-    # Dev fallback — always print so any test email address works locally
-    logger.warning(
-        "\n========== DEV EMAIL (not delivered) ==========\n"
-        "To: %s\nSubject: %s\n%s\n"
-        "================================================",
-        to_email, subject, plain_body or html_body,
-    )
+    # In development or if Resend fails, log to stdout/terminal so dev links are easily copyable
+    if not sent_via_resend or settings.is_development:
+        msg = (
+            f"\n========== DEV EMAIL LOG ==========\n"
+            f"To: {to_email}\nSubject: {subject}\n\n{plain_body or html_body}\n"
+            f"===================================="
+        )
+        print(msg, flush=True)
+        logger.warning(msg)
 
 
 # ---------------------------------------------------------------------------
@@ -82,7 +85,7 @@ async def send_verification_otp(to_email: str, full_name: str, otp: str) -> None
 # ---------------------------------------------------------------------------
 
 async def send_password_reset(to_email: str, full_name: str, reset_token: str) -> None:
-    reset_url = f"{settings.frontend_url}/reset-password?token={reset_token}"
+    reset_url = f"{settings.frontend_url}/reset-password?token={reset_token}&email={to_email}"
     subject = "Reset your Skinest password"
     plain = f"Hi {full_name},\n\nReset your password: {reset_url}\n\nExpires in {settings.password_reset_expire_minutes} minutes."
     html = f"""

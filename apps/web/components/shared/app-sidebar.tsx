@@ -35,15 +35,13 @@ interface NavItem {
 const NAV: Record<Area, NavItem[]> = {
   user: [
     { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
-    { href: "/scan", label: "New Scan", Icon: Camera },
-    { href: "/progress", label: "Progress", Icon: TrendingUp },
-    // "Skincare" — your generated routine/roadmap, in plainer language.
-    { href: "/roadmap", label: "Skincare", Icon: Map },
-    { href: "/history", label: "History", Icon: History },
-    // "Products" — same destination as before ("Results"), renamed since this
-    // is exactly where the recommended-product grid (RoutineSelector) lives.
-    { href: "/results", label: "Products", Icon: BarChart3 },
-    { href: "/profile", label: "Profile", Icon: User },
+    { href: "/onboarding/questionnaire", label: "Questionnaire", Icon: ClipboardCheck },
+    { href: "/scan", label: "Face Scan", Icon: Camera },
+    { href: "/results", label: "Recommendations", Icon: BarChart3 },
+    { href: "/roadmap", label: "Skincare Roadmap", Icon: Map },
+    { href: "/progress", label: "Progress Tracker", Icon: TrendingUp },
+    { href: "/history", label: "Scan History", Icon: History },
+    { href: "/profile", label: "My Profile", Icon: User },
   ],
   derm: [
     { href: "/derm-dashboard", label: "Dashboard", Icon: LayoutDashboard },
@@ -63,7 +61,14 @@ export function AppSidebar({ area }: { area: Area }) {
   const email = session?.user?.email ?? "";
   const initial = name.trim()[0]?.toUpperCase() ?? "U";
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string) => {
+    if (pathname === href) return true;
+    if (href !== "/" && pathname.startsWith(href + "/")) return true;
+    if (href === "/scan" && pathname === "/onboarding/scan") return true;
+    if (href === "/results" && (pathname === "/onboarding/recommendations" || pathname.startsWith("/results"))) return true;
+    if (href === "/onboarding/questionnaire" && (pathname === "/questionnaire" || pathname === "/onboarding")) return true;
+    return false;
+  };
 
   const content = (
     <div className="flex h-full flex-col">
@@ -92,14 +97,14 @@ export function AppSidebar({ area }: { area: Area }) {
               onClick={() => setOpen(false)}
               aria-current={active ? "page" : undefined}
               className={[
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
+                "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition-all duration-150",
                 active
-                  ? "bg-skin-500/10 font-semibold text-skin-700"
-                  : "font-medium text-zinc-500 hover:bg-skin-50 hover:text-skin-700",
+                  ? "bg-gradient-to-r from-skin-500 to-skin-600 font-bold text-white shadow-md shadow-skin-400/20"
+                  : "font-medium text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900",
               ].join(" ")}
             >
-              <Icon className={`h-5 w-5 shrink-0 ${active ? "text-skin-600" : "text-zinc-400"}`} />
-              {label}
+              <Icon className={`h-5 w-5 shrink-0 ${active ? "text-white" : "text-zinc-400"}`} />
+              <span>{label}</span>
             </Link>
           );
         })}

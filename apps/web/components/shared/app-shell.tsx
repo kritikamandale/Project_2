@@ -2,11 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AppSidebar } from "./app-sidebar";
-
-// Routes that are intentionally full-screen / focused flows and must NOT get the
-// app sidebar: the immersive camera capture and the first-run onboarding stepper
-// (which has its own progress header). Everything else in the group is wrapped.
-const IMMERSIVE = [/^\/scan(?:\/|$)/, /^\/onboarding(?:\/|$)/];
+import { AppHeader } from "./app-header";
 
 export function AppShell({
   area,
@@ -16,16 +12,16 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname() || "";
-
-  if (IMMERSIVE.some((re) => re.test(pathname))) {
-    return <>{children}</>;
-  }
+  const isOnboardingFlow = pathname.startsWith("/onboarding/") || pathname === "/scan";
 
   return (
-    <div className="min-h-screen">
+    <div className="flex h-dvh overflow-hidden bg-slate-50/50">
       <AppSidebar area={area} />
-      {/* Offset content by the sidebar width on desktop; full width on mobile. */}
-      <div className="lg:pl-64">{children}</div>
+      {/* Offset content by sidebar width on desktop (lg:pl-64) with fixed header */}
+      <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden lg:pl-64">
+        {area === "user" && !isOnboardingFlow && <AppHeader />}
+        <main className="flex-1">{children}</main>
+      </div>
     </div>
   );
 }

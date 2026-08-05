@@ -133,23 +133,8 @@ export default function RoadmapPage() {
   const progressPct = Math.min(100, Math.round((week / totalWeeks) * 100));
 
   return (
-    <div className="min-h-screen bg-eggshell">
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20 px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
-        >
-          ← Dashboard
-        </button>
-        <button
-          onClick={() => router.push(`/results/${rec.scan_id}?questionnaire_id=${rec.questionnaire_id ?? ""}`)}
-          className="flex items-center gap-1 text-sm text-skin-600 font-medium hover:text-skin-800 transition-colors"
-        >
-          Full results <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+    <div className="pb-12">
+      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-8">
         {/* Hero progress */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

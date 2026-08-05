@@ -18,13 +18,15 @@ export default function OnboardingScanPage() {
   const { update } = useSession();
 
   async function handleComplete(_result: SkinAnalysisResult, scanId: string) {
+    // Navigate immediately — don't wait for the status sync API call.
+    router.push(`/onboarding/recommendations?scan_id=${scanId}`);
+    // Sync the session JWT in the background (best-effort).
     try {
       const s = await getOnboardingStatus();
       await update({ onboardingStatus: s.onboarding_status });
     } catch {
-      /* status sync is best-effort; navigation still proceeds */
+      /* non-critical — middleware will recheck on next navigation */
     }
-    router.push(`/onboarding/recommendations?scan_id=${scanId}`);
   }
 
   function handleCancel() {

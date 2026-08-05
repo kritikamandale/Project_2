@@ -426,6 +426,30 @@ function brandLabel(p: Product): string {
   return map[p.brand] ?? p.brand;
 }
 
+function ProductImage({ src, alt, category }: { src?: string | null; alt: string; category?: string }) {
+  const [error, setError] = useState(false);
+  const catEmojis: Record<string, string> = {
+    cleanser: "🧴", moisturiser: "💧", sunscreen: "☀️", serum: "💊", toner: "✨", treatment: "🩹", mask: "🎭"
+  };
+  const emoji = category ? (catEmojis[category] ?? "🌿") : "🌿";
+
+  if (!src || error) {
+    return <span className="text-xl" aria-hidden>{emoji}</span>;
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      referrerPolicy="no-referrer"
+      className="h-full w-full object-cover"
+      loading="lazy"
+      onError={() => setError(true)}
+    />
+  );
+}
+
 function heroIngredient(p: Product): string | null {
   return p.key_actives?.[0] ?? p.key_ingredients?.[0] ?? null;
 }
@@ -456,19 +480,8 @@ function ProductCard({ product }: { product: Product }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-1 gap-3">
           {/* Product photo — floats inside its own small glass frame. */}
-          <div className="h-12 w-12 shrink-0 rounded-lg glass-card overflow-hidden flex items-center justify-center">
-            {p.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={p.image_url}
-                alt={p.product_name}
-                className="h-full w-full object-contain p-1"
-                loading="lazy"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-              />
-            ) : (
-              <Leaf className="h-4 w-4 text-teal-400" />
-            )}
+          <div className="h-12 w-12 shrink-0 rounded-lg glass-card overflow-hidden flex items-center justify-center bg-gray-50 border border-gray-100">
+            <ProductImage src={p.image_url} alt={p.product_name} category={p.category} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-card text-sm font-bold leading-tight text-gray-900">{p.product_name}</p>

@@ -110,8 +110,13 @@ def _drop_audit_triggers():
 # ---------------------------------------------------------------------------
 
 def upgrade() -> None:
-    # pgvector extension — required for VECTOR column
-    op.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+    # pgvector extension — optional (requires pgvector installed in PostgreSQL)
+    conn = op.get_bind()
+    has_vector = conn.execute(
+        sa.text("SELECT 1 FROM pg_available_extensions WHERE name = 'vector'")
+    ).scalar()
+    if has_vector:
+        op.execute("CREATE EXTENSION IF NOT EXISTS vector;")
 
     _create_enums()
 
@@ -339,8 +344,12 @@ def upgrade() -> None:
         sa.Column("embedding_vector", sa.Text()),  # replaced by VECTOR(1536) post-migration
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
     )
-    # Convert column to proper pgvector type after table creation
-    op.execute("ALTER TABLE product_embeddings ALTER COLUMN embedding_vector TYPE vector(1536) USING NULL;")
+    # Convert column to proper pgvector type after table creation (if vector extension available)
+    if has_vector:
+        try:
+            op.execute("ALTER TABLE product_embeddings ALTER COLUMN embedding_vector TYPE vector(1536) USING NULL;")
+        except Exception:
+            pass
 
     # ------------------------------------------------------------------
     # recommendations

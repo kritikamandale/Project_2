@@ -157,15 +157,15 @@ type Phase = "resume-prompt" | "intro" | "section" | "submitting" | "done";
 function ProgressBar({ current, completed }: { current: number; completed: number[] }) {
   return (
     <div className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100 px-4 py-3 shadow-sm">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-1 overflow-x-auto pb-1">
+      <div className="w-full max-w-5xl mx-auto">
+        <div className="flex items-center justify-between gap-0.5 flex-nowrap">
           {SECTIONS.map((s, i) => {
             const isDone = completed.includes(s.id);
             const isCurrent = s.id === current;
             return (
-              <div key={s.id} className="flex items-center gap-1 flex-shrink-0">
+              <div key={s.id} className="flex items-center gap-0.5 min-w-0 flex-1">
                 <div
-                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
+                  className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium transition-all whitespace-nowrap ${
                     isCurrent
                       ? "bg-skin-600 text-white shadow-md scale-105"
                       : isDone
@@ -173,12 +173,12 @@ function ProgressBar({ current, completed }: { current: number; completed: numbe
                       : "bg-gray-100 text-gray-400"
                   }`}
                 >
-                  <span className="text-sm leading-none">{isDone ? "✓" : s.icon}</span>
-                  <span className="hidden sm:inline">{s.shortTitle}</span>
+                  <span className="text-xs leading-none">{isDone ? "✓" : s.icon}</span>
+                  <span className="hidden xs:inline sm:inline">{s.shortTitle}</span>
                 </div>
                 {i < SECTIONS.length - 1 && (
                   <div
-                    className={`h-px w-3 rounded-full transition-colors ${
+                    className={`h-px flex-1 min-w-[4px] rounded-full transition-colors mx-0.5 ${
                       isDone ? "bg-teal-300" : "bg-gray-200"
                     }`}
                   />
@@ -217,8 +217,7 @@ function SectionIntroCard({
   onContinue: () => void;
 }) {
   useEffect(() => {
-    const timer = setTimeout(onContinue, 2200);
-    return () => clearTimeout(timer);
+    onContinue();
   }, [onContinue]);
 
   return (
@@ -353,12 +352,14 @@ function RangeSlider({
 
 function CardOption({
   emoji,
+  image,
   label,
   sub,
   selected,
   onClick,
 }: {
   emoji: string;
+  image?: string;
   label: string;
   sub?: string;
   selected: boolean;
@@ -366,18 +367,32 @@ function CardOption({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 p-4 text-center transition-all active:scale-95 ${
+      className={`relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3 text-center transition-all active:scale-95 overflow-hidden ${
         selected
-          ? "border-skin-500 bg-skin-50 shadow-md"
-          : "border-gray-200 bg-white hover:border-skin-200"
+          ? "border-skin-500 bg-skin-50 shadow-md ring-2 ring-skin-400/20"
+          : "border-gray-200 bg-white hover:border-skin-300 hover:shadow-sm"
       }`}
     >
-      <span className="text-2xl">{emoji}</span>
+      {image ? (
+        <div className="relative w-full h-28 rounded-xl overflow-hidden bg-gray-100 mb-1 border border-gray-100 group">
+          <img
+            src={image}
+            alt={label}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          <span className="absolute top-1.5 right-1.5 bg-white/90 backdrop-blur rounded-full px-2 py-0.5 text-xs shadow-sm font-medium">
+            {emoji}
+          </span>
+        </div>
+      ) : (
+        <span className="text-2xl">{emoji}</span>
+      )}
       <span className={`text-sm font-semibold ${selected ? "text-skin-700" : "text-gray-800"}`}>
         {label}
       </span>
-      {sub && <span className="text-xs text-gray-400 leading-tight">{sub}</span>}
+      {sub && <span className="text-xs text-gray-500 leading-tight">{sub}</span>}
     </button>
   );
 }
@@ -388,7 +403,7 @@ function SingleSelect<T extends string>({
   onChange,
   cols = 2,
 }: {
-  options: { value: T; emoji: string; label: string; sub?: string }[];
+  options: { value: T; emoji: string; image?: string; label: string; sub?: string }[];
   value: T | null;
   onChange: (v: T) => void;
   cols?: number;
@@ -402,6 +417,7 @@ function SingleSelect<T extends string>({
         <CardOption
           key={o.value}
           emoji={o.emoji}
+          image={o.image}
           label={o.label}
           sub={o.sub}
           selected={value === o.value}
@@ -419,7 +435,7 @@ function MultiSelect<T extends string>({
   exclusive = [],
   cols = 2,
 }: {
-  options: { value: T; emoji: string; label: string; sub?: string }[];
+  options: { value: T; emoji: string; image?: string; label: string; sub?: string }[];
   value: T[];
   onChange: (v: T[]) => void;
   exclusive?: T[];
@@ -446,6 +462,7 @@ function MultiSelect<T extends string>({
         <CardOption
           key={o.value}
           emoji={o.emoji}
+          image={o.image}
           label={o.label}
           sub={o.sub}
           selected={value.includes(o.value)}
@@ -923,13 +940,13 @@ function Section7Health({ answers, update }: { answers: Answers; update: <K exte
           cols={2}
           exclusive={["none", "prefer_not_to_say"]}
           options={[
-            { value: "acne",              emoji: "🔴", label: "Acne",              sub: "Pimples, blackheads or whiteheads" },
-            { value: "rosacea",           emoji: "🌹", label: "Rosacea",           sub: "Facial redness & visible blood vessels" },
-            { value: "eczema",            emoji: "🌊", label: "Eczema",            sub: "Dry, itchy, inflamed patches of skin" },
-            { value: "psoriasis",         emoji: "🔵", label: "Psoriasis",         sub: "Thick, scaly red patches" },
-            { value: "melasma",           emoji: "🟤", label: "Melasma",           sub: "Brown/grey patches, often on cheeks" },
-            { value: "none",              emoji: "✅", label: "None",              sub: "No diagnosed skin conditions" },
-            { value: "prefer_not_to_say", emoji: "🔒", label: "Prefer not to say" },
+            { value: "acne",              emoji: "🔴", image: "/images/conditions/acne.png",     label: "Acne",              sub: "Pimples, blackheads or whiteheads" },
+            { value: "rosacea",           emoji: "🌹", image: "/images/conditions/rosacea.png",  label: "Rosacea",           sub: "Facial redness & visible blood vessels" },
+            { value: "eczema",            emoji: "🌊", image: "/images/conditions/eczema.png",   label: "Eczema",            sub: "Dry, itchy, inflamed patches of skin" },
+            { value: "psoriasis",         emoji: "🔵", image: "/images/conditions/psoriasis.png", label: "Psoriasis",         sub: "Thick, scaly red patches" },
+            { value: "melasma",           emoji: "🟤", image: "/images/conditions/melasma.png",  label: "Melasma",           sub: "Dark hyperpigmented patches on face" },
+            { value: "none",              emoji: "✅", image: "/images/conditions/none.png",     label: "None",              sub: "No diagnosed skin conditions" },
+            { value: "prefer_not_to_say", emoji: "🔒", label: "Prefer not to say", sub: "Skip this question" },
           ]}
         />
       </QuestionBlock>
@@ -1297,7 +1314,7 @@ export function QuestionnaireForm({
           <span>💾 Auto-saves</span>
         </div>
         <button
-          onClick={() => { setPhase("section"); setShowIntro(true); }}
+          onClick={() => { setPhase("section"); setShowIntro(false); }}
           className="bg-skin-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-skin-700 active:scale-95 transition-all shadow-md shadow-skin-200"
         >
           Begin →
@@ -1332,7 +1349,7 @@ export function QuestionnaireForm({
         <div className="text-6xl">🎉</div>
         <h2 className="text-2xl font-bold text-gray-900">All done!</h2>
         <p className="text-gray-500 text-sm max-w-sm leading-relaxed">
-          Your lifestyle profile is saved. We&apos;re generating your personalised skin recommendations.
+          Your lifestyle profile is saved. Next up — let&apos;s scan your face!
         </p>
         <div className="w-full max-w-xs h-2 bg-gray-100 rounded-full overflow-hidden mt-2">
           <motion.div

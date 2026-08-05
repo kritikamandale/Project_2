@@ -25,7 +25,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
   const current = activeIndex(pathname);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-dvh overflow-hidden bg-gray-50 flex flex-col">
       {/* Fixed progress bar sits above the fullscreen scan UI (z-60 > camera z-50) */}
       <header className="fixed top-0 inset-x-0 z-[60] bg-white/95 backdrop-blur border-b border-skin-100 shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3">
@@ -74,9 +74,8 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
         </div>
       </header>
 
-      {/* Padding offsets the fixed bar; the fullscreen scan step is position:fixed
-          so it intentionally ignores this and fills the viewport under the bar. */}
-      <main className="pt-24">{children}</main>
+      {/* pt-[88px] offsets the fixed header (py-3 + text line + ol ≈ 88px) */}
+      <main className="flex-1 overflow-hidden pt-[88px]">{children}</main>
     </div>
   );
 }

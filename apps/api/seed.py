@@ -617,6 +617,151 @@ BIODERMA_PRODUCTS = [
 ]
 
 # ---------------------------------------------------------------------------
+# Gap-filling products — covering oily+sensitive+arid combinations that
+# were missing from the initial catalog. All brands are well-known in India
+# and carry dermatologist recommendations.
+# ---------------------------------------------------------------------------
+PLUM_PRODUCTS = [
+    {
+        "brand": "others", "brand_display": "Plum",
+        "product_name": "Plum Green Tea Gentle Face Wash",
+        "category": "cleanser", "price_inr": 245.0, "mrp_inr": 285.0,
+        "key_ingredients": ["green tea extract", "glycerin", "aloe vera", "centella asiatica"],
+        "key_actives": ["green tea extract", "glycerin", "centella asiatica"],
+        "targets_conditions": ["acne", "redness", "pores", "texture"],
+        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "tropical", "coastal", "temperate"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
+        "product_url": "https://www.plumgoodness.com/products/green-tea-gentle-face-wash",
+        "image_url": "https://plumgoodness.com/cdn/shop/files/2706_1024x.jpg",
+        "rating_avg": 4.5, "review_count": 28400,
+    },
+    {
+        "brand": "others", "brand_display": "Plum",
+        "product_name": "Plum Green Tea Oil-Free Moisturiser",
+        "category": "moisturiser", "price_inr": 395.0, "mrp_inr": 450.0,
+        "key_ingredients": ["green tea extract", "hyaluronic acid", "niacinamide", "glycerin"],
+        "key_actives": ["green tea extract", "hyaluronic acid", "niacinamide"],
+        "targets_conditions": ["acne", "pores", "redness", "uneven_tone"],
+        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "tropical", "coastal"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
+        "product_url": "https://www.plumgoodness.com/products/green-tea-oil-free-moisturiser",
+        "image_url": "https://plumgoodness.com/cdn/shop/files/7206_1024x.jpg",
+        "rating_avg": 4.4, "review_count": 19600,
+    },
+    {
+        "brand": "others", "brand_display": "Plum",
+        "product_name": "Plum Shield Me Up SPF 50+ PA++++ Sunscreen Gel",
+        "category": "sunscreen", "price_inr": 349.0, "mrp_inr": 399.0,
+        "key_ingredients": ["zinc oxide", "tinosorb S", "hyaluronic acid", "aloe vera"],
+        "key_actives": ["zinc oxide", "tinosorb S", "hyaluronic acid"],
+        "targets_conditions": ["pigmentation", "dark_spots", "acne"],
+        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "tropical", "coastal"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
+        "product_url": "https://www.plumgoodness.com/products/shield-me-up-spf-50-sunscreen-gel",
+        "image_url": "https://plumgoodness.com/cdn/shop/files/shield_sunscreen_1024x.jpg",
+        "rating_avg": 4.6, "review_count": 14200,
+    },
+]
+
+DOT_AND_KEY_PRODUCTS = [
+    {
+        "brand": "others", "brand_display": "Dot & Key",
+        "product_name": "Dot & Key Ceramide + Peptide Barrier Repair Moisturiser",
+        "category": "moisturiser", "price_inr": 595.0, "mrp_inr": 695.0,
+        "key_ingredients": ["ceramides", "peptides", "niacinamide", "hyaluronic acid", "squalane"],
+        "key_actives": ["ceramide", "peptides", "niacinamide", "hyaluronic acid"],
+        "targets_conditions": ["dryness", "redness", "texture"],
+        "skin_types_suitable": ["sensitive", "dry", "normal", "combination", "oily"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "temperate"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
+        "product_url": "https://dotandkey.com/products/ceramide-peptide-barrier-repair-moisturiser",
+        "image_url": "https://dotandkey.com/cdn/shop/files/ceramide_moisturiser_1024x.jpg",
+        "rating_avg": 4.5, "review_count": 8700,
+    },
+    {
+        "brand": "others", "brand_display": "Dot & Key",
+        "product_name": "Dot & Key Waterlight Gel Moisturiser SPF 35",
+        "category": "moisturiser", "price_inr": 545.0, "mrp_inr": 645.0,
+        "key_ingredients": ["hyaluronic acid", "niacinamide", "green tea", "SPF 35 filters"],
+        "key_actives": ["hyaluronic acid", "niacinamide", "green tea"],
+        "targets_conditions": ["dryness", "pores", "pigmentation"],
+        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "tropical"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
+        "product_url": "https://dotandkey.com/products/waterlight-gel-moisturiser-spf-35",
+        "rating_avg": 4.4, "review_count": 11200,
+    },
+]
+
+THE_DERMA_CO_PRODUCTS = [
+    {
+        "brand": "others", "brand_display": "The Derma Co",
+        "product_name": "The Derma Co 1% Salicylic Acid Gel Face Wash",
+        "category": "cleanser", "price_inr": 299.0, "mrp_inr": 349.0,
+        "key_ingredients": ["salicylic acid 1%", "niacinamide", "allantoin", "aloe vera"],
+        "key_actives": ["salicylic acid", "niacinamide", "allantoin"],
+        "targets_conditions": ["acne", "pores", "texture", "redness"],
+        "skin_types_suitable": ["oily", "combination", "sensitive"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V"],
+        "climate_zones_suitable": ["arid", "semi_arid", "tropical", "coastal"],
+        "is_dermatologist_approved": True, "pregnancy_safe": False, "is_new": False,
+        "product_url": "https://thederma.co/products/1-salicylic-acid-gel-face-wash",
+        "image_url": "https://thederma.co/cdn/shop/files/facewash_salicylic_1024x.jpg",
+        "rating_avg": 4.5, "review_count": 22100,
+    },
+    {
+        "brand": "others", "brand_display": "The Derma Co",
+        "product_name": "The Derma Co 10% Niacinamide + 1% Zinc Serum",
+        "category": "serum", "price_inr": 449.0, "mrp_inr": 549.0,
+        "key_ingredients": ["niacinamide 10%", "zinc PCA 1%", "hyaluronic acid"],
+        "key_actives": ["niacinamide", "zinc", "hyaluronic acid"],
+        "targets_conditions": ["acne", "pores", "uneven_tone", "redness"],
+        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "tropical", "coastal"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
+        "product_url": "https://thederma.co/products/10-niacinamide-face-serum",
+        "rating_avg": 4.6, "review_count": 31500,
+    },
+    {
+        "brand": "others", "brand_display": "The Derma Co",
+        "product_name": "The Derma Co Mineral SPF 50 Tinted Sunscreen",
+        "category": "sunscreen", "price_inr": 549.0, "mrp_inr": 649.0,
+        "key_ingredients": ["zinc oxide 12%", "titanium dioxide 5%", "niacinamide", "iron oxides"],
+        "key_actives": ["zinc oxide", "titanium dioxide", "niacinamide"],
+        "targets_conditions": ["pigmentation", "dark_spots", "redness", "acne"],
+        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
+        "fitzpatrick_suitable": ["III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "tropical", "coastal"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
+        "product_url": "https://thederma.co/products/mineral-spf-50-tinted-sunscreen",
+        "rating_avg": 4.4, "review_count": 9300,
+    },
+    {
+        "brand": "others", "brand_display": "The Derma Co",
+        "product_name": "The Derma Co Sepicalm + Ceramide Sensitive Moisturiser",
+        "category": "moisturiser", "price_inr": 499.0, "mrp_inr": 599.0,
+        "key_ingredients": ["sepicalm", "ceramides", "hyaluronic acid", "niacinamide", "allantoin"],
+        "key_actives": ["ceramide", "hyaluronic acid", "niacinamide", "allantoin"],
+        "targets_conditions": ["redness", "dryness", "texture"],
+        "skin_types_suitable": ["sensitive", "dry", "normal", "combination", "oily"],
+        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
+        "climate_zones_suitable": ["arid", "semi_arid", "temperate", "tropical"],
+        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
+        "product_url": "https://thederma.co/products/sepicalm-ceramide-sensitive-moisturiser",
+        "rating_avg": 4.5, "review_count": 7800,
+    },
+]
+
+# ---------------------------------------------------------------------------
 # Indian city climate data (static, pre-seeded as a reference table)
 # Note: These create EnvironmentProfile rows NOT linked to any user (user_id
 # is nullable-null here only for the reference data pattern); in production
@@ -783,13 +928,29 @@ def _derive_actives(key_ingredients: list[str]) -> list[str]:
     return actives
 
 
+CATEGORY_DEFAULT_IMAGES = {
+    "cleanser": "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=300&q=80",
+    "serum": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=300&q=80",
+    "moisturiser": "https://images.unsplash.com/photo-1608248597261-e4d0450cbf1b?auto=format&fit=crop&w=300&q=80",
+    "sunscreen": "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=300&q=80",
+    "toner": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=300&q=80",
+    "treatment": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=300&q=80",
+    "mask": "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=300&q=80",
+}
+
+
 async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> None:
     print("  Seeding products...")
     all_products = (
         NYKAA_PRODUCTS + MINIMALIST_PRODUCTS + DERMACO_PRODUCTS
         + REEQUIL_PRODUCTS + CERAVE_PRODUCTS + BIODERMA_PRODUCTS
+        + PLUM_PRODUCTS + DOT_AND_KEY_PRODUCTS + THE_DERMA_CO_PRODUCTS
     )
     for p in all_products:
+        cat = p.get("category", "cleanser")
+        default_img = CATEGORY_DEFAULT_IMAGES.get(cat, CATEGORY_DEFAULT_IMAGES["cleanser"])
+        img_url = p.get("image_url") or default_img
+
         exists = await session.execute(
             select(Product).where(
                 Product.brand == p["brand"],
@@ -798,13 +959,14 @@ async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> N
         )
         existing = exists.scalar_one_or_none()
         if existing:
-            # Backfill the v2 columns on already-seeded rows (mrp/actives/etc.)
-            # without disturbing anything else.
             changed = False
+            if p.get("product_url") and existing.product_url != p["product_url"]:
+                existing.product_url = p["product_url"]; changed = True
+            if existing.image_url != img_url:
+                existing.image_url = img_url; changed = True
             if existing.mrp_inr is None and p.get("mrp_inr") is not None:
                 existing.mrp_inr = p["mrp_inr"]; changed = True
             elif existing.mrp_inr is None and existing.price_inr:
-                # No explicit MRP — synthesise a modest one so discounts exist.
                 existing.mrp_inr = round(existing.price_inr * 1.2, 2); changed = True
             if not existing.key_actives:
                 existing.key_actives = p.get("key_actives") or _derive_actives(existing.key_ingredients or []); changed = True
@@ -814,8 +976,6 @@ async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> N
                 existing.pack_size = p["pack_size"]; changed = True
             if p.get("pregnancy_safe") is not None and existing.pregnancy_safe is None:
                 existing.pregnancy_safe = p["pregnancy_safe"]; changed = True
-            if existing.image_url is None and p.get("image_url"):
-                existing.image_url = p["image_url"]; changed = True
             print(f"    ~ backfill {p['brand']}/{p['product_name']}" if changed else f"    skip {p['brand']}/{p['product_name']} (exists)")
             continue
         product = Product(
@@ -824,7 +984,7 @@ async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> N
             brand_display=p.get("brand_display"),
             product_name=p["product_name"],
             product_url=p.get("product_url"),
-            image_url=p.get("image_url"),
+            image_url=img_url,
             price_inr=p.get("price_inr"),
             mrp_inr=p.get("mrp_inr"),
             pack_size=p.get("pack_size", 1),

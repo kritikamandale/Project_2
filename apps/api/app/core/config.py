@@ -37,8 +37,15 @@ class Settings(BaseSettings):
     environment: Literal["development", "staging", "production"] = "development"
     debug: bool = False
     secret_key: str = Field(..., min_length=32)          # required — no default
-    allowed_origins: list[str] = ["http://localhost:3000"]
-    frontend_url: str = "http://localhost:3000"
+    allowed_origins: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:3100",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3100",
+        "http://127.0.0.1:3001",
+    ]
+    frontend_url: str = "http://localhost:3100"
     trusted_hosts: list[str] = ["localhost", "127.0.0.1"]
 
     # Only trust X-Forwarded-For / X-Forwarded-Proto when the API actually sits
@@ -52,7 +59,18 @@ class Settings(BaseSettings):
     @classmethod
     def parse_origins(cls, v: str | list[str]) -> list[str]:
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
+            v_str = v.strip()
+            if v_str.startswith("[") and v_str.endswith("]"):
+                import json
+                try:
+                    res = json.loads(v_str)
+                    if isinstance(res, list):
+                        return [str(o).strip(' "\'[]') for o in res if str(o).strip(' "\'[]')]
+                except Exception:
+                    pass
+            return [origin.strip(' "\'[]') for origin in v_str.split(",") if origin.strip(' "\'[]')]
+        elif isinstance(v, list):
+            return [str(o).strip(' "\'[]') for o in v if str(o).strip(' "\'[]')]
         return v
 
     @field_validator("trusted_hosts", mode="before")

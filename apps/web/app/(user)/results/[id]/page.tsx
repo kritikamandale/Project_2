@@ -147,6 +147,30 @@ function ConditionCard({ cond }: { cond: ConditionSummary }) {
 
 // ---------------------------------------------------------------------------
 // Product card
+function ProductImage({ src, alt, category }: { src?: string | null; alt: string; category?: string }) {
+  const [error, setError] = useState(false);
+  const catEmojis: Record<string, string> = {
+    cleanser: "🧴", moisturiser: "💧", sunscreen: "☀️", serum: "💊", toner: "✨", treatment: "🩹", mask: "🎭"
+  };
+  const emoji = category ? (catEmojis[category] ?? "🌿") : "🌿";
+
+  if (!src || error) {
+    return <span className="text-2xl" aria-hidden>{emoji}</span>;
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      referrerPolicy="no-referrer"
+      className="w-full h-full object-cover"
+      loading="lazy"
+      onError={() => setError(true)}
+    />
+  );
+}
+
 // ---------------------------------------------------------------------------
 function ProductCard({ entry, index }: { entry: RecommendedProductEntry; index: number }) {
   const p = entry.product;
@@ -163,19 +187,8 @@ function ProductCard({ entry, index }: { entry: RecommendedProductEntry; index: 
       {/* Header */}
       <div className={`${phase.bg}/40 backdrop-blur-sm px-5 pt-4 pb-3 flex items-start gap-3`}>
         {/* Product photo — floats inside its own small glass frame. */}
-        <div className="w-16 h-16 shrink-0 rounded-xl glass-card overflow-hidden flex items-center justify-center">
-          {p.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={p.image_url}
-              alt={p.product_name}
-              className="w-full h-full object-contain p-1.5"
-              loading="lazy"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-            />
-          ) : (
-            <Leaf className="w-6 h-6 text-teal-400" />
-          )}
+        <div className="w-16 h-16 shrink-0 rounded-xl glass-card overflow-hidden flex items-center justify-center bg-gray-50 border border-gray-100">
+          <ProductImage src={p.image_url} alt={p.product_name} category={p.category} />
         </div>
         <div className="flex-1 min-w-0 flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -397,7 +410,7 @@ function GeneratingState() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white flex flex-col items-center justify-center px-4">
+    <div className="py-16 px-4 flex flex-col items-center justify-center text-center">
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
@@ -465,21 +478,31 @@ export default function ResultsPage() {
       const cachedId = typeof window !== "undefined" ? sessionStorage.getItem(storageKey) : null;
 
       try {
-        let detail: RecommendationDetail;
+        let detail: RecommendationDetail | null = null;
 
         if (cachedId) {
-          // Already generated — fetch cached recommendation
-          detail = await getRecommendation(cachedId);
-        } else {
-          // Generate fresh recommendation
-          const genRes = await generateRecommendation({
-            scan_id: scanId,
-            questionnaire_id: questionnaireId,
-          });
-          if (typeof window !== "undefined") {
-            sessionStorage.setItem(storageKey, genRes.recommendation_id);
+          try {
+            detail = await getRecommendation(cachedId);
+          } catch {
+            /* cache miss — fallback below */
           }
-          detail = await getRecommendation(genRes.recommendation_id);
+        }
+
+        if (!detail) {
+          try {
+            // First try fetching by ID directly (in case URL param is recommendation ID)
+            detail = await getRecommendation(scanId);
+          } catch {
+            // Otherwise generate fresh for this scan_id
+            const genRes = await generateRecommendation({
+              scan_id: scanId,
+              questionnaire_id: questionnaireId,
+            });
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem(storageKey, genRes.recommendation_id);
+            }
+            detail = await getRecommendation(genRes.recommendation_id);
+          }
         }
 
         setRecommendation(detail);
@@ -555,21 +578,8 @@ export default function ResultsPage() {
       ?.condition_name ?? null;
 
   return (
-    <div className="min-h-screen">
-      {/* Top bar */}
-      <div className="glass-card sticky top-0 z-20 px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
-        >
-          ← Dashboard
-        </button>
-        <span className="text-xs text-gray-400">
-          Generated {new Date(rec.generated_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-        </span>
-      </div>
-
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+    <div className="pb-12">
+      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-8">
         {/* ---- 1. Hero: Skin Score + Type ---- */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
