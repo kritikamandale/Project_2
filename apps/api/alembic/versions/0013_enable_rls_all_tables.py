@@ -38,13 +38,13 @@ _PUBLIC_READ_TABLES = [
 
 def upgrade() -> None:
     # Ensure app_current_user_id helper function exists
-    op.execute("""        CREATE OR REPLACE FUNCTION app_current_user_id() RETURNS uuid AS $$
+    op.execute("""CREATE OR REPLACE FUNCTION app_current_user_id() RETURNS uuid AS $$
         BEGIN
             RETURN current_setting('app.current_user_id', true)::uuid;
         EXCEPTION WHEN OTHERS THEN
             RETURN NULL;
         END;
-        $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;""")
+        $$ LANGUAGE plpgsql STABLE SECURITY DEFINER""")
 
     # 1. User Table (users)
     op.execute("ALTER TABLE users ENABLE ROW LEVEL SECURITY")

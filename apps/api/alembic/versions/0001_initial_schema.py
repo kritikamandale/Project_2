@@ -99,7 +99,7 @@ def _create_audit_triggers():
 
 def _drop_audit_triggers():
     for table in ("users", "skin_scans", "recommendations"):
-        op.execute(f"DROP TRIGGER IF EXISTS audit_{table} ON {table};")
+        op.execute(f"DROP TRIGGER IF EXISTS audit_{table} ON {table}")
     op.execute(DROP_AUDIT_TRIGGER_FN)
 
 
@@ -114,7 +114,7 @@ def upgrade() -> None:
         sa.text("SELECT 1 FROM pg_available_extensions WHERE name = 'vector'")
     ).scalar()
     if has_vector:
-        op.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        op.execute("CREATE EXTENSION IF NOT EXISTS vector")
 
     _create_enums()
 
@@ -345,7 +345,7 @@ def upgrade() -> None:
     # Convert column to proper pgvector type after table creation (if vector extension available)
     if has_vector:
         try:
-            op.execute("ALTER TABLE product_embeddings ALTER COLUMN embedding_vector TYPE vector(1536) USING NULL;")
+            op.execute("ALTER TABLE product_embeddings ALTER COLUMN embedding_vector TYPE vector(1536) USING NULL")
         except Exception:
             pass
 
@@ -502,4 +502,4 @@ def downgrade() -> None:
         op.drop_table(table)
 
     _drop_enums()
-    op.execute("DROP EXTENSION IF EXISTS vector;")
+    op.execute("DROP EXTENSION IF EXISTS vector")

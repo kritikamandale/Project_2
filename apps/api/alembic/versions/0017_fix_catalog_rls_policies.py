@@ -26,14 +26,14 @@ def upgrade() -> None:
     for table in _PUBLIC_CATALOG_TABLES:
         # Drop all existing policies — each in a separate op.execute() call.
         # asyncpg does not allow multiple SQL statements in a single prepared statement.
-        op.execute(f"DROP POLICY IF EXISTS {table}_policy ON {table};")
-        op.execute(f"DROP POLICY IF EXISTS {table}_read_all ON {table};")
-        op.execute(f"DROP POLICY IF EXISTS {table}_service_bypass ON {table};")
-        op.execute(f"DROP POLICY IF EXISTS {table}_select_policy ON {table};")
-        op.execute(f"DROP POLICY IF EXISTS {table}_write_policy ON {table};")
-        op.execute(f"DROP POLICY IF EXISTS {table}_insert_policy ON {table};")
-        op.execute(f"DROP POLICY IF EXISTS {table}_update_policy ON {table};")
-        op.execute(f"DROP POLICY IF EXISTS {table}_delete_policy ON {table};")
+        op.execute(f"DROP POLICY IF EXISTS {table}_policy ON {table}")
+        op.execute(f"DROP POLICY IF EXISTS {table}_read_all ON {table}")
+        op.execute(f"DROP POLICY IF EXISTS {table}_service_bypass ON {table}")
+        op.execute(f"DROP POLICY IF EXISTS {table}_select_policy ON {table}")
+        op.execute(f"DROP POLICY IF EXISTS {table}_write_policy ON {table}")
+        op.execute(f"DROP POLICY IF EXISTS {table}_insert_policy ON {table}")
+        op.execute(f"DROP POLICY IF EXISTS {table}_update_policy ON {table}")
+        op.execute(f"DROP POLICY IF EXISTS {table}_delete_policy ON {table}")
 
         # 1. Read-only for all (FOR SELECT only)
         op.execute(f"""CREATE POLICY {table}_select_policy ON {table} FOR SELECT
