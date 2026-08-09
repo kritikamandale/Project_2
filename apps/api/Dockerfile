@@ -2,12 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# System deps for OpenCV + cryptography
+# System deps for OpenCV + cryptography + python-magic
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libpq-dev \
     gcc \
+    libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Python deps
@@ -23,4 +24,5 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run Alembic migrations on startup then start Uvicorn using Railway's $PORT
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
