@@ -19,7 +19,7 @@ try:
     from pgvector.sqlalchemy import Vector
     _HAS_PGVECTOR = True
 except ImportError:  # graceful fallback during local setup without pgvector
-    from sqlalchemy import Text as Vector  # type: ignore[assignment]
+    from sqlalchemy import Text as Vector  # type: ignore[assignment]  # noqa: F401
     _HAS_PGVECTOR = False
 
 # ---------------------------------------------------------------------------

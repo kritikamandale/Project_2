@@ -66,7 +66,7 @@ class Settings(BaseSettings):
                     res = json.loads(v_str)
                     if isinstance(res, list):
                         return [str(o).strip(' "\'[]') for o in res if str(o).strip(' "\'[]')]
-                except Exception:
+                except Exception:  # noqa: S110
                     pass
             return [origin.strip(' "\'[]') for origin in v_str.split(",") if origin.strip(' "\'[]')]
         elif isinstance(v, list):

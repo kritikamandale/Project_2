@@ -75,7 +75,6 @@ export const ROUTE_RULES: RouteRule[] = [
 
 // Public paths — skip auth entirely
 export const PUBLIC_PREFIXES = [
-  "/",
   "/login",
   "/register",
   "/forgot-password",

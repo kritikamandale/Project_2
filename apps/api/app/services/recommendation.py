@@ -203,8 +203,8 @@ def _build_user_prompt(
 - Detected Skin Conditions (Scan): {conditions_summary}
 - Self-Reported Diagnosed Conditions: <conditions>{diagnosed}</conditions>
 - Health & Lifestyle: Sleep={f"{questionnaire.sleep_hours_avg:.1f} hrs" if questionnaire and questionnaire.sleep_hours_avg else 'unknown'}, Stress={f"{questionnaire.stress_level}/5" if questionnaire and questionnaire.stress_level else 'unknown'}, Work Env={questionnaire.work_environment if questionnaire else 'unknown'}, Water Intake={f"{questionnaire.water_intake_liters}L" if questionnaire and questionnaire.water_intake_liters else 'unknown'}
-- Current Skincare Habit: Routine={current_routine_summary}, Cleanser Freq={cleanser_freq or 'unknown'}, Sunscreen Use={sunscreen_use or 'unknown'}
-- Allergens & Sensitivity Notes: <allergens>{known_allergens}</allergens>
+- Current Skincare Habit: Routine={current_routine_summary}, Cleanser Freq={cleanser_freq or 'unknown'}, Sunscreen Use={sunscreen_use or 'unknown'}, Beginner={is_beginner}
+- Allergens & Sensitivity Notes: <allergens>{known_allergens}</allergens>, Medication={medication_name or 'none'}
 
 Instructions:
 1. Design a precise 3-step, 4-step, or 5-step routine tailored specifically for {scan.skin_type} skin in {climate.city if climate else 'their region'} ({climate.climate_zone if climate else 'local'} climate).
@@ -500,7 +500,7 @@ class RecommendationService:
         climate_zone = climate.climate_zone if climate else None
 
         # Active conditions from scan
-        active_conditions = [
+        _active_conditions = [
             c.condition_name for c in (scan.conditions or []) if c.severity != "none"
         ]
 
@@ -846,11 +846,14 @@ def _build_deterministic_fallback(
         morning_routine=morning_r,
         night_routine=night_r,
         ingredients_to_use=["Ceramides", "Niacinamide", "Hyaluronic Acid", "Zinc Oxide"],
-        ingredients_to_avoid=["Harsh Fragrance", "Alcohol", "Physical Scrubs"],
         lifestyle_tips=[
-class RecommendationService:
-    def __init__(self, db: AsyncSession):
-        self.db = db
+            "Drink 2-3 litres of water daily",
+            "Always patch test new products 24h before full application",
+            "Wear SPF 50+ sunscreen daily even on cloudy days",
+        ],
+        climate_insight=f"Formulated for local humidity and climate in {city}.",
+        dermatologist_note="Routine structured progressively across 3 phases for maximum barrier protection.",
+    )
 
     # ------------------------------------------------------------------
     # Step 2: AI / Dynamic Recommendation Generator

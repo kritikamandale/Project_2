@@ -149,7 +149,6 @@ jobs:
       - name: Run Bandit (fail on HIGH severity)
         run: |
           bandit -r app/ \
-            -ll \
             --severity-level high \
             --exclude app/tests \
             -f txt

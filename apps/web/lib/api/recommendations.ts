@@ -31,7 +31,8 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export interface ProductInRecommendation {
   id: string;
-  brand: "nykaa" | "minimalist" | "dermaco" | "others";
+  brand: string;
+  brand_display?: string | null;
   product_name: string;
   category: string;
   price_inr: number | null;
