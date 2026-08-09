@@ -65,7 +65,7 @@ qrcode==8.0
 
 # Security — HTML sanitization, file type detection
 nh3==0.2.18
-python-magic-bin==0.4.14  # Windows: bundles libmagic DLL (replaces python-magic)
+python-magic==0.4.27  # cross-platform; CI installs libmagic1 via apt; Windows users need to install libmagic separately
 
 # Security linting (used in CI — not imported at runtime)
 bandit==1.7.10
