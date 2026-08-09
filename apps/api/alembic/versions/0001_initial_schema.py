@@ -92,11 +92,9 @@ DROP_AUDIT_TRIGGER_FN = "DROP FUNCTION IF EXISTS audit_trigger_fn() CASCADE;"
 def _create_audit_triggers():
     op.execute(AUDIT_TRIGGER_FN)
     for table in ("users", "skin_scans", "recommendations"):
-        op.execute(f"""
-            CREATE TRIGGER audit_{table}
+        op.execute(f"""CREATE TRIGGER audit_{table}
             AFTER INSERT OR UPDATE OR DELETE ON {table}
-            FOR EACH ROW EXECUTE FUNCTION audit_trigger_fn();
-        """)
+            FOR EACH ROW EXECUTE FUNCTION audit_trigger_fn()""")
 
 
 def _drop_audit_triggers():
@@ -480,15 +478,13 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     # Default platform settings
     # ------------------------------------------------------------------
-    op.execute("""
-        INSERT INTO platform_settings (key, value) VALUES
+    op.execute("""INSERT INTO platform_settings (key, value) VALUES
         ('enable_dermatologist_review', 'true'),
         ('enable_waitlist', 'false'),
         ('max_scans_per_user_per_day', '3'),
         ('enable_analytics', 'true'),
         ('recommendation_engine_version', '"1.0"')
-        ON CONFLICT (key) DO NOTHING;
-    """)
+        ON CONFLICT (key) DO NOTHING""")
 
 
 def downgrade() -> None:

@@ -59,8 +59,7 @@ def upgrade() -> None:
     op.execute("DROP POLICY IF EXISTS users_isolation ON users;")
     op.execute("DROP POLICY IF EXISTS users_service_bypass ON users;")
     op.execute("DROP POLICY IF EXISTS users_policy ON users;")
-    op.execute("""
-        CREATE POLICY users_policy ON users FOR ALL
+    op.execute("""CREATE POLICY users_policy ON users FOR ALL
         USING (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR id = (SELECT app_current_user_id())
@@ -68,16 +67,14 @@ def upgrade() -> None:
         WITH CHECK (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR id = (SELECT app_current_user_id())
-        );
-    """)
+        )""")
 
     # Direct user_id tables
     for table in _USER_DIRECT_TABLES:
         op.execute(f"DROP POLICY IF EXISTS {table}_user_isolation ON {table};")
         op.execute(f"DROP POLICY IF EXISTS {table}_service_bypass ON {table};")
         op.execute(f"DROP POLICY IF EXISTS {table}_policy ON {table};")
-        op.execute(f"""
-            CREATE POLICY {table}_policy ON {table} FOR ALL
+        op.execute(f"""CREATE POLICY {table}_policy ON {table} FOR ALL
             USING (
                 (SELECT current_setting('app.rls_bypass', true)) = 'on'
                 OR user_id = (SELECT app_current_user_id())
@@ -85,15 +82,13 @@ def upgrade() -> None:
             WITH CHECK (
                 (SELECT current_setting('app.rls_bypass', true)) = 'on'
                 OR user_id = (SELECT app_current_user_id())
-            );
-        """)
+            )""")
 
     # Dermatologist profiles
     op.execute("DROP POLICY IF EXISTS dermatologist_profiles_user_isolation ON dermatologist_profiles;")
     op.execute("DROP POLICY IF EXISTS dermatologist_profiles_service_bypass ON dermatologist_profiles;")
     op.execute("DROP POLICY IF EXISTS dermatologist_profiles_policy ON dermatologist_profiles;")
-    op.execute("""
-        CREATE POLICY dermatologist_profiles_policy ON dermatologist_profiles FOR ALL
+    op.execute("""CREATE POLICY dermatologist_profiles_policy ON dermatologist_profiles FOR ALL
         USING (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR user_id = (SELECT app_current_user_id())
@@ -101,15 +96,13 @@ def upgrade() -> None:
         WITH CHECK (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR user_id = (SELECT app_current_user_id())
-        );
-    """)
+        )""")
 
     # Product suggestions
     op.execute("DROP POLICY IF EXISTS product_suggestions_user_isolation ON product_suggestions;")
     op.execute("DROP POLICY IF EXISTS product_suggestions_service_bypass ON product_suggestions;")
     op.execute("DROP POLICY IF EXISTS product_suggestions_policy ON product_suggestions;")
-    op.execute("""
-        CREATE POLICY product_suggestions_policy ON product_suggestions FOR ALL
+    op.execute("""CREATE POLICY product_suggestions_policy ON product_suggestions FOR ALL
         USING (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR suggested_by = (SELECT app_current_user_id())
@@ -117,15 +110,13 @@ def upgrade() -> None:
         WITH CHECK (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR suggested_by = (SELECT app_current_user_id())
-        );
-    """)
+        )""")
 
     # Skin conditions
     op.execute("DROP POLICY IF EXISTS skin_conditions_user_isolation ON skin_conditions;")
     op.execute("DROP POLICY IF EXISTS skin_conditions_service_bypass ON skin_conditions;")
     op.execute("DROP POLICY IF EXISTS skin_conditions_policy ON skin_conditions;")
-    op.execute("""
-        CREATE POLICY skin_conditions_policy ON skin_conditions FOR ALL
+    op.execute("""CREATE POLICY skin_conditions_policy ON skin_conditions FOR ALL
         USING (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR EXISTS (SELECT 1 FROM skin_scans WHERE skin_scans.id = skin_conditions.scan_id AND skin_scans.user_id = (SELECT app_current_user_id()))
@@ -133,15 +124,13 @@ def upgrade() -> None:
         WITH CHECK (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR EXISTS (SELECT 1 FROM skin_scans WHERE skin_scans.id = skin_conditions.scan_id AND skin_scans.user_id = (SELECT app_current_user_id()))
-        );
-    """)
+        )""")
 
     # Recommendation products
     op.execute("DROP POLICY IF EXISTS recommendation_products_user_isolation ON recommendation_products;")
     op.execute("DROP POLICY IF EXISTS recommendation_products_service_bypass ON recommendation_products;")
     op.execute("DROP POLICY IF EXISTS recommendation_products_policy ON recommendation_products;")
-    op.execute("""
-        CREATE POLICY recommendation_products_policy ON recommendation_products FOR ALL
+    op.execute("""CREATE POLICY recommendation_products_policy ON recommendation_products FOR ALL
         USING (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR EXISTS (SELECT 1 FROM recommendations WHERE recommendations.id = recommendation_products.recommendation_id AND recommendations.user_id = (SELECT app_current_user_id()))
@@ -149,15 +138,13 @@ def upgrade() -> None:
         WITH CHECK (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR EXISTS (SELECT 1 FROM recommendations WHERE recommendations.id = recommendation_products.recommendation_id AND recommendations.user_id = (SELECT app_current_user_id()))
-        );
-    """)
+        )""")
 
     # Progress metrics
     op.execute("DROP POLICY IF EXISTS progress_metrics_user_isolation ON progress_metrics;")
     op.execute("DROP POLICY IF EXISTS progress_metrics_service_bypass ON progress_metrics;")
     op.execute("DROP POLICY IF EXISTS progress_metrics_policy ON progress_metrics;")
-    op.execute("""
-        CREATE POLICY progress_metrics_policy ON progress_metrics FOR ALL
+    op.execute("""CREATE POLICY progress_metrics_policy ON progress_metrics FOR ALL
         USING (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR EXISTS (SELECT 1 FROM progress_scans WHERE progress_scans.id = progress_metrics.progress_scan_id AND progress_scans.user_id = (SELECT app_current_user_id()))
@@ -165,15 +152,13 @@ def upgrade() -> None:
         WITH CHECK (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR EXISTS (SELECT 1 FROM progress_scans WHERE progress_scans.id = progress_metrics.progress_scan_id AND progress_scans.user_id = (SELECT app_current_user_id()))
-        );
-    """)
+        )""")
 
     # Review queue
     op.execute("DROP POLICY IF EXISTS review_queue_assigned_isolation ON review_queue;")
     op.execute("DROP POLICY IF EXISTS review_queue_service_bypass ON review_queue;")
     op.execute("DROP POLICY IF EXISTS review_queue_policy ON review_queue;")
-    op.execute("""
-        CREATE POLICY review_queue_policy ON review_queue FOR ALL
+    op.execute("""CREATE POLICY review_queue_policy ON review_queue FOR ALL
         USING (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR assigned_to = (SELECT app_current_user_id())
@@ -181,23 +166,20 @@ def upgrade() -> None:
         WITH CHECK (
             (SELECT current_setting('app.rls_bypass', true)) = 'on'
             OR assigned_to = (SELECT app_current_user_id())
-        );
-    """)
+        )""")
 
     # Public catalog tables
     for table in _PUBLIC_READ_TABLES:
         op.execute(f"DROP POLICY IF EXISTS {table}_read_all ON {table};")
         op.execute(f"DROP POLICY IF EXISTS {table}_service_bypass ON {table};")
         op.execute(f"DROP POLICY IF EXISTS {table}_policy ON {table};")
-        op.execute(f"""
-            CREATE POLICY {table}_policy ON {table} FOR ALL
+        op.execute(f"""CREATE POLICY {table}_policy ON {table} FOR ALL
             USING (
                 true
             )
             WITH CHECK (
                 (SELECT current_setting('app.rls_bypass', true)) = 'on'
-            );
-        """)
+            )""")
 
 
 def downgrade() -> None:

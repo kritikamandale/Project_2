@@ -21,8 +21,7 @@ depends_on = None
 
 def upgrade() -> None:
     # 1. Relocate pgvector extension to extensions schema if in public
-    op.execute("""
-        CREATE SCHEMA IF NOT EXISTS extensions;
+    op.execute("""        CREATE SCHEMA IF NOT EXISTS extensions;
         DO $$
         BEGIN
             IF EXISTS (
@@ -32,23 +31,19 @@ def upgrade() -> None:
             ) THEN
                 ALTER EXTENSION vector SET SCHEMA extensions;
             END IF;
-        END $$;
-    """)
+        END $$;""")
 
     # 2. Update app_current_user_id() function to SECURITY INVOKER with explicit search_path
-    op.execute("""
-        CREATE OR REPLACE FUNCTION app_current_user_id() RETURNS uuid AS $$
+    op.execute("""        CREATE OR REPLACE FUNCTION app_current_user_id() RETURNS uuid AS $$
         BEGIN
             RETURN current_setting('app.current_user_id', true)::uuid;
         EXCEPTION WHEN OTHERS THEN
             RETURN NULL;
         END;
-        $$ LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path = public, pg_temp;
-    """)
+        $$ LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path = public, pg_temp;""")
 
     # 3. Update audit_trigger_fn() to SECURITY DEFINER with explicit search_path
-    op.execute("""
-        CREATE OR REPLACE FUNCTION audit_trigger_fn()
+    op.execute("""        CREATE OR REPLACE FUNCTION audit_trigger_fn()
         RETURNS TRIGGER AS $$
         DECLARE
             _user_id UUID;
@@ -78,31 +73,25 @@ def upgrade() -> None:
             END IF;
             RETURN NULL;
         END;
-        $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
-    """)
+        $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;""")
 
     # 4. Revoke EXECUTE from PUBLIC/anon/authenticated on SECURITY DEFINER / internal functions
-    op.execute("""
-        REVOKE EXECUTE ON FUNCTION audit_trigger_fn() FROM PUBLIC, anon, authenticated;
-        REVOKE EXECUTE ON FUNCTION app_current_user_id() FROM PUBLIC, anon;
-    """)
+    op.execute("""REVOKE EXECUTE ON FUNCTION audit_trigger_fn() FROM PUBLIC, anon, authenticated""")
+    op.execute("""REVOKE EXECUTE ON FUNCTION app_current_user_id() FROM PUBLIC, anon""")
 
 
 def downgrade() -> None:
     # Revert app_current_user_id
-    op.execute("""
-        CREATE OR REPLACE FUNCTION app_current_user_id() RETURNS uuid AS $$
+    op.execute("""        CREATE OR REPLACE FUNCTION app_current_user_id() RETURNS uuid AS $$
         BEGIN
             RETURN current_setting('app.current_user_id', true)::uuid;
         EXCEPTION WHEN OTHERS THEN
             RETURN NULL;
         END;
-        $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
-    """)
+        $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;""")
 
     # Revert audit_trigger_fn
-    op.execute("""
-        CREATE OR REPLACE FUNCTION audit_trigger_fn()
+    op.execute("""        CREATE OR REPLACE FUNCTION audit_trigger_fn()
         RETURNS TRIGGER AS $$
         DECLARE
             _user_id UUID;
@@ -132,5 +121,4 @@ def downgrade() -> None:
             END IF;
             RETURN NULL;
         END;
-        $$ LANGUAGE plpgsql SECURITY DEFINER;
-    """)
+        $$ LANGUAGE plpgsql SECURITY DEFINER;""")

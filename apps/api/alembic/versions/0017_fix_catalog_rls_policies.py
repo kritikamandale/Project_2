@@ -36,29 +36,21 @@ def upgrade() -> None:
         op.execute(f"DROP POLICY IF EXISTS {table}_delete_policy ON {table};")
 
         # 1. Read-only for all (FOR SELECT only)
-        op.execute(f"""
-            CREATE POLICY {table}_select_policy ON {table} FOR SELECT
-            USING (true);
-        """)
+        op.execute(f"""CREATE POLICY {table}_select_policy ON {table} FOR SELECT
+            USING (true)""")
 
         # 2. Insert restricted to service role
-        op.execute(f"""
-            CREATE POLICY {table}_insert_policy ON {table} FOR INSERT
-            WITH CHECK ((SELECT current_setting('app.rls_bypass', true)) = 'on');
-        """)
+        op.execute(f"""CREATE POLICY {table}_insert_policy ON {table} FOR INSERT
+            WITH CHECK ((SELECT current_setting('app.rls_bypass', true)) = 'on')""")
 
         # 3. Update restricted to service role
-        op.execute(f"""
-            CREATE POLICY {table}_update_policy ON {table} FOR UPDATE
+        op.execute(f"""CREATE POLICY {table}_update_policy ON {table} FOR UPDATE
             USING ((SELECT current_setting('app.rls_bypass', true)) = 'on')
-            WITH CHECK ((SELECT current_setting('app.rls_bypass', true)) = 'on');
-        """)
+            WITH CHECK ((SELECT current_setting('app.rls_bypass', true)) = 'on')""")
 
         # 4. Delete restricted to service role
-        op.execute(f"""
-            CREATE POLICY {table}_delete_policy ON {table} FOR DELETE
-            USING ((SELECT current_setting('app.rls_bypass', true)) = 'on');
-        """)
+        op.execute(f"""CREATE POLICY {table}_delete_policy ON {table} FOR DELETE
+            USING ((SELECT current_setting('app.rls_bypass', true)) = 'on')""")
 
 
 def downgrade() -> None:
