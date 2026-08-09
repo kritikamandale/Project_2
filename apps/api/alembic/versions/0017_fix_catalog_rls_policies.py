@@ -24,30 +24,38 @@ _PUBLIC_CATALOG_TABLES = [
 
 def upgrade() -> None:
     for table in _PUBLIC_CATALOG_TABLES:
-        op.execute(f"""
-            DROP POLICY IF EXISTS {table}_policy ON {table};
-            DROP POLICY IF EXISTS {table}_read_all ON {table};
-            DROP POLICY IF EXISTS {table}_service_bypass ON {table};
-            DROP POLICY IF EXISTS {table}_select_policy ON {table};
-            DROP POLICY IF EXISTS {table}_write_policy ON {table};
-            DROP POLICY IF EXISTS {table}_insert_policy ON {table};
-            DROP POLICY IF EXISTS {table}_update_policy ON {table};
-            DROP POLICY IF EXISTS {table}_delete_policy ON {table};
+        # Drop all existing policies — each in a separate op.execute() call.
+        # asyncpg does not allow multiple SQL statements in a single prepared statement.
+        op.execute(f"DROP POLICY IF EXISTS {table}_policy ON {table};")
+        op.execute(f"DROP POLICY IF EXISTS {table}_read_all ON {table};")
+        op.execute(f"DROP POLICY IF EXISTS {table}_service_bypass ON {table};")
+        op.execute(f"DROP POLICY IF EXISTS {table}_select_policy ON {table};")
+        op.execute(f"DROP POLICY IF EXISTS {table}_write_policy ON {table};")
+        op.execute(f"DROP POLICY IF EXISTS {table}_insert_policy ON {table};")
+        op.execute(f"DROP POLICY IF EXISTS {table}_update_policy ON {table};")
+        op.execute(f"DROP POLICY IF EXISTS {table}_delete_policy ON {table};")
 
-            -- 1. Read-only for all (FOR SELECT only)
+        # 1. Read-only for all (FOR SELECT only)
+        op.execute(f"""
             CREATE POLICY {table}_select_policy ON {table} FOR SELECT
             USING (true);
+        """)
 
-            -- 2. Insert restricted to service role
+        # 2. Insert restricted to service role
+        op.execute(f"""
             CREATE POLICY {table}_insert_policy ON {table} FOR INSERT
             WITH CHECK ((SELECT current_setting('app.rls_bypass', true)) = 'on');
+        """)
 
-            -- 3. Update restricted to service role
+        # 3. Update restricted to service role
+        op.execute(f"""
             CREATE POLICY {table}_update_policy ON {table} FOR UPDATE
             USING ((SELECT current_setting('app.rls_bypass', true)) = 'on')
             WITH CHECK ((SELECT current_setting('app.rls_bypass', true)) = 'on');
+        """)
 
-            -- 4. Delete restricted to service role
+        # 4. Delete restricted to service role
+        op.execute(f"""
             CREATE POLICY {table}_delete_policy ON {table} FOR DELETE
             USING ((SELECT current_setting('app.rls_bypass', true)) = 'on');
         """)
