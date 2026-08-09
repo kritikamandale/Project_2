@@ -21,8 +21,10 @@ depends_on = None
 
 def upgrade() -> None:
     # 1. Relocate pgvector extension to extensions schema if in public
-    op.execute("""CREATE SCHEMA IF NOT EXISTS extensions;
-        DO $$
+    # Each DDL command in a separate op.execute() — asyncpg does not allow
+    # multiple SQL statements in a single prepared statement.
+    op.execute("CREATE SCHEMA IF NOT EXISTS extensions")
+    op.execute("""DO $$
         BEGIN
             IF EXISTS (
                 SELECT 1 FROM pg_extension e 
@@ -30,7 +32,7 @@ def upgrade() -> None:
                 WHERE e.extname = 'vector' AND n.nspname = 'public') THEN
                 ALTER EXTENSION vector SET SCHEMA extensions;
             END IF;
-        END $$;""")
+        END $$""")
 
     # 2. Update app_current_user_id() function to SECURITY INVOKER with explicit search_path
     op.execute("""CREATE OR REPLACE FUNCTION app_current_user_id() RETURNS uuid AS $$
