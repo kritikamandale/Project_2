@@ -8,7 +8,7 @@ export function Toaster() {
       position="bottom-right"
       toastOptions={{
         classNames: {
-          toast: "font-sans",
+          toast: "font-sans bg-cream border border-deep-brown/10 text-deep-brown rounded-xl shadow-sm",
         },
       }}
     />

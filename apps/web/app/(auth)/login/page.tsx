@@ -8,6 +8,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
+import { SkinestLogo } from "@/components/shared/skinest-logo";
+import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
+import { Sparkles, Stethoscope } from "lucide-react";
 
 // shadcn/ui primitives
 import { Button } from "@/components/ui/button";
@@ -32,18 +35,16 @@ type Role = "user" | "dermatologist";
 
 const ROLE_CONFIG: Record<
   Role,
-  { label: string; emoji: string; accent: string; dashboardPath: string }
+  { label: string; Icon: React.ElementType; dashboardPath: string }
 > = {
   user: {
-    label: "I'm a user",
-    emoji: "✨",
-    accent: "from-skin-400 to-skin-600",
+    label: "User Sign In",
+    Icon: Sparkles,
     dashboardPath: "/dashboard",
   },
   dermatologist: {
     label: "Dermatologist",
-    emoji: "🩺",
-    accent: "from-skin-700 to-skin-800",
+    Icon: Stethoscope,
     dashboardPath: "/derm-dashboard",
   },
 };
@@ -125,36 +126,31 @@ function LoginPageInner() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-skin-50 via-white to-skin-100/40 p-4">
+    <AuthSplitLayout>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
+        className="w-full relative z-10"
       >
         {/* Logo / brand */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-5">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
-              <span className="text-white text-sm font-bold">S</span>
-            </div>
-            <span className="font-heading font-bold text-xl text-skin-800">Skinest</span>
-          </Link>
-          <div
-            className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${config.accent} mb-4 shadow-lg transition-all duration-300`}
-          >
-            <span className="text-2xl">{config.emoji}</span>
+        <div className="text-center mb-6">
+          <div className="mb-4 flex justify-center">
+            <SkinestLogo href="/" size="md" />
           </div>
-          <h1 className="text-2xl font-bold font-heading text-gray-900">
-            Welcome back
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-olive text-butter border border-deep-brown/10 mb-3 shadow-sm">
+            <config.Icon className="w-6 h-6" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold font-serif text-deep-brown">
+            Welcome Back
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs font-sans uppercase tracking-widest text-deep-brown/70 mt-1">
             AI-powered skincare for India
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-skin-100 p-8 space-y-6">
+        <div className="bg-cream border border-deep-brown/15 rounded-xl p-6 sm:p-8 shadow-sm space-y-6">
           {/* Role tabs */}
           <Tabs
             value={activeRole}
@@ -164,11 +160,14 @@ function LoginPageInner() {
             }}
           >
             <TabsList className="grid grid-cols-2 w-full">
-              {(Object.keys(ROLE_CONFIG) as Role[]).map((role) => (
-                <TabsTrigger key={role} value={role} className="text-xs sm:text-sm">
-                  {ROLE_CONFIG[role].emoji} {ROLE_CONFIG[role].label}
-                </TabsTrigger>
-              ))}
+              {(Object.keys(ROLE_CONFIG) as Role[]).map((role) => {
+                const RIcon = ROLE_CONFIG[role].Icon;
+                return (
+                  <TabsTrigger key={role} value={role} className="text-xs sm:text-sm flex items-center gap-1.5 justify-center">
+                    <RIcon className="w-4 h-4" /> {ROLE_CONFIG[role].label}
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
           </Tabs>
 
@@ -220,7 +219,7 @@ function LoginPageInner() {
                       <FormLabel>Password</FormLabel>
                       <Link
                         href="/forgot-password"
-                        className="text-xs text-skin-600 hover:underline"
+                        className="text-xs text-olive font-medium hover:underline"
                       >
                         Forgot password?
                       </Link>
@@ -240,7 +239,7 @@ function LoginPageInner() {
               <Button
                 type="submit"
                 disabled={isPending}
-                className={`w-full bg-gradient-to-r ${config.accent} hover:opacity-90 text-white font-semibold`}
+                className="w-full bg-butter hover:bg-butter/90 text-deep-brown font-sans font-bold border border-deep-brown/10 shadow-sm rounded-xl py-3"
               >
                 {isPending ? "Signing in…" : "Sign in"}
               </Button>
@@ -249,11 +248,11 @@ function LoginPageInner() {
 
           {/* Footer links */}
           {activeRole === "user" && (
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-xs text-deep-brown/80 font-sans">
               Don&apos;t have an account?{" "}
               <Link
                 href="/register"
-                className="text-skin-600 font-medium hover:underline"
+                className="text-olive font-bold hover:underline"
               >
                 Create one
               </Link>
@@ -261,11 +260,11 @@ function LoginPageInner() {
           )}
 
           {activeRole === "dermatologist" && (
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-xs text-deep-brown/80 font-sans">
               Apply as a dermatologist?{" "}
               <Link
                 href="/register/dermatologist"
-                className="text-skin-700 font-medium hover:underline"
+                className="text-olive font-bold hover:underline"
               >
                 Submit application
               </Link>
@@ -274,20 +273,21 @@ function LoginPageInner() {
         </div>
 
         {/* Privacy note */}
-        <p className="text-center text-xs text-gray-400 mt-6">
+        <p className="text-center text-xs text-deep-brown/60 mt-6 font-sans">
           By signing in, you agree to our{" "}
-          <Link href="/privacy" className="underline">
+          <Link href="/privacy" className="underline text-deep-brown/80">
             Privacy Policy
           </Link>{" "}
           and{" "}
-          <Link href="/terms" className="underline">
+          <Link href="/terms" className="underline text-deep-brown/80">
             Terms of Service
           </Link>
           .
         </p>
       </motion.div>
-    </div>
+    </AuthSplitLayout>
   );
+
 }
 
 export default function LoginPage() {

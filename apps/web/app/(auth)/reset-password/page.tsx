@@ -3,10 +3,13 @@
 import { Suspense, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { SkinestLogo } from "@/components/shared/skinest-logo";
+import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
+import { KeyRound, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -76,32 +79,29 @@ function ResetPasswordPageInner() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-skin-50 via-white to-skin-100/40 p-4">
+    <AuthSplitLayout>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
+        className="w-full relative z-10"
       >
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
-              <span className="text-white text-sm font-bold">S</span>
-            </div>
-            <span className="font-heading font-bold text-xl text-skin-800">Skinest</span>
-          </Link>
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-skin-400 to-skin-600 mb-3 shadow-lg">
-            <span className="text-xl">🔑</span>
+        <div className="text-center mb-6">
+          <div className="mb-4 flex justify-center">
+            <SkinestLogo href="/" size="md" />
           </div>
-          <h1 className="text-2xl font-bold font-heading text-gray-900">
-            Set a new password
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-olive text-butter border border-deep-brown/10 mb-3 shadow-sm">
+            <KeyRound className="w-6 h-6" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold font-serif text-deep-brown">
+            Set New Password
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs font-sans uppercase tracking-widest text-deep-brown/70 mt-1">
             Choose a strong password you haven&apos;t used before
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-skin-100 p-8">
+        <div className="bg-cream border border-deep-brown/15 rounded-xl p-6 sm:p-8 shadow-sm">
           <AnimatePresence mode="wait">
             {success ? (
               <motion.div
@@ -110,7 +110,9 @@ function ResetPasswordPageInner() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-4 space-y-3"
               >
-                <div className="text-5xl">✅</div>
+                <div className="w-12 h-12 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center mx-auto mb-2">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
                 <h3 className="font-semibold text-teal-700 text-lg">
                   Password updated!
                 </h3>
@@ -156,7 +158,7 @@ function ResetPasswordPageInner() {
                     <Button
                       type="submit"
                       disabled={isPending}
-                      className="w-full bg-skin-500 hover:bg-skin-600 text-white"
+                      className="w-full bg-butter hover:bg-butter/90 text-deep-brown font-sans font-bold border border-deep-brown/10 shadow-sm rounded-xl py-3"
                     >
                       {isPending ? "Updating…" : "Update password"}
                     </Button>
@@ -166,14 +168,14 @@ function ResetPasswordPageInner() {
             )}
           </AnimatePresence>
 
-          <div className="text-center mt-4 pt-4 border-t border-skin-100">
-            <Link href="/login" className="text-sm text-skin-600 hover:underline">
+          <div className="text-center mt-4 pt-4 border-t border-deep-brown/10">
+            <Link href="/login" className="text-xs text-olive font-bold hover:underline">
               ← Back to sign in
             </Link>
           </div>
         </div>
       </motion.div>
-    </div>
+    </AuthSplitLayout>
   );
 }
 

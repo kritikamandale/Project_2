@@ -176,7 +176,7 @@ function analyzeLighting(video: HTMLVideoElement, canvas: HTMLCanvasElement): Li
 
   if (mean > 150 && std > 20 && shadowRatio > 0.6) {
     quality = "good";
-    guidance = "Perfect lighting — hold still";
+    guidance = "Perfect lighting: hold still";
   } else if (mean >= 100) {
     quality = "acceptable";
     guidance = mean < 100 ? "Move to a brighter area" : "Remove shadows from your face";
@@ -337,7 +337,7 @@ async function detectFaceGuide(
     if (!isCentered) instruction = "Center your face in the oval";
     else if (tooSmall) instruction = "Move closer to the camera";
     else if (tooBig) instruction = "Move back a little";
-    else instruction = "Perfect — hold still";
+    else instruction = "Perfect: hold still";
 
     return { isCentered, sizeOk, instruction, bounds };
   } catch {
@@ -588,7 +588,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
     // The video must still be a live frame here. If it reports 0×0 the stream
     // isn't ready — capturing now would produce a blank/invalid frame.
     if (!video.videoWidth || !video.videoHeight) {
-      dispatch({ type: "ERROR", message: "Camera not ready yet — please wait a moment and try again." });
+      dispatch({ type: "ERROR", message: "Camera not ready yet: please wait a moment and try again." });
       return;
     }
 
@@ -603,7 +603,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
     await tick();
 
     try {
-      dispatch({ type: "ANALYZING", step: "This can take a moment — analysing your skin…", progress: 30 });
+      dispatch({ type: "ANALYZING", step: "This can take a moment: analysing your skin…", progress: 30 });
       await tick();
 
       dispatch({ type: "ANALYZING", step: "Looking closely at your skin…", progress: 55 });
@@ -614,7 +614,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
       dispatch({ type: "ANALYZING", step: "Working out your skin type…", progress: 75 });
       await tick();
 
-      dispatch({ type: "ANALYZING", step: "Almost there — summarising what we found…", progress: 90 });
+      dispatch({ type: "ANALYZING", step: "Almost there: summarising what we found…", progress: 90 });
       await tick();
 
       dispatch({ type: "PREVIEW", dataUrl, result });
@@ -671,15 +671,9 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
   // ---------------------------------------------------------------------------
 
   const lightingColors: Record<LightingQuality, string> = {
-    good: "text-teal-400",
-    acceptable: "text-cream-400",
-    poor: "text-red-400",
-  };
-
-  const lightingIcons: Record<LightingQuality, string> = {
-    good: "🟢",
-    acceptable: "🟡",
-    poor: "🔴",
+    good: "text-olive",
+    acceptable: "text-butter",
+    poor: "text-deep-brown/60",
   };
 
   // ---------------------------------------------------------------------------
@@ -690,16 +684,16 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
     <div className="relative w-full h-full bg-aquaglass-navy flex flex-col overflow-hidden">
 
       {/* ── Privacy banner ──────────────────────────────────────────────── */}
-      <div className="relative z-20 flex items-center gap-2 px-4 py-2 bg-aquaglass-navy/70 backdrop-blur-md border-b border-white/10 text-xs text-white/80">
-        <ShieldCheck className="w-4 h-4 text-teal-400 shrink-0" />
+      <div className="relative z-20 flex items-center gap-2 px-4 py-3 bg-olive text-cream border-b border-cream/15 text-xs font-sans">
+        <ShieldCheck className="w-4 h-4 text-butter shrink-0" />
         <span>
           Your photo never leaves your device. We analyse your skin locally and only
           send skin characteristics — not your image.{" "}
-          <a href="/privacy" target="_blank" rel="noreferrer" className="underline text-teal-300">
+          <a href="/privacy" target="_blank" rel="noreferrer" className="underline text-butter font-semibold">
             Learn more
           </a>
         </span>
-        <button onClick={onCancel} aria-label="Close scan and go back" className="ml-auto text-white/60 hover:text-white">
+        <button onClick={onCancel} aria-label="Close scan and go back" className="ml-auto text-cream/70 hover:text-cream">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -708,11 +702,9 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
       <canvas ref={lightingCanvasRef} className="hidden" />
 
       {/* ── Main camera area ────────────────────────────────────────────── */}
-      <div className="relative flex-1 flex items-center justify-center bg-aquaglass-navy">
+      <div className="relative flex-1 flex items-center justify-center bg-cream">
 
-        {/* Camera feed — mounted only after the user opts in on the intro screen,
-            so react-webcam's getUserMedia call (and thus the browser permission
-            prompt) fires from a deliberate user action, not silently on load. */}
+        {/* Camera feed — mounted only after the user opts in on the intro screen */}
         {(state.status === "requesting" || state.status === "active" || state.status === "countdown") && (
           <Webcam
             ref={webcamRef}
@@ -728,12 +720,10 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           />
         )}
 
-        {/* Frosted glass screen — dims/blurs everything outside the face oval so
-            the guide reads as a clear window cut into a frosted pane, matching
-            the aquaglass-navy dim the canvas guide (below) draws inside. */}
+        {/* Frosted glass screen */}
         {state.status === "active" && (
           <div
-            className="absolute inset-0 backdrop-blur-sm bg-aquaglass-navy/10 pointer-events-none"
+            className="absolute inset-0 backdrop-blur-sm bg-deep-brown/10 pointer-events-none"
             style={{
               WebkitMaskImage:
                 "radial-gradient(ellipse 30% 40% at 50% 42%, transparent 60%, black 72%)",
@@ -743,11 +733,10 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           />
         )}
 
-        {/* Pulsing aquatic guide ring — purely decorative ambiance around the
-            functional face oval drawn on the canvas just below. */}
+        {/* Pulsing guide ring */}
         {state.status === "active" && (
           <motion.div
-            className="absolute rounded-[50%] border-2 border-aquaglass-accent/50 pointer-events-none"
+            className="absolute rounded-[50%] border-2 border-olive/50 pointer-events-none"
             style={{ width: "30%", height: "40%", top: "22%", left: "35%" }}
             animate={{ scale: [1, 1.04, 1], opacity: [0.5, 0.9, 0.5] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
@@ -768,10 +757,10 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="absolute top-4 left-4 flex items-center gap-2 bg-aquaglass-navy/60 rounded-full px-3 py-1.5 backdrop-blur-md border border-white/10"
+              className="absolute top-4 left-4 flex items-center gap-2 bg-cream/90 text-deep-brown rounded-full px-3 py-1.5 backdrop-blur-md border border-deep-brown/15 shadow-sm"
             >
-              <span className="text-sm">{lightingIcons[lighting.quality]}</span>
-              <span className={`text-xs font-medium ${lightingColors[lighting.quality]}`}>
+              <span className={`w-2 h-2 rounded-full ${lighting.quality === 'good' ? 'bg-olive' : lighting.quality === 'acceptable' ? 'bg-butter' : 'bg-deep-brown/40'}`} />
+              <span className={`text-xs font-semibold ${lightingColors[lighting.quality]}`}>
                 {lighting.guidance}
               </span>
             </motion.div>
@@ -787,14 +776,14 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               animate={{ opacity: 1, y: 0 }}
               className="absolute bottom-28 left-0 right-0 flex justify-center"
             >
-              <div className="bg-aquaglass-navy/60 rounded-full px-4 py-2 backdrop-blur-md border border-white/10">
-                <span className="text-sm text-white">{faceGuide.instruction}</span>
+              <div className="bg-cream/95 text-deep-brown rounded-full px-5 py-2 backdrop-blur-md border border-deep-brown/15 shadow-sm">
+                <span className="text-sm font-semibold">{faceGuide.instruction}</span>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ── Model preparation status (download + warm-up) ──────────── */}
+        {/* ── Model preparation status ───────────────────────────────── */}
         <AnimatePresence>
           {state.status === "active" && modelState !== "ready" && (
             <motion.div
@@ -806,17 +795,17 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               {modelState === "error" ? (
                 <button
                   onClick={retryModelLoad}
-                  className="flex items-center gap-2 bg-rose-500/90 rounded-full px-4 py-2 backdrop-blur-md border border-white/10 hover:bg-rose-500 transition-colors"
+                  className="flex items-center gap-2 bg-rose-600 rounded-full px-4 py-2 text-white shadow-sm"
                 >
-                  <AlertTriangle className="w-3.5 h-3.5 text-white" />
-                  <span className="text-xs text-white font-medium">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">
                     Couldn&apos;t get the analysis ready — tap to retry
                   </span>
                 </button>
               ) : (
-                <div className="flex items-center gap-2.5 bg-aquaglass-navy/60 rounded-full px-4 py-2 backdrop-blur-md border border-white/10">
-                  <span className="w-3.5 h-3.5 rounded-full border-2 border-teal-400 border-t-transparent animate-spin shrink-0" />
-                  <span className="text-xs text-white/90">
+                <div className="flex items-center gap-2.5 bg-cream/90 rounded-full px-4 py-2 backdrop-blur-md border border-deep-brown/15 shadow-sm">
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-olive border-t-transparent animate-spin shrink-0" />
+                  <span className="text-xs text-deep-brown font-medium">
                     {firstTime
                       ? "Setting things up for your first scan — this takes a little longer the first time…"
                       : "Getting your scan ready — just a moment…"}
@@ -828,8 +817,6 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
         </AnimatePresence>
 
         {/* ── Auto-capture countdown ─────────────────────────────────── */}
-        {/* Non-blocking (pointer-events-none) so the oval / hints stay visible
-            and the shutter underneath stays tappable while the timer runs. */}
         {state.status === "active" && autoCountdown !== null && autoCountdown > 0 && (
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <AnimatePresence mode="popLayout">
@@ -839,12 +826,12 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                 animate={{ scale: 1, opacity: 0.9 }}
                 exit={{ scale: 0.7, opacity: 0 }}
                 transition={{ duration: 0.35 }}
-                className="text-white font-bold text-9xl drop-shadow-2xl"
+                className="text-deep-brown font-bold text-9xl drop-shadow-md"
               >
                 {autoCountdown}
               </motion.span>
             </AnimatePresence>
-            <span className="mt-2 text-white/80 text-sm bg-aquaglass-navy/50 rounded-full px-4 py-1.5 backdrop-blur-md border border-white/10">
+            <span className="mt-2 text-deep-brown font-medium text-xs bg-cream/90 rounded-full px-4 py-1.5 backdrop-blur-md border border-deep-brown/15 shadow-sm">
               Auto-capturing in {autoCountdown}s — hold still, or tap the shutter
             </span>
           </div>
@@ -857,26 +844,26 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy/80 gap-6"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-cream/95 text-deep-brown gap-6"
             >
-              <div className="w-16 h-16 rounded-full border-4 border-teal-500 border-t-transparent animate-spin" />
+              <div className="w-16 h-16 rounded-full border-4 border-olive border-t-transparent animate-spin" />
               <div className="text-center space-y-2">
-                <p className="text-white font-semibold">{state.analysisStep || "Analysing skin…"}</p>
-                <div className="w-64 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                <p className="text-deep-brown font-serif font-bold text-lg">{state.analysisStep || "Analysing skin…"}</p>
+                <div className="w-64 h-2 bg-deep-brown/10 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-teal-500 to-teal-700 rounded-full"
+                    className="h-full bg-olive rounded-full"
                     style={{ width: `${state.analysisProgress}%` }}
                     transition={{ duration: 0.4 }}
                   />
                 </div>
-                <p className="font-number text-xs text-white/50">{state.analysisProgress}%</p>
+                <p className="font-mono text-xs text-deep-brown/70 font-semibold">{state.analysisProgress}%</p>
               </div>
               {/* Step indicators */}
-              <div className="flex gap-3 text-xs text-white/60">
+              <div className="flex gap-3 text-xs text-deep-brown/60">
                 {["Photo", "Analysis", "Skin check", "Saving"].map((s, i) => (
                   <span
                     key={s}
-                    className={state.analysisProgress > i * 25 ? "text-teal-400" : ""}
+                    className={state.analysisProgress > i * 25 ? "text-olive font-bold" : ""}
                   >
                     {i > 0 && <span className="mr-3 opacity-30">›</span>}
                     {s}
@@ -893,10 +880,10 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy/90 gap-6 p-6"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-cream text-deep-brown gap-6 p-6"
             >
-              {/* Blurred preview — user confirms they see only a blurred version */}
-              <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-2xl">
+              {/* Blurred preview */}
+              <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-md border border-deep-brown/15">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={state.capturedDataUrl}
@@ -905,7 +892,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                   style={{ filter: "blur(20px)", transform: "scale(1.1)" }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-aquaglass-navy/60 rounded-xl px-3 py-1.5 text-xs text-white/80 text-center">
+                  <div className="bg-cream/90 rounded-xl px-3 py-1.5 text-xs text-deep-brown text-center font-medium border border-deep-brown/15 shadow-sm">
                     Photo blurred<br />for privacy
                   </div>
                 </div>
@@ -913,53 +900,42 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
 
               {/* Analysis summary */}
               <div className="text-center space-y-1">
-                <h3 className="text-white font-semibold text-lg">Analysis complete</h3>
-                <p className="text-white/60 text-sm">
+                <h3 className="text-deep-brown font-serif font-bold text-xl">Analysis complete</h3>
+                <p className="text-deep-brown/80 text-sm">
                   Skin type:{" "}
-                  <span className="text-teal-300 font-medium capitalize">
+                  <span className="text-olive font-bold capitalize">
                     {state.result.skin_type}
                   </span>{" "}
-                  (<span className="font-number">{Math.round(state.result.skin_type_confidence * 100)}%</span> confidence)
+                  (<span className="font-mono">{Math.round(state.result.skin_type_confidence * 100)}%</span> confidence)
                 </p>
-                <p className="text-white/60 text-sm">
+                <p className="text-deep-brown/80 text-sm">
                   Skin tone:{" "}
-                  <span className="text-teal-300 font-medium">
+                  <span className="text-olive font-bold">
                     Type {state.result.fitzpatrick_tone}
                   </span>
                 </p>
                 {state.result.conditions.length > 0 && (
-                  <p className="text-white/60 text-sm">
+                  <p className="text-deep-brown/80 text-sm">
                     {state.result.conditions.length} condition(s) detected
                   </p>
                 )}
               </div>
 
-              {/* Bias warning */}
-              {(["IV", "V", "VI"] as FitzpatrickTone[]).includes(state.result.fitzpatrick_tone) &&
-                state.result.skin_type_confidence < 0.70 && (
-                <Alert className="bg-cream-900/40 border-cream-600/50 max-w-sm">
-                  <AlertTriangle className="w-4 h-4 text-cream-400" />
-                  <AlertDescription className="text-cream-200 text-xs">
-                    Lower confidence for your skin tone. You can retake or override manually.
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Privacy confirmation — photo is still in memory until Confirm is clicked */}
-              <p className="text-teal-400 text-xs text-center max-w-xs">
+              {/* Privacy confirmation */}
+              <p className="text-olive font-medium text-xs text-center max-w-xs">
                 ✓ Your photo stays on this device and will be deleted once you confirm.
               </p>
 
               <div className="flex gap-3 w-full max-w-xs">
                 <Button
-                  className="flex-1 bg-white text-gray-800 hover:bg-gray-100 border border-gray-200 font-semibold"
+                  className="flex-1 bg-cream text-deep-brown hover:bg-cream/90 border border-deep-brown/20 font-bold rounded-xl"
                   onClick={() => dispatch({ type: "RETAKE" })}
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <RefreshCw className="w-4 h-4 mr-2 text-olive" />
                   Retake
                 </Button>
                 <Button
-                  className="flex-1 bg-skin-500 hover:bg-skin-600 text-white"
+                  className="flex-1 bg-butter hover:bg-butter/90 text-deep-brown font-sans font-bold border border-deep-brown/10 rounded-xl"
                   onClick={handleConfirm}
                 >
                   Confirm
@@ -975,24 +951,24 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy/90 gap-4"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-cream text-deep-brown gap-4"
             >
               <motion.div
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                className="text-6xl"
+                className="w-16 h-16 rounded-full bg-olive/15 flex items-center justify-center text-olive border border-olive/30 shadow-sm"
               >
-                ✅
+                <ShieldCheck className="w-10 h-10" />
               </motion.div>
-              <h3 className="text-white font-semibold text-xl">Scan saved!</h3>
-              <p className="text-teal-400 text-sm text-center max-w-xs px-4">
+              <h3 className="text-deep-brown font-serif font-bold text-2xl">Scan saved!</h3>
+              <p className="text-olive font-medium text-sm text-center max-w-xs px-4">
                 Your photo has been deleted. Taking you to your recommendations…
               </p>
               {/* Progress bar showing auto-redirect countdown */}
-              <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden mt-2">
+              <div className="w-48 h-1.5 bg-deep-brown/10 rounded-full overflow-hidden mt-2">
                 <motion.div
-                  className="h-full bg-skin-500 rounded-full"
+                  className="h-full bg-olive rounded-full"
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
                   transition={{ duration: 1.2, ease: "easeInOut" }}
@@ -1008,15 +984,15 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy/80 gap-4 p-6"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-cream/95 text-deep-brown gap-4 p-6"
             >
-              <div className="text-5xl">⚠️</div>
-              <p className="text-white text-center max-w-sm">{state.errorMessage}</p>
+              <AlertTriangle className="w-12 h-12 text-olive" />
+              <p className="text-deep-brown font-medium text-center max-w-sm">{state.errorMessage}</p>
               <div className="flex gap-3">
-                <Button variant="outline" className="border-white/20 text-white" onClick={() => dispatch({ type: "REQUEST" })}>
+                <Button variant="outline" className="border-deep-brown/20 text-deep-brown hover:bg-cream" onClick={() => dispatch({ type: "REQUEST" })}>
                   Try again
                 </Button>
-                <Button variant="ghost" className="text-white/60" onClick={() => dispatch({ type: "FALLBACK" })}>
+                <Button variant="ghost" className="text-deep-brown/70 hover:text-deep-brown" onClick={() => dispatch({ type: "FALLBACK" })}>
                   Use manual input
                 </Button>
               </div>
@@ -1029,46 +1005,46 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex flex-col items-center justify-center bg-aquaglass-navy px-6 text-center"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-cream text-deep-brown px-6 text-center"
           >
-            <div className="w-16 h-16 rounded-2xl bg-skin-500/15 flex items-center justify-center mb-5">
-              <Camera className="w-8 h-8 text-skin-400" />
+            <div className="w-16 h-16 rounded-2xl bg-olive/15 flex items-center justify-center mb-5 border border-olive/20 shadow-sm">
+              <Camera className="w-8 h-8 text-olive" />
             </div>
-            <h2 className="text-white font-semibold text-xl mb-2">Enable your camera</h2>
-            <p className="text-white/60 text-sm max-w-sm mb-1">
+            <h2 className="text-deep-brown font-serif font-bold text-3xl mb-2">Enable your camera</h2>
+            <p className="text-deep-brown/80 text-sm max-w-sm mb-2 font-sans">
               We&apos;ll ask your browser for camera access so you can take a quick face scan.
             </p>
-            <p className="text-teal-300/80 text-xs max-w-sm mb-5 inline-flex items-center gap-1.5 justify-center">
-              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+            <p className="text-olive font-semibold text-xs max-w-sm mb-6 inline-flex items-center gap-1.5 justify-center">
+              <ShieldCheck className="w-4 h-4 shrink-0" />
               Your photo is analysed on your device and never uploaded.
             </p>
 
             {/* Model pre-loading status shown while waiting */}
             {modelState !== "ready" && (
-              <div className="flex items-center gap-2 mb-5 bg-white/5 rounded-full px-4 py-2 border border-white/10">
-                <span className="w-3 h-3 rounded-full border-2 border-teal-400 border-t-transparent animate-spin shrink-0" />
-                <span className="text-xs text-white/70">
+              <div className="flex items-center gap-2 mb-6 bg-olive/10 rounded-full px-4 py-2 border border-olive/20">
+                <span className="w-3.5 h-3.5 rounded-full border-2 border-olive border-t-transparent animate-spin shrink-0" />
+                <span className="text-xs text-deep-brown font-semibold">
                   {firstTime ? "Preparing AI analysis for first use…" : "Loading AI models…"}
                 </span>
               </div>
             )}
             {modelState === "ready" && (
-              <div className="flex items-center gap-2 mb-5 bg-teal-500/10 rounded-full px-4 py-2 border border-teal-500/30">
-                <span className="text-teal-400 text-sm">✓</span>
-                <span className="text-xs text-teal-300">AI ready — scan will be instant</span>
+              <div className="flex items-center gap-2 mb-6 bg-olive/15 rounded-full px-4 py-2 border border-olive/30">
+                <ShieldCheck className="w-4 h-4 text-olive" />
+                <span className="text-xs text-olive font-bold">AI ready — scan will be instant</span>
               </div>
             )}
 
             <Button
               onClick={() => dispatch({ type: "REQUEST" })}
-              className="bg-skin-500 hover:bg-skin-600 text-white px-8 h-12 text-base"
+              className="bg-butter hover:bg-butter/90 text-deep-brown font-sans font-bold px-8 h-12 text-base rounded-xl border border-deep-brown/10 shadow-sm"
             >
-              <Camera className="w-4 h-4 mr-2" />
-              Enable Camera
+              <Camera className="w-4 h-4 mr-2 text-olive" />
+              ENABLE CAMERA
             </Button>
             <button
               onClick={() => dispatch({ type: "FALLBACK" })}
-              className="mt-4 text-white/50 hover:text-white/80 text-sm transition-colors"
+              className="mt-5 text-deep-brown/70 hover:text-deep-brown font-medium text-xs underline transition-colors"
             >
               Skip and enter my skin details manually
             </button>
@@ -1077,11 +1053,11 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
 
         {/* ── Requesting permission ────────────────────────────────── */}
         {state.status === "requesting" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-aquaglass-navy/80">
-            <div className="text-center text-white/70 space-y-3">
-              <Camera className="w-12 h-12 mx-auto animate-pulse" />
-              <p>Requesting camera access…</p>
-              <p className="text-white/40 text-xs max-w-xs">
+          <div className="absolute inset-0 flex items-center justify-center bg-cream/95 text-deep-brown">
+            <div className="text-center text-deep-brown space-y-3">
+              <Camera className="w-12 h-12 mx-auto text-olive animate-pulse" />
+              <p className="font-serif font-bold text-lg">Requesting camera access…</p>
+              <p className="text-deep-brown/70 text-xs max-w-xs">
                 Choose “Allow” in your browser’s prompt to start the scan.
               </p>
             </div>
@@ -1130,25 +1106,25 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
         )}
       </AnimatePresence>
 
-      {/* ── Manual skin-type selection (shown after capture when AI model is unavailable) ── */}
+      {/* ── Manual skin-type selection ── */}
       <AnimatePresence>
         {state.status === "fallback" && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute inset-0 z-30 bg-aquaglass-navy overflow-y-auto p-6"
+            className="absolute inset-0 z-30 bg-cream text-deep-brown overflow-y-auto p-6"
           >
             <div className="max-w-lg mx-auto space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-white font-semibold text-xl">Tell us about your skin</h2>
-                <button onClick={onCancel} aria-label="Close scan and go back" className="text-white/40 hover:text-white">
+                <h2 className="text-deep-brown font-serif font-bold text-2xl">Tell us about your skin</h2>
+                <button onClick={onCancel} aria-label="Close scan and go back" className="text-deep-brown/60 hover:text-deep-brown">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Show blurred captured photo as reference */}
               {state.capturedDataUrl && (
-                <div className="flex items-center gap-4 bg-white/5 rounded-2xl p-4">
+                <div className="flex items-center gap-4 bg-cream border border-deep-brown/15 rounded-2xl p-4 shadow-sm">
                   <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -1158,19 +1134,19 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                       style={{ filter: "blur(12px)", transform: "scale(1.15)" }}
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-white text-lg">📸</span>
+                      <Camera className="w-6 h-6 text-deep-brown/80" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-white font-medium text-sm">Photo captured!</p>
-                    <p className="text-white/50 text-xs mt-0.5">
+                    <p className="text-deep-brown font-semibold text-sm">Photo captured!</p>
+                    <p className="text-deep-brown/70 text-xs mt-0.5">
                       Use your photo as reference to select your skin type below.
                     </p>
                   </div>
                 </div>
               )}
 
-              <p className="text-white/70 text-sm">
+              <p className="text-deep-brown/80 text-sm">
                 Choose the description that best matches your skin:
               </p>
 
@@ -1181,32 +1157,32 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                     onClick={() => dispatch({ type: "SET_MANUAL_SKIN", value: opt.type })}
                     className={`text-left p-4 rounded-xl border transition-all ${
                       state.manualSkinType === opt.type
-                        ? "border-skin-500 bg-skin-500/10"
-                        : "border-white/10 bg-white/5 hover:border-white/30"
+                        ? "border-olive bg-olive/10 shadow-sm"
+                        : "border-deep-brown/15 bg-cream hover:border-olive/40"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-white font-medium">{opt.label}</span>
+                      <span className="text-deep-brown font-serif font-bold text-base">{opt.label}</span>
                       {state.manualSkinType === opt.type && (
-                        <span className="text-skin-400 text-xs">Selected ✓</span>
+                        <span className="text-olive text-xs font-bold uppercase tracking-wider">Selected</span>
                       )}
                     </div>
-                    <p className="text-white/60 text-sm">{opt.description}</p>
-                    <ul className="mt-2 flex flex-wrap gap-1.5">
+                    <p className="text-deep-brown/80 text-xs leading-relaxed">{opt.description}</p>
+                    <ul className="mt-2.5 flex flex-wrap gap-1.5">
                       {opt.signs.map((s) => (
-                        <li key={s} className="text-xs bg-white/10 rounded-full px-2 py-0.5 text-white/70">
+                        <li key={s} className="text-xs bg-olive/10 rounded-full px-2.5 py-0.5 text-deep-brown font-medium">
                           {s}
                         </li>
                       ))}
                     </ul>
-                    <p className="mt-2 text-xs text-teal-300/70">{opt.fitzpatrickNote}</p>
+                    <p className="mt-2 text-xs text-olive font-medium">{opt.fitzpatrickNote}</p>
                   </button>
                 ))}
               </div>
 
               {/* Skin tone selector */}
               <div>
-                <p className="text-white/80 text-sm font-medium mb-3">Select your skin tone</p>
+                <p className="text-deep-brown font-semibold text-sm mb-3">Select your skin tone</p>
                 <div className="flex gap-2">
                   {(["I", "II", "III", "IV", "V", "VI"] as FitzpatrickTone[]).map((tone, i) => {
                     const colors = ["#FDDBB4", "#F5C28A", "#E0A96D", "#C68642", "#8D5524", "#4A2912"];
@@ -1215,7 +1191,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                         key={tone}
                         onClick={() => dispatch({ type: "SET_MANUAL_FITZPATRICK", value: tone })}
                         className={`flex-1 aspect-square rounded-lg border-2 transition-all ${
-                          state.manualFitzpatrick === tone ? "border-white scale-110" : "border-transparent"
+                          state.manualFitzpatrick === tone ? "border-olive scale-110 shadow-sm" : "border-transparent"
                         }`}
                         style={{ backgroundColor: colors[i] }}
                         aria-label={`Skin Tone ${tone}`}
@@ -1225,7 +1201,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
                   })}
                 </div>
                 {state.manualFitzpatrick && (
-                  <p className="text-white/60 text-xs mt-2">
+                  <p className="text-deep-brown/70 text-xs mt-2 font-medium">
                     Selected: Type {state.manualFitzpatrick}
                   </p>
                 )}
@@ -1234,7 +1210,7 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               <Button
                 onClick={handleManualSubmit}
                 disabled={!state.manualSkinType || !state.manualFitzpatrick}
-                className="w-full bg-skin-500 hover:bg-skin-600 text-white"
+                className="w-full bg-butter hover:bg-butter/90 text-deep-brown font-sans font-bold rounded-xl py-3 border border-deep-brown/10 shadow-sm"
               >
                 Continue
               </Button>

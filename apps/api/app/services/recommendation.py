@@ -541,6 +541,166 @@ class RecommendationService:
 
         return list(collected_products.values())[:top_k]
 
+    async def _call_claude(
+        self,
+        scan: SkinScan,
+        questionnaire: Optional[QuestionnaireResponse],
+        routine: Optional[SkincareRoutineCurrent],
+        climate: Optional[EnvironmentProfile],
+        user: User,
+        candidates: list[dict],
+    ) -> ClaudeOutput:
+        if settings.groq_api_key:
+            user_prompt = _build_user_prompt(scan, questionnaire, routine, climate, user, candidates)
+            try:
+                raw_text = await _call_groq_api(
+                    api_key=settings.groq_api_key,
+                    model=settings.groq_model,
+                    system_prompt=SYSTEM_PROMPT,
+                    user_prompt=user_prompt,
+                    max_tokens=settings.groq_max_tokens,
+                )
+                parsed_dict = json.loads(raw_text)
+                _normalize_claude_output(parsed_dict)
+                return ClaudeOutput(**parsed_dict)
+            except Exception as exc:
+                logger.warning("Groq API call failed or returned invalid JSON (%s) — using expert dynamic fallback generator.", exc)
+
+        logger.info("Using expert dynamic fallback generator for user %s based on scan & questionnaire profile.", user.id)
+        return _build_deterministic_fallback(scan, questionnaire, climate, candidates)
+
+    async def _persist(
+        self,
+        scan: SkinScan,
+        questionnaire: Optional[QuestionnaireResponse],
+        user: User,
+        claude_output: ClaudeOutput,
+        matched_products: list[tuple[ClaudeProductItem, Optional[Product]]],
+        roadmap_dict: dict,
+        allergen_flags: list[str],
+        monthly_cost: Optional[float],
+        needs_review: bool,
+        db: AsyncSession,
+    ) -> Recommendation:
+        metadata = {
+            "lifestyle_tips": claude_output.lifestyle_tips,
+            "ingredients_to_use": claude_output.ingredients_to_use,
+            "ingredients_to_avoid": claude_output.ingredients_to_avoid,
+            "dermatologist_note": claude_output.dermatologist_note,
+            "climate_insight": claude_output.climate_insight,
+            "morning_routine": claude_output.morning_routine,
+            "night_routine": claude_output.night_routine,
+        }
+
+        rec = Recommendation(
+            id=uuid.uuid4(),
+            user_id=user.id,
+            scan_id=scan.id,
+            questionnaire_id=questionnaire.id if questionnaire else None,
+            recommendation_engine_version="2.0",
+            ai_reasoning=claude_output.dermatologist_note,
+            roadmap_weeks=20,
+            skin_score=claude_output.skin_score,
+            confidence_score=claude_output.overall_confidence,
+            estimated_monthly_cost_inr=monthly_cost,
+            roadmap_json=roadmap_dict,
+            allergen_flags=allergen_flags or None,
+            requires_derm_review=needs_review,
+            metadata_json=metadata,
+        )
+        db.add(rec)
+        await db.flush()  # populate rec.id
+
+        for order, (claude_item, product) in enumerate(matched_products):
+            if product is None:
+                continue
+            rp = RecommendationProduct(
+                id=uuid.uuid4(),
+                recommendation_id=rec.id,
+                product_id=product.id,
+                order_in_routine=order,
+                start_week=claude_item.start_week,
+                reason_text=claude_item.reason,
+                is_mandatory=claude_item.phase == 1,
+                phase=claude_item.phase,
+                highlighted_ingredient=claude_item.key_ingredient,
+                usage_instruction=claude_item.usage,
+                time_of_day=claude_item.time_of_day,
+            )
+            db.add(rp)
+
+        # Queue for derm review if needed
+        if needs_review and settings.enable_dermatologist_review:
+            priority = (
+                "high"
+                if allergen_flags or claude_output.overall_confidence < 0.6
+                else "normal"
+            )
+            queue_entry = ReviewQueue(
+                id=uuid.uuid4(),
+                recommendation_id=rec.id,
+                priority=priority,
+                status="pending",
+            )
+            db.add(queue_entry)
+
+        # Automatically link this scan to progress tracking
+        progress_exists = await db.scalar(
+            select(ProgressScan).where(ProgressScan.scan_id == scan.id)
+        )
+        if not progress_exists:
+            count_result = await db.execute(
+                select(func.count(ProgressScan.id)).where(
+                    ProgressScan.user_id == user.id
+                )
+            )
+            scan_number = (count_result.scalar() or 0) + 1
+
+            progress_scan = ProgressScan(
+                id=uuid.uuid4(),
+                user_id=user.id,
+                scan_id=scan.id,
+                scan_number=scan_number,
+                overall_score=scan.overall_score or claude_output.skin_score,
+                notes=f"Automatic progress log for scan #{scan_number}",
+            )
+            db.add(progress_scan)
+            await db.flush()
+
+            prev_condition_map: dict[str, float] = {}
+            if scan_number > 1:
+                prev_scan = await db.scalar(
+                    select(ProgressScan).where(
+                        ProgressScan.user_id == user.id,
+                        ProgressScan.scan_number == scan_number - 1,
+                    )
+                )
+                if prev_scan:
+                    prev_condition_map = {m.metric_name: m.current_value for m in prev_scan.metrics}
+
+            severity_map_local = {"none": 0.0, "mild": 1.0, "moderate": 2.0, "severe": 3.0}
+            for cond in (scan.conditions or []):
+                current_sev = float(severity_map_local.get(cond.severity, 0.0))
+                prev_val = prev_condition_map.get(cond.condition_name, current_sev)
+                improvement_pct = (
+                    round(((prev_val - current_sev) / max(prev_val, 1)) * 100, 2)
+                    if prev_val > 0
+                    else 0.0
+                )
+                metric = ProgressMetric(
+                    id=uuid.uuid4(),
+                    progress_scan_id=progress_scan.id,
+                    metric_name=cond.condition_name,
+                    previous_value=prev_val,
+                    current_value=current_sev,
+                    improvement_pct=improvement_pct,
+                )
+                db.add(metric)
+
+        await db.commit()
+        await db.refresh(rec, attribute_names=["products"])
+        return rec
+
     # ------------------------------------------------------------------
     # Step 2: AI / Deterministic Dynamic Recommendation Generator
     # ------------------------------------------------------------------
@@ -688,13 +848,13 @@ def _build_deterministic_fallback(
         ingredients_to_use=["Ceramides", "Niacinamide", "Hyaluronic Acid", "Zinc Oxide"],
         ingredients_to_avoid=["Harsh Fragrance", "Alcohol", "Physical Scrubs"],
         lifestyle_tips=[
-            "Drink at least 2.5–3 liters of water daily to maintain skin hydration from within.",
-            f"Use sun protection consistently in {city} even on cloudy or indoor days.",
-            "Maintain 7–8 hours of consistent sleep for optimal cellular recovery.",
-        ],
-        dermatologist_note=f"Your customized skincare plan is formulated specifically for {skin_type} skin in {city}. Phase 1 builds barrier strength, followed by targeted care in Phase 2.",
-        climate_insight=f"Skin in {city} requires lightweight, non-greasy hydration combined with daily broad-spectrum sun defense.",
-    )
+class RecommendationService:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    # ------------------------------------------------------------------
+    # Step 2: AI / Dynamic Recommendation Generator
+    # ------------------------------------------------------------------
 
     async def _call_claude(
         self,
@@ -881,11 +1041,6 @@ def _build_deterministic_fallback(
         await db.commit()
         await db.refresh(rec, attribute_names=["products"])
         return rec
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 def _products_to_dicts(products: list[Product]) -> list[dict]:
     return [

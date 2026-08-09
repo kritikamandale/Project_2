@@ -7,7 +7,7 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import {
   ExternalLink, Leaf, ChevronDown, Check, X, Store, Wallet, Star,
   Layers, Sparkles, Tag, ArrowUpDown, AlertTriangle, Info, RotateCcw, MoreHorizontal,
-  IndianRupee, Loader2,
+  IndianRupee, Loader2, FlaskConical, Droplet, Sun, Droplets, Search, ShoppingBag
 } from "lucide-react";
 import {
   listProducts,
@@ -24,6 +24,7 @@ import {
 } from "@/lib/api/routine";
 import { LayeringGuidanceCard } from "./layering-guidance-card";
 import { RoutineSafetyBanner } from "./routine-safety-banner";
+import { useCart } from "@/lib/context/cart-context";
 
 // ─── Routine step definitions ──────────────────────────────────────────────
 // Categories use the backend spelling (moisturiser). Steps mirror the 3/4/5
@@ -32,30 +33,37 @@ import { RoutineSafetyBanner } from "./routine-safety-banner";
 interface RoutineStep {
   stepNumber: number;
   label: string;
-  emoji: string;
   category: ProductCategory;
   when: string;
 }
 
 const STEPS_BY_COMPLEXITY: Record<3 | 4 | 5, RoutineStep[]> = {
   3: [
-    { stepNumber: 1, label: "Cleanse",        emoji: "🧴", category: "cleanser",    when: "AM + PM" },
-    { stepNumber: 2, label: "Moisturize",     emoji: "💧", category: "moisturiser", when: "AM + PM" },
-    { stepNumber: 3, label: "Sun Protection", emoji: "☀️", category: "sunscreen",   when: "AM only" },
+    { stepNumber: 1, label: "Cleanse",        category: "cleanser",    when: "AM + PM" },
+    { stepNumber: 2, label: "Moisturize",     category: "moisturiser", when: "AM + PM" },
+    { stepNumber: 3, label: "Sun Protection", category: "sunscreen",   when: "AM only" },
   ],
   4: [
-    { stepNumber: 1, label: "Cleanse",        emoji: "🧴", category: "cleanser",    when: "AM + PM" },
-    { stepNumber: 2, label: "Tone",           emoji: "✨", category: "toner",       when: "AM + PM" },
-    { stepNumber: 3, label: "Moisturize",     emoji: "💧", category: "moisturiser", when: "AM + PM" },
-    { stepNumber: 4, label: "Sun Protection", emoji: "☀️", category: "sunscreen",   when: "AM only" },
+    { stepNumber: 1, label: "Cleanse",        category: "cleanser",    when: "AM + PM" },
+    { stepNumber: 2, label: "Tone",           category: "toner",       when: "AM + PM" },
+    { stepNumber: 3, label: "Moisturize",     category: "moisturiser", when: "AM + PM" },
+    { stepNumber: 4, label: "Sun Protection", category: "sunscreen",   when: "AM only" },
   ],
   5: [
-    { stepNumber: 1, label: "Cleanse",        emoji: "🧴", category: "cleanser",    when: "AM + PM" },
-    { stepNumber: 2, label: "Tone",           emoji: "✨", category: "toner",       when: "AM + PM" },
-    { stepNumber: 3, label: "Treat (Serum)",  emoji: "💊", category: "serum",       when: "AM or PM" },
-    { stepNumber: 4, label: "Moisturize",     emoji: "💧", category: "moisturiser", when: "AM + PM" },
-    { stepNumber: 5, label: "Sun Protection", emoji: "☀️", category: "sunscreen",   when: "AM only" },
+    { stepNumber: 1, label: "Cleanse",        category: "cleanser",    when: "AM + PM" },
+    { stepNumber: 2, label: "Tone",           category: "toner",       when: "AM + PM" },
+    { stepNumber: 3, label: "Treat (Serum)",  category: "serum",       when: "AM or PM" },
+    { stepNumber: 4, label: "Moisturize",     category: "moisturiser", when: "AM + PM" },
+    { stepNumber: 5, label: "Sun Protection", category: "sunscreen",   when: "AM only" },
   ],
+};
+
+const STEP_ICONS: Record<string, ReactNode> = {
+  cleanser: <Droplet className="w-4 h-4 text-olive shrink-0" aria-hidden />,
+  toner: <Droplets className="w-4 h-4 text-olive shrink-0" aria-hidden />,
+  serum: <FlaskConical className="w-4 h-4 text-olive shrink-0" aria-hidden />,
+  moisturiser: <Leaf className="w-4 h-4 text-olive shrink-0" aria-hidden />,
+  sunscreen: <Sun className="w-4 h-4 text-amber-600 shrink-0" aria-hidden />,
 };
 
 const COMPLEXITY_INFO: Record<3 | 4 | 5, { label: string; description: string; timeEstimate: string }> = {
@@ -419,22 +427,42 @@ function StoreLinks({ links }: { links: Product["store_links"] }) {
 // ─── Product card ───────────────────────────────────────────────────────────
 
 function brandLabel(p: Product): string {
-  if (p.brand_display) return p.brand_display;
+  const nameLower = (p.product_name || "").toLowerCase();
+  if (nameLower.includes("plum")) return "Plum";
+  if (nameLower.includes("minimalist")) return "Minimalist";
+  if (nameLower.includes("derma co") || nameLower.includes("dermaco")) return "The Derma Co";
+  if (nameLower.includes("cetaphil")) return "Cetaphil";
+  if (nameLower.includes("dot & key") || nameLower.includes("dot and key")) return "Dot & Key";
+  if (nameLower.includes("re'equil") || nameLower.includes("reequil")) return "Re'equil";
+  if (nameLower.includes("neutrogena")) return "Neutrogena";
+  if (nameLower.includes("dr. sheth") || nameLower.includes("dr sheth")) return "Dr. Sheth's";
+  if (nameLower.includes("cerave")) return "CeraVe";
+  if (nameLower.includes("fixderma")) return "Fixderma";
+
+  if (p.brand_display && p.brand_display !== "Nykaa" && p.brand_display !== "nykaa") {
+    return p.brand_display;
+  }
+
   const map: Record<string, string> = {
-    nykaa: "Nykaa", minimalist: "Minimalist", dermaco: "The Derma Co", others: "Other",
+    minimalist: "Minimalist",
+    dermaco: "The Derma Co",
+    plum: "Plum",
+    cetaphil: "Cetaphil",
+    dotandkey: "Dot & Key",
+    requil: "Re'equil",
+    neutrogena: "Neutrogena",
+    drsheths: "Dr. Sheth's",
+    cerave: "CeraVe",
+    fixderma: "Fixderma",
   };
-  return map[p.brand] ?? p.brand;
+  return (p.brand && map[p.brand.toLowerCase()]) || p.brand_display || p.brand;
 }
 
-function ProductImage({ src, alt, category }: { src?: string | null; alt: string; category?: string }) {
+function ProductImage({ src, alt }: { src?: string | null; alt: string; category?: string }) {
   const [error, setError] = useState(false);
-  const catEmojis: Record<string, string> = {
-    cleanser: "🧴", moisturiser: "💧", sunscreen: "☀️", serum: "💊", toner: "✨", treatment: "🩹", mask: "🎭"
-  };
-  const emoji = category ? (catEmojis[category] ?? "🌿") : "🌿";
 
   if (!src || error) {
-    return <span className="text-xl" aria-hidden>{emoji}</span>;
+    return <Sparkles className="w-5 h-5 text-olive" aria-hidden />;
   }
 
   return (
@@ -458,6 +486,8 @@ function ProductCard({ product }: { product: Product }) {
   const p = product;
   const hero = heroIngredient(p);
   const hasDiscount = p.mrp_inr != null && p.price_inr != null && p.mrp_inr > p.price_inr;
+  const { addToCart, removeFromCart, isInCart } = useCart();
+  const inCart = isInCart(p.id);
 
   return (
     <div className="flex h-full flex-col gap-3 rounded-xl glass-card glass-shimmer p-4">
@@ -530,9 +560,44 @@ function ProductCard({ product }: { product: Product }) {
         </div>
       )}
 
-      {/* Store links */}
-      <div className="mt-auto pt-0.5">
+      {/* Store links & Add to Routine Cart */}
+      <div className="mt-auto pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100">
         <StoreLinks links={p.store_links} />
+        <button
+          onClick={() => {
+            if (inCart) {
+              removeFromCart(p.id);
+            } else {
+              addToCart({
+                id: p.id,
+                product_name: p.product_name,
+                brand: brandLabel(p),
+                category: p.category,
+                price_inr: p.price_inr,
+                mrp_inr: p.mrp_inr,
+                image_url: p.image_url,
+                match_score: p.match_score,
+                store_links: p.store_links,
+              });
+            }
+          }}
+          className={[
+            "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer",
+            inCart
+              ? "bg-butter text-deep-brown border border-deep-brown/15 font-extrabold"
+              : "bg-olive text-cream hover:bg-olive/90 border border-transparent font-bold",
+          ].join(" ")}
+        >
+          {inCart ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-deep-brown" /> In Routine ✓
+            </>
+          ) : (
+            <>
+              + Add to Routine
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
@@ -588,17 +653,17 @@ function LoadingState() {
 
 function EmptyState({ onClear }: { onClear: () => void }) {
   return (
-    <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-10 text-center">
-      <p className="text-3xl">🔍</p>
-      <p className="mt-2 text-sm font-semibold text-gray-700">
+    <div className="rounded-2xl border border-deep-brown/15 bg-cream p-8 text-center">
+      <Search className="w-8 h-8 text-olive mx-auto mb-2" />
+      <p className="mt-2 text-sm font-semibold text-deep-brown">
         No products match all filters
       </p>
-      <p className="mx-auto mt-1 max-w-xs text-xs text-gray-500">
+      <p className="mx-auto mt-1 max-w-xs text-xs text-deep-brown/60">
         Try relaxing your budget or rating — or clear the filters to see every match for your skin.
       </p>
       <button
         onClick={onClear}
-        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-skin-500 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-skin-600"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-butter px-4 py-2 text-xs font-semibold text-deep-brown transition-colors hover:bg-butter/90"
       >
         <RotateCcw className="w-3.5 h-3.5" aria-hidden /> Clear all filters
       </button>
@@ -608,13 +673,13 @@ function EmptyState({ onClear }: { onClear: () => void }) {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-8 text-center">
-      <AlertTriangle className="mx-auto mb-2 h-8 w-8 text-red-400" aria-hidden />
-      <p className="text-sm font-semibold text-red-800">Couldn&apos;t load products</p>
-      <p className="mx-auto mt-1 max-w-xs text-xs text-red-600">{message}</p>
+    <div className="rounded-2xl border border-deep-brown/20 bg-cream px-6 py-8 text-center">
+      <AlertTriangle className="mx-auto mb-2 h-8 w-8 text-olive" aria-hidden />
+      <p className="text-sm font-semibold text-deep-brown">Couldn&apos;t load products</p>
+      <p className="mx-auto mt-1 max-w-xs text-xs text-deep-brown/60">{message}</p>
       <button
         onClick={onRetry}
-        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-600"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-olive px-4 py-2 text-xs font-semibold text-cream transition-colors hover:bg-olive/90"
       >
         <RotateCcw className="w-3.5 h-3.5" aria-hidden /> Try again
       </button>
@@ -643,7 +708,8 @@ export function RoutineSelector({
   questionnaireId,
   pregnant = false,
 }: RoutineSelectorProps) {
-  const [steps, setSteps] = useState<3 | 4 | 5>(3);
+  const { cart, toggleCart } = useCart();
+  const [steps, setSteps] = useState<3 | 4 | 5>(4);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [products, setProducts] = useState<Product[]>([]);
   const [allBrands, setAllBrands] = useState<string[]>([]);
@@ -717,13 +783,24 @@ export function RoutineSelector({
       };
       try {
         const res = await listProducts(params);
-        if (cancelled) return;
-        setProducts(res.items);
+        const filteredItems = res.items.filter((p) => {
+          const b = brandLabel(p).toLowerCase();
+          const name = (p.product_name || "").toLowerCase();
+          return (
+            !b.includes("plum") &&
+            !b.includes("dot & key") &&
+            !b.includes("dotandkey") &&
+            !name.includes("plum") &&
+            !name.includes("dot & key") &&
+            !name.includes("dotandkey")
+          );
+        });
+        setProducts(filteredItems);
         // Keep the brand list stable — only refresh from an unfiltered-by-brand
         // response so selecting a brand never empties the dropdown.
         if (filters.brands.length === 0) {
           const distinct = Array.from(
-            new Set(res.items.map((p) => brandLabel(p)).filter(Boolean))
+            new Set(filteredItems.map((p) => brandLabel(p)).filter(Boolean))
           ).sort((a, b) => a.localeCompare(b));
           setAllBrands(distinct);
         }
@@ -828,13 +905,25 @@ export function RoutineSelector({
     <Tooltip.Provider delayDuration={120}>
       <section className="space-y-5">
         {/* Header */}
-        <div>
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <span>🛍️</span> Product Recommendations
-          </h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Personalised for your skin — choose a routine depth that fits your lifestyle.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-deep-brown/10 pb-4">
+          <div>
+            <h2 className="text-xl font-serif font-bold text-deep-brown flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-olive" /> Product Recommendations
+            </h2>
+            <p className="text-xs text-deep-brown/70 mt-0.5 font-sans">
+              Personalised for your skin: choose a routine depth that fits your lifestyle.
+            </p>
+          </div>
+          <button
+            onClick={toggleCart}
+            className="inline-flex items-center gap-2 rounded-xl bg-butter px-4 py-2.5 text-xs font-bold text-deep-brown border border-deep-brown/15 shadow-xs hover:bg-butter/80 transition-all shrink-0 cursor-pointer"
+          >
+            <ShoppingBag className="w-4 h-4 text-deep-brown" />
+            <span>View My Routine Cart</span>
+            <span className="ml-1 rounded-full bg-olive text-cream px-2 py-0.5 text-[11px] font-extrabold">
+              {cart.length}
+            </span>
+          </button>
         </div>
 
         {/* Complexity Picker */}
@@ -1030,15 +1119,20 @@ export function RoutineSelector({
             >
               {grouped.map(({ step, items }) => (
                 <div key={step.stepNumber}>
-                  {/* Step Header */}
-                  <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-7 h-7 rounded-full bg-skin-100 text-skin-700 flex items-center justify-center text-xs font-bold shrink-0">
-                      {step.stepNumber}
+                  {/* Step Header — Prominently Highlighted with Olive & Butter Gold pill banner */}
+                  <div className="flex items-center justify-between gap-3 mb-3.5 rounded-2xl bg-cream border border-deep-brown/15 p-3 px-4 shadow-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-olive text-butter flex items-center justify-center font-serif text-sm font-extrabold shrink-0 shadow-xs">
+                        {step.stepNumber}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {STEP_ICONS[step.category]}
+                        <span className="font-serif font-extrabold text-deep-brown text-lg tracking-tight bg-butter text-deep-brown px-3.5 py-1 rounded-xl border border-deep-brown/15 shadow-xs">
+                          {step.label}
+                        </span>
+                      </div>
                     </div>
-                    <span className="font-semibold text-gray-800 text-sm">
-                      {step.emoji} {step.label}
-                    </span>
-                    <span className="ml-auto text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-mono text-deep-brown bg-butter/90 border border-deep-brown/15 px-3 py-1 rounded-full font-extrabold uppercase tracking-wider shadow-xs">
                       {step.when}
                     </span>
                   </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck, Database, Eye, Trash2, Download, Mail } from "lucide-react";
+import { ShieldCheck, Database, Eye, Trash2, Download, Mail, Lock } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — Skinest",
@@ -64,11 +64,12 @@ export default function PrivacyPolicyPage() {
                 ["Device / browser (User-Agent)", "Security audit logs", "90 days"],
               ]} />
               <div className="rounded-xl bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 p-4">
-                <p className="text-sm text-teal-800 dark:text-teal-300 font-medium">
-                  🔒 Raw face images are <strong>never stored</strong>. Your camera captures a
+                <p className="text-sm text-teal-800 dark:text-teal-300 font-medium flex items-start gap-2">
+                  <Lock className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>Raw face images are <strong>never stored</strong>. Your camera captures a
                   frame, our on-device model extracts a 512-number mathematical vector, and
                   the image is discarded immediately. The vector cannot be reverse-engineered
-                  into a face image.
+                  into a face image.</span>
                 </p>
               </div>
             </div>

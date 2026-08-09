@@ -173,7 +173,7 @@ class AuditLog(UUIDPrimaryKeyMixin, Base):
     entity_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
     ip_address: Mapped[Optional[str]] = mapped_column(String(45))
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+        DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     metadata_: Mapped[Optional[dict]] = mapped_column("metadata", JSONB)
 

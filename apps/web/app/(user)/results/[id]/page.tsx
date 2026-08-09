@@ -7,7 +7,7 @@ import * as Accordion from "@radix-ui/react-accordion";
 import {
   Leaf, Droplets, Sun, Zap, ChevronDown, ExternalLink, Star,
   CheckCircle2, Clock, AlertTriangle, Shield, ThumbsUp, MapPin,
-  Thermometer, Wind, Sparkles, Activity, ChevronRight,
+  Thermometer, Wind, Sparkles, Activity, ChevronRight, Moon, IndianRupee, Pill, Bandage, Tag, ShoppingBag
 } from "lucide-react";
 import {
   generateRecommendation,
@@ -20,6 +20,8 @@ import {
   type ConditionSummary,
 } from "@/lib/api/recommendations";
 import { RoutineSelector } from "@/components/results/routine-selector";
+import { LayeringGuidanceCard } from "@/components/results/layering-guidance-card";
+import { useCart } from "@/lib/context/cart-context";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -32,16 +34,16 @@ const BRAND_STYLES: Record<string, { bg: string; text: string; label: string }> 
 };
 
 const SEVERITY_CONFIG: Record<string, { color: string; bg: string; pct: number }> = {
-  severe:   { color: "text-red-600",   bg: "bg-red-500",   pct: 100 },
-  moderate: { color: "text-skin-600",  bg: "bg-skin-400",  pct: 66 },
-  mild:     { color: "text-cream-700", bg: "bg-cream-400", pct: 33 },
-  none:     { color: "text-teal-600",  bg: "bg-teal-400",  pct: 8 },
+  severe:   { color: "text-deep-brown font-bold", bg: "bg-deep-brown", pct: 100 },
+  moderate: { color: "text-olive font-bold",      bg: "bg-olive",      pct: 66 },
+  mild:     { color: "text-olive/80 font-bold",   bg: "bg-olive/80",   pct: 33 },
+  none:     { color: "text-olive/50 font-bold",   bg: "bg-olive/40",   pct: 10 },
 };
 
 const PHASE_STYLES: Record<number, { border: string; bg: string; badge: string; text: string }> = {
-  1: { border: "border-teal-200/60",   bg: "bg-teal-50/50",    badge: "bg-teal-100/80 text-teal-700",   text: "text-teal-700" },
-  2: { border: "border-skin-200/60",  bg: "bg-skin-50/50",  badge: "bg-skin-100/80 text-skin-700",   text: "text-skin-700" },
-  3: { border: "border-cream-300/60", bg: "bg-cream-50/50", badge: "bg-cream-100/80 text-cream-800", text: "text-cream-800" },
+  1: { border: "border-deep-brown/15", bg: "bg-cream", badge: "bg-butter/50 text-deep-brown font-bold border border-deep-brown/10", text: "text-deep-brown" },
+  2: { border: "border-deep-brown/15", bg: "bg-cream", badge: "bg-olive/20 text-deep-brown font-bold border border-deep-brown/10", text: "text-deep-brown" },
+  3: { border: "border-deep-brown/15", bg: "bg-cream", badge: "bg-nude/40 text-deep-brown font-bold border border-deep-brown/10", text: "text-deep-brown" },
 };
 
 const SKIN_TYPE_DESC: Record<string, string> = {
@@ -67,7 +69,6 @@ function SkinScoreDial({ score }: { score: number }) {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const count = useMotionValue(0);
-  const displayScore = useTransform(count, Math.round);
   const [displayed, setDisplayed] = useState(0);
 
   useEffect(() => {
@@ -76,22 +77,20 @@ function SkinScoreDial({ score }: { score: number }) {
     return () => { controls.stop(); unsubscribe(); };
   }, [score, count]);
 
-  // Aqua Glass palette only — teal (healthy) → aqua accent (moderate) → red
-  // (needs attention; kept as the palette's dedicated usability-warning color).
   const color =
-    score >= 70 ? "#3E7C93" :   // aquaglass-accent-dark — healthy
-    score >= 50 ? "#7FC4DD" :   // aquaglass-accent — moderate
-    "#e07a5f";                  // warning — needs attention
+    score >= 70 ? "#5C6040" :
+    score >= 50 ? "#F4D84A" :
+    "#28261E";
 
   const offset = circumference - (displayed / 100) * circumference;
 
   return (
-    <div className="relative flex flex-col items-center rounded-full glass-card shadow-water" style={{ width: 140, height: 140 }}>
+    <div className="relative flex flex-col items-center justify-center rounded-full bg-cream border-2 border-deep-brown/15 shadow-sm" style={{ width: 140, height: 140 }}>
       <svg width="140" height="140" className="-rotate-90">
-        <circle cx="70" cy="70" r={radius} fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="12" />
+        <circle cx="70" cy="70" r={radius} fill="none" stroke="rgba(40,38,30,0.12)" strokeWidth="10" />
         <motion.circle
           cx="70" cy="70" r={radius} fill="none"
-          stroke={color} strokeWidth="12"
+          stroke={color} strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -101,8 +100,8 @@ function SkinScoreDial({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-number text-3xl font-bold text-white">{displayed}</span>
-        <span className="text-xs text-white/60 font-medium">/ 100</span>
+        <span className="font-serif text-4xl font-bold text-deep-brown">{displayed}</span>
+        <span className="font-mono text-xs font-bold uppercase tracking-wider text-deep-brown/70">/ 100</span>
       </div>
     </div>
   );
@@ -117,10 +116,10 @@ function ConditionCard({ cond }: { cond: ConditionSummary }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-xl p-4 flex gap-3"
+      className="bg-cream border border-deep-brown/15 rounded-2xl p-4 flex gap-3 shadow-sm hover:border-olive/40 transition-all"
     >
-      {/* Thin glass tube — fluid level rises to match severity */}
-      <div className="relative w-3 h-16 shrink-0 rounded-full overflow-hidden bg-white/30 backdrop-blur-sm border border-white/50">
+      {/* Indicator tube */}
+      <div className="relative w-3 h-16 shrink-0 rounded-full overflow-hidden bg-olive/10 border border-deep-brown/20">
         <motion.div
           className={`absolute bottom-0 left-0 right-0 rounded-full ${sev.bg}`}
           initial={{ height: 0 }}
@@ -130,14 +129,14 @@ function ConditionCard({ cond }: { cond: ConditionSummary }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-sm font-semibold text-gray-800 capitalize truncate">
+          <span className="font-serif text-base font-bold text-deep-brown capitalize truncate">
             {cond.condition_name.replace(/_/g, " ")}
           </span>
-          <span className={`text-xs font-medium capitalize shrink-0 ${sev.color}`}>
+          <span className={`font-mono text-xs font-bold uppercase shrink-0 ${sev.color}`}>
             {cond.severity}
           </span>
         </div>
-        <p className="text-xs text-gray-400 capitalize">
+        <p className="text-xs font-sans text-deep-brown/80 font-semibold capitalize">
           Zone: {cond.affected_zone.replace(/_/g, " ")}
         </p>
       </div>
@@ -146,16 +145,75 @@ function ConditionCard({ cond }: { cond: ConditionSummary }) {
 }
 
 // ---------------------------------------------------------------------------
+// Layering helper
+function buildLayeringFromProducts(products: RecommendedProductEntry[]) {
+  const categoryOrder: Record<string, number> = {
+    cleanser: 1, toner: 2, serum: 3, treatment: 3, moisturiser: 4, sunscreen: 5,
+  };
+  const categoryLabels: Record<string, string> = {
+    cleanser: "Cleanse", toner: "Tone", serum: "Treat (Serum)", treatment: "Treat", moisturiser: "Moisturize", sunscreen: "Sun Protection",
+  };
+  const categoryNotes: Record<string, string> = {
+    cleanser: "Start with a gentle cleanser to clear impurities.",
+    toner: "Pat in gently; wait ~1 minute before next step.",
+    serum: "Apply active treatment on dry skin to target core concerns.",
+    treatment: "Target active spots or textured areas.",
+    moisturiser: "Lock in hydration and support moisture barrier.",
+    sunscreen: "Always the final AM step — reapply every 2-3 hours outdoors.",
+  };
+
+  const amSteps: any[] = [];
+  const pmSteps: any[] = [];
+
+  const sorted = [...products].sort(
+    (a, b) => (categoryOrder[a.product.category] ?? 99) - (categoryOrder[b.product.category] ?? 99)
+  );
+
+  sorted.forEach((e) => {
+    const timeOfDay = e.time_of_day || "both";
+    const stepLabel = categoryLabels[e.product.category] ?? e.product.category;
+    const note = e.usage_instruction || categoryNotes[e.product.category] || null;
+    const wait = e.product.category === "toner" || e.product.category === "serum" ? 1 : 0;
+
+    if (timeOfDay === "morning" || timeOfDay === "both") {
+      amSteps.push({
+        order: amSteps.length + 1,
+        product_id: e.product.id,
+        product_name: e.product.product_name,
+        step_label: stepLabel,
+        wait_minutes: wait,
+        note,
+      });
+    }
+
+    if (timeOfDay === "night" || timeOfDay === "both" || e.product.category !== "sunscreen") {
+      if (e.product.category !== "sunscreen") {
+        pmSteps.push({
+          order: pmSteps.length + 1,
+          product_id: e.product.id,
+          product_name: e.product.product_name,
+          step_label: stepLabel,
+          wait_minutes: wait,
+          note: e.product.category === "cleanser" ? "Double-cleanse first if you wore sunscreen or makeup during the day." : note,
+        });
+      }
+    }
+  });
+
+  return { am: amSteps, pm: pmSteps };
+}
+
+// ---------------------------------------------------------------------------
 // Product card
 function ProductImage({ src, alt, category }: { src?: string | null; alt: string; category?: string }) {
   const [error, setError] = useState(false);
-  const catEmojis: Record<string, string> = {
-    cleanser: "🧴", moisturiser: "💧", sunscreen: "☀️", serum: "💊", toner: "✨", treatment: "🩹", mask: "🎭"
+  const catIcons: Record<string, React.ElementType> = {
+    cleanser: Droplets, moisturiser: Droplets, sunscreen: Sun, serum: Pill, toner: Sparkles, treatment: Bandage, mask: Sparkles
   };
-  const emoji = category ? (catEmojis[category] ?? "🌿") : "🌿";
+  const IconComp = category ? (catIcons[category] ?? Leaf) : Leaf;
 
   if (!src || error) {
-    return <span className="text-2xl" aria-hidden>{emoji}</span>;
+    return <IconComp className="w-6 h-6 text-skin-500" aria-hidden />;
   }
 
   return (
@@ -242,7 +300,7 @@ function ProductCard({ entry, index }: { entry: RecommendedProductEntry; index: 
           {entry.time_of_day && (
             <span className="flex items-center gap-1">
               {entry.time_of_day === "morning" ? <Sun className="w-3.5 h-3.5" /> :
-               entry.time_of_day === "night" ? <span>🌙</span> :
+               entry.time_of_day === "night" ? <Moon className="w-3.5 h-3.5" /> :
                <Activity className="w-3.5 h-3.5" />}
               {entry.time_of_day.charAt(0).toUpperCase() + entry.time_of_day.slice(1)}
             </span>
@@ -584,21 +642,21 @@ export default function ResultsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl p-6 text-white shadow-glass-lg bg-gradient-to-br from-aquaglass-navy/95 to-aquaglass-accent-dark/90 backdrop-blur-xl border border-white/10"
+          className="relative overflow-hidden rounded-3xl p-6 shadow-sm bg-cream border border-deep-brown/15"
         >
-          <p className="text-teal-300 text-sm font-medium mb-1">Your Skin Health Score</p>
-          <div className="flex items-center gap-6">
+          <p className="text-olive text-xs font-bold uppercase tracking-widest mb-3">Your Skin Health Score</p>
+          <div className="flex flex-col sm:flex-row items-center gap-6">
             <SkinScoreDial score={rec.skin_score ?? 0} />
-            <div className="flex-1 min-w-0">
-              <p className="text-2xl font-bold capitalize mb-1">
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <p className="font-serif text-3xl sm:text-4xl font-bold text-deep-brown capitalize mb-1">
                 {rec.skin_type ?? "—"} Skin
               </p>
-              <p className="text-gray-300 text-sm leading-relaxed">
+              <p className="font-sans text-deep-brown/80 text-sm leading-relaxed">
                 {SKIN_TYPE_DESC[rec.skin_type ?? ""] ?? ""}
               </p>
               {rec.fitzpatrick_tone && (
-                <div className="mt-3 inline-flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full text-xs font-medium">
-                  <Sparkles className="w-3.5 h-3.5" />
+                <div className="mt-3 inline-flex items-center gap-1.5 bg-butter/40 border border-deep-brown/15 text-deep-brown px-3 py-1 rounded-full text-xs font-mono font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-olive" />
                   Skin Tone · {rec.fitzpatrick_tone}
                 </div>
               )}
@@ -609,11 +667,11 @@ export default function ResultsPage() {
         {/* ---- 2. Conditions ---- */}
         {rec.conditions_summary.length > 0 && (
           <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-teal-500" />
+            <h2 className="font-serif text-2xl font-bold text-deep-brown mb-4 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-olive" />
               Detected Conditions
             </h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {rec.conditions_summary.map((c) => (
                 <ConditionCard key={c.condition_name} cond={c} />
               ))}
@@ -621,76 +679,27 @@ export default function ResultsPage() {
           </section>
         )}
 
-        {/* ---- 3. Routine Recommendations ---- */}
-        <RoutineSelector
-          skinType={rec.skin_type}
-          fitzpatrick={rec.fitzpatrick_tone}
-          condition={primaryCondition}
-          scanId={rec.scan_id}
-          questionnaireId={rec.questionnaire_id}
-        />
-
-        {/* ---- 4. Climate insight ---- */}
-        {meta.climate_insight && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-teal-50/50 backdrop-blur-md border border-teal-200/60 rounded-2xl p-4 flex gap-3"
-          >
-            <MapPin className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" />
+        {/* ---- 3. YOUR PERSONALISED ROUTINE (AI / Derm Prescribed) ---- */}
+        <section className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-deep-brown/15 pb-3">
             <div>
-              <p className="text-sm font-semibold text-teal-800 mb-1">Climate Insight</p>
-              <p className="text-sm text-teal-700 leading-relaxed">{meta.climate_insight}</p>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ---- 5. Monthly cost estimate ---- */}
-        {rec.estimated_monthly_cost_inr && (
-          <div className="bg-cream-50/50 backdrop-blur-md border border-cream-200/60 rounded-xl px-4 py-3 flex items-center gap-3">
-            <span className="text-2xl">💰</span>
-            <div>
-              <p className="text-sm font-semibold text-cream-800">
-                Estimated Monthly Cost: ₹{rec.estimated_monthly_cost_inr.toLocaleString("en-IN")}
-              </p>
-              <p className="text-xs text-cream-700">One-time purchase — products typically last 2–3 months</p>
-            </div>
-          </div>
-        )}
-
-        {/* ---- 5. Allergen / conflict flags ---- */}
-        {rec.allergen_flags.length > 0 && (
-          <div className="bg-red-50/50 backdrop-blur-md border border-red-200/60 rounded-xl p-4 flex gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-red-800 mb-1">Allergen Alert</p>
-              {rec.allergen_flags.map((flag) => (
-                <p key={flag} className="text-sm text-red-700">{flag}</p>
-              ))}
-              <p className="text-xs text-red-500 mt-1">
-                Please consult your dermatologist before using flagged products.
+              <h2 className="text-2xl font-serif font-bold text-deep-brown flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-olive" />
+                Your Personalised Routine
+              </h2>
+              <p className="text-xs text-deep-brown/70 mt-0.5 font-sans">
+                {rec.products.length} products prescribed specifically for your skin profile and local climate.
               </p>
             </div>
           </div>
-        )}
-
-        {/* ---- 6. Product Recommendations ---- */}
-        <section>
-          <h2 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-teal-500" />
-            Your Personalised Routine
-          </h2>
-          <p className="text-sm text-gray-500 mb-5">
-            {rec.products.length} products selected from Nykaa, Minimalist, and Dermaco for your skin type and climate.
-          </p>
 
           {phase1Products.length > 0 && (
-            <div className="mb-5">
+            <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-bold bg-teal-100 text-teal-700 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-mono font-bold bg-butter text-deep-brown border border-deep-brown/15 px-3 py-1 rounded-full uppercase tracking-wider">
                   Phase 1 · Weeks 1–4
                 </span>
-                <span className="text-xs text-gray-400">Foundations</span>
+                <span className="text-xs font-serif font-semibold text-olive">Foundations</span>
               </div>
               <div className="space-y-4">
                 {phase1Products.map((e, i) => <ProductCard key={e.id} entry={e} index={i} />)}
@@ -699,12 +708,12 @@ export default function ResultsPage() {
           )}
 
           {phase2Products.length > 0 && (
-            <div className="mb-5">
+            <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-bold bg-skin-100 text-skin-700 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-mono font-bold bg-olive text-cream px-3 py-1 rounded-full uppercase tracking-wider">
                   Phase 2 · Weeks 5–12
                 </span>
-                <span className="text-xs text-gray-400">Targeted Treatment</span>
+                <span className="text-xs font-serif font-semibold text-olive">Targeted Treatment</span>
               </div>
               <div className="space-y-4">
                 {phase2Products.map((e, i) => <ProductCard key={e.id} entry={e} index={phase1Products.length + i} />)}
@@ -713,12 +722,12 @@ export default function ResultsPage() {
           )}
 
           {phase3Products.length > 0 && (
-            <div>
+            <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-bold bg-cream-100 text-cream-800 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-mono font-bold bg-cream border border-deep-brown/20 text-deep-brown px-3 py-1 rounded-full uppercase tracking-wider">
                   Phase 3 · Weeks 13–20
                 </span>
-                <span className="text-xs text-gray-400">Optimise</span>
+                <span className="text-xs font-serif font-semibold text-olive">Optimise & Maintain</span>
               </div>
               <div className="space-y-4">
                 {phase3Products.map((e, i) => (
@@ -727,6 +736,110 @@ export default function ResultsPage() {
               </div>
             </div>
           )}
+
+          {/* Layering Guidance — Morning vs Night application order */}
+          {rec.products.length > 0 && (
+            <div className="pt-4 border-t border-deep-brown/15">
+              <LayeringGuidanceCard layering={buildLayeringFromProducts(rec.products)} />
+            </div>
+          )}
+        </section>
+
+        {/* ---- 4. Climate insight ---- */}
+        {meta.climate_insight && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-butter/20 border border-deep-brown/15 rounded-2xl p-4 flex gap-3 text-deep-brown font-sans"
+          >
+            <MapPin className="w-5 h-5 text-olive shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-deep-brown mb-1 font-serif">Climate Insight</p>
+              <p className="text-sm text-deep-brown/80 leading-relaxed">{meta.climate_insight}</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ---- 5. Monthly cost estimate ---- */}
+        {rec.estimated_monthly_cost_inr && (
+          <div className="bg-cream border border-deep-brown/15 rounded-2xl px-5 py-4 flex items-center gap-3 shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-butter text-deep-brown flex items-center justify-center shrink-0 border border-deep-brown/15 font-bold">
+              <IndianRupee className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-deep-brown font-serif">
+                Estimated Monthly Cost: ₹{rec.estimated_monthly_cost_inr.toLocaleString("en-IN")}
+              </p>
+              <p className="text-xs text-deep-brown/70">One-time purchase — products typically last 2–3 months</p>
+            </div>
+          </div>
+        )}
+
+        {/* ---- 6. Allergen / conflict flags ---- */}
+        {rec.allergen_flags.length > 0 && (
+          <div className="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-amber-900 mb-1">Allergen & Safety Alert</p>
+              {rec.allergen_flags.map((flag) => (
+                <p key={flag} className="text-xs text-amber-800 font-medium">{flag}</p>
+              ))}
+              <p className="text-xs text-amber-700 mt-1">
+                Please consult your dermatologist before using flagged products.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ---- 7. 20-Week Roadmap ---- */}
+        {rec.roadmap && (
+          <section className="space-y-4">
+            <h2 className="text-xl font-serif font-bold text-deep-brown flex items-center gap-2 border-b border-deep-brown/15 pb-2">
+              <Clock className="w-5 h-5 text-olive" />
+              Your 20-Week Transformation Roadmap
+            </h2>
+            <RoadmapTimeline phases={rec.roadmap.phases} />
+
+            {/* Condition timelines */}
+            {rec.roadmap.condition_timelines.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <p className="text-xs font-mono font-bold uppercase tracking-wider text-olive">Expected Results Timeline:</p>
+                {rec.roadmap.condition_timelines.map((ct) => (
+                  <div key={ct.condition} className="bg-cream rounded-2xl border border-deep-brown/15 p-4 shadow-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-serif text-sm font-bold capitalize text-deep-brown">
+                        {ct.condition.replace(/_/g, " ")}
+                      </span>
+                      <span className="font-mono text-xs font-bold uppercase text-deep-brown bg-butter px-2.5 py-0.5 rounded-full border border-deep-brown/15">
+                        ~{ct.expected_improvement_pct}% by week {ct.expected_improvement_week}
+                      </span>
+                    </div>
+                    <p className="text-xs text-deep-brown/80 leading-relaxed">{ct.note}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ---- 8. EXPLORE & CUSTOMISE EXTRA PRODUCTS ---- */}
+        <section className="pt-8 border-t border-deep-brown/15">
+          <div className="mb-4">
+            <h2 className="text-2xl font-serif font-bold text-deep-brown flex items-center gap-2">
+              <ShoppingBag className="w-6 h-6 text-olive" />
+              Explore & Customise Extra Products
+            </h2>
+            <p className="text-xs sm:text-sm text-deep-brown/70 mt-0.5 font-sans">
+              Want to add extra steps or swap products? Browse our full catalogue below by category, brand, and budget.
+            </p>
+          </div>
+          <RoutineSelector
+            skinType={rec.skin_type}
+            fitzpatrick={rec.fitzpatrick_tone}
+            condition={primaryCondition}
+            scanId={rec.scan_id}
+            questionnaireId={rec.questionnaire_id}
+          />
         </section>
 
         {/* ---- 7. 20-Week Roadmap ---- */}
@@ -788,7 +901,7 @@ export default function ResultsPage() {
               {meta.night_routine.length > 0 && (
                 <div className="bg-gray-100/50 backdrop-blur-md border border-gray-200/60 rounded-2xl p-4">
                   <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
-                    🌙 Night Routine
+                    <Moon className="w-4 h-4" /> Night Routine
                   </p>
                   <ol className="space-y-2">
                     {meta.night_routine.map((step, i) => (

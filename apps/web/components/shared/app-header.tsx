@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Sparkles, User, ChevronRight, Bell, HelpCircle } from "lucide-react";
+import { Sparkles, ChevronRight, Bell, Settings } from "lucide-react";
 
 const PAGE_HEADERS: Record<string, { title: string; subtitle: string; category: string }> = {
   "/dashboard": {
@@ -67,7 +67,6 @@ export function AppHeader() {
   const pathname = usePathname() || "";
   const { data: session } = useSession();
 
-  // Match header info dynamically based on current path
   let header = PAGE_HEADERS[pathname];
   if (!header) {
     if (pathname.startsWith("/results/")) {
@@ -95,18 +94,18 @@ export function AppHeader() {
   const initial = name.trim()[0]?.toUpperCase() ?? "U";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-skin-100/80 bg-white/90 px-6 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-deep-brown/15 bg-cream/95 px-6 backdrop-blur-md font-sans text-deep-brown">
       {/* Page Title & Breadcrumb */}
       <div className="flex items-center gap-3 min-w-0">
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-zinc-400 font-medium shrink-0">
+        <div className="hidden sm:flex items-center gap-1.5 font-sans text-xs font-bold uppercase tracking-widest text-olive shrink-0">
           <span>{header.category}</span>
-          <ChevronRight className="w-3 h-3 text-zinc-300" />
+          <ChevronRight className="w-3.5 h-3.5 text-deep-brown/40" />
         </div>
         <div className="min-w-0">
-          <h1 className="text-base sm:text-lg font-bold font-heading text-zinc-900 truncate leading-tight">
+          <h1 className="text-base sm:text-xl font-bold font-serif text-deep-brown truncate leading-tight">
             {header.title}
           </h1>
-          <p className="text-xs text-zinc-500 truncate hidden sm:block">
+          <p className="text-xs font-sans text-deep-brown/70 truncate hidden sm:block">
             {header.subtitle}
           </p>
         </div>
@@ -115,20 +114,20 @@ export function AppHeader() {
       {/* Right User Actions */}
       <div className="flex items-center gap-3 shrink-0">
         {/* Quick status badge */}
-        <div className="hidden md:flex items-center gap-1.5 bg-teal-50 border border-teal-200/60 text-teal-700 rounded-full px-3 py-1 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-teal-500" />
+        <div className="hidden md:flex items-center gap-1.5 bg-butter/40 border border-deep-brown/10 text-deep-brown rounded-full px-3 py-1 text-xs font-sans font-bold uppercase tracking-wider">
+          <Sparkles className="w-3.5 h-3.5 text-olive" />
           <span>AI Engine Active</span>
         </div>
 
         {/* User Avatar Pill */}
         <Link
           href="/profile"
-          className="flex items-center gap-2.5 rounded-full border border-skin-100 bg-skin-50/60 p-1 pr-3 hover:bg-skin-100/60 transition-colors"
+          className="flex items-center gap-2 rounded-full border border-deep-brown/15 bg-cream p-1 pr-3 shadow-xs hover:border-olive transition-all"
         >
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-skin-400 to-skin-600 text-xs font-bold text-white shadow-xs">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-butter text-xs font-sans font-bold text-deep-brown border border-deep-brown/10 shadow-xs">
             {initial}
           </div>
-          <span className="text-xs font-semibold text-zinc-700 hidden sm:inline truncate max-w-[100px]">
+          <span className="text-xs font-sans font-bold uppercase tracking-wider text-deep-brown hidden sm:inline truncate max-w-[100px]">
             {name}
           </span>
         </Link>

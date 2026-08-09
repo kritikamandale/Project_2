@@ -14,26 +14,23 @@ interface StrengthResult {
   score: StrengthLevel;
   label: string;
   color: string;
+  textColor: string;
   suggestions: string[];
 }
 
-// Lightweight zxcvbn-style scorer without the library dependency.
-// Uses heuristics that cover the most impactful password patterns.
 function scorePassword(password: string): StrengthResult {
   if (!password) {
-    return { score: 0, label: "", color: "", suggestions: [] };
+    return { score: 0, label: "", color: "", textColor: "", suggestions: [] };
   }
 
   const suggestions: string[] = [];
   let score = 0;
 
-  // Length
   if (password.length >= 8) score++;
   if (password.length >= 12) score++;
   if (password.length < 8) suggestions.push("Use at least 8 characters");
-  else if (password.length < 12) suggestions.push("12+ characters is stronger");
+  else if (password.length < 12) suggestions.push("12+ characters recommended");
 
-  // Complexity checks
   const hasUpper = /[A-Z]/.test(password);
   const hasLower = /[a-z]/.test(password);
   const hasDigit = /\d/.test(password);
@@ -46,24 +43,25 @@ function scorePassword(password: string): StrengthResult {
   else suggestions.push("Add at least one number");
 
   if (hasSpecial) score++;
-  else suggestions.push("Add a special character (e.g. @, #, !)");
+  else suggestions.push("Add a special character (@, #, !)");
 
-  // Cap at 4
   const capped = Math.min(score, 4) as StrengthLevel;
 
-  const LEVELS: Record<StrengthLevel, { label: string; color: string }> = {
-    0: { label: "Too weak", color: "bg-red-500" },
-    1: { label: "Weak", color: "bg-red-400" },
-    2: { label: "Fair", color: "bg-cream-500" },
-    3: { label: "Good", color: "bg-teal-400" },
-    4: { label: "Strong", color: "bg-teal-600" },
+  // In-palette color mapping (olive → butter → deep-brown)
+  const LEVELS: Record<StrengthLevel, { label: string; color: string; textColor: string }> = {
+    0: { label: "Too weak", color: "bg-olive/40", textColor: "text-olive/80" },
+    1: { label: "Weak", color: "bg-olive/60", textColor: "text-olive" },
+    2: { label: "Fair", color: "bg-olive", textColor: "text-olive font-bold" },
+    3: { label: "Good", color: "bg-butter", textColor: "text-deep-brown font-bold" },
+    4: { label: "Strong", color: "bg-deep-brown", textColor: "text-deep-brown font-bold" },
   };
 
   return {
     score: capped,
     label: LEVELS[capped].label,
     color: LEVELS[capped].color,
-    suggestions: suggestions.slice(0, 2), // Show max 2 hints
+    textColor: LEVELS[capped].textColor,
+    suggestions: suggestions.slice(0, 2),
   };
 }
 
@@ -75,35 +73,27 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
   const filledBars = result.score;
 
   return (
-    <div className={cn("space-y-1.5", className)}>
-      {/* Bar indicators */}
-      <div className="flex gap-1.5">
+    <div className={cn("space-y-1.5 mt-2", className)}>
+      {/* Thin Segmented Bar Indicators — In-palette (olive -> butter -> deep-brown) */}
+      <div className="flex gap-1.5 p-0.5 bg-cream border border-deep-brown/15 rounded-full">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
             className={cn(
               "h-1.5 flex-1 rounded-full transition-all duration-300",
-              i <= filledBars ? result.color : "bg-muted"
+              i <= filledBars ? result.color : "bg-nude/30"
             )}
           />
         ))}
       </div>
 
       {/* Label + hint */}
-      <div className="flex items-center justify-between text-xs">
-        <span
-          className={cn(
-            "font-medium",
-            filledBars <= 1 && "text-red-500",
-            filledBars === 2 && "text-cream-700",
-            filledBars === 3 && "text-teal-600",
-            filledBars === 4 && "text-teal-700"
-          )}
-        >
+      <div className="flex items-center justify-between text-xs font-sans">
+        <span className={cn("text-[11px] font-mono uppercase tracking-wider", result.textColor)}>
           {result.label}
         </span>
         {result.suggestions[0] && (
-          <span className="text-muted-foreground">{result.suggestions[0]}</span>
+          <span className="text-deep-brown/60 text-[11px]">{result.suggestions[0]}</span>
         )}
       </div>
     </div>

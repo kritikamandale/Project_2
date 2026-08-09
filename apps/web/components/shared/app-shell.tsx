@@ -15,7 +15,7 @@ export function AppShell({
   const isOnboardingFlow = pathname.startsWith("/onboarding/") || pathname === "/scan";
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-slate-50/50">
+    <div className="flex h-dvh overflow-hidden bg-cream text-deep-brown font-sans">
       <AppSidebar area={area} />
       {/* Offset content by sidebar width on desktop (lg:pl-64) with fixed header */}
       <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden lg:pl-64">

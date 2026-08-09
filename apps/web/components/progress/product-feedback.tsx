@@ -5,21 +5,23 @@ import { toast } from "sonner";
 import { progressApi } from "@/lib/api/progress";
 import type { ProductEffectivenessItem, ProductRating } from "@/lib/api/progress";
 
+import { ThumbsUp, HelpCircle, ThumbsDown } from "lucide-react";
+
 interface Props {
   products: ProductEffectivenessItem[];
   onRated?: (productId: string, rating: ProductRating) => void;
 }
 
-const RATING_OPTIONS: { value: ProductRating; emoji: string; label: string }[] = [
-  { value: "working", emoji: "👍", label: "Working" },
-  { value: "unsure", emoji: "🤔", label: "Unsure" },
-  { value: "not_working", emoji: "👎", label: "Not working" },
+const RATING_OPTIONS: { value: ProductRating; icon: React.ElementType; label: string }[] = [
+  { value: "working", icon: ThumbsUp, label: "Working" },
+  { value: "unsure", icon: HelpCircle, label: "Unsure" },
+  { value: "not_working", icon: ThumbsDown, label: "Not working" },
 ];
 
 const RATING_COLORS: Record<ProductRating, string> = {
-  working: "bg-teal-50 border-teal-300 text-teal-700",
-  unsure: "bg-cream-50 border-cream-300 text-cream-800",
-  not_working: "bg-rose-50 border-rose-300 text-rose-600",
+  working: "bg-butter/20 border-olive text-deep-brown",
+  unsure: "bg-nude/20 border-deep-brown/20 text-deep-brown",
+  not_working: "bg-deep-brown/10 border-deep-brown/30 text-deep-brown",
 };
 
 function ProductCard({
@@ -89,23 +91,26 @@ function ProductCard({
 
       {/* Rating buttons */}
       <div className="flex gap-2 flex-wrap">
-        {RATING_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            disabled={submitting}
-            onClick={() => handleRate(opt.value)}
-            className={[
-              "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
-              rating === opt.value
-                ? RATING_COLORS[opt.value]
-                : "bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400",
-              submitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
-            ].join(" ")}
-          >
-            <span>{opt.emoji}</span>
-            <span>{opt.label}</span>
-          </button>
-        ))}
+        {RATING_OPTIONS.map((opt) => {
+          const IconComp = opt.icon;
+          return (
+            <button
+              key={opt.value}
+              disabled={submitting}
+              onClick={() => handleRate(opt.value)}
+              className={[
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                rating === opt.value
+                  ? RATING_COLORS[opt.value]
+                  : "bg-cream border-deep-brown/15 text-deep-brown/70 hover:border-deep-brown/30",
+                submitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+              ].join(" ")}
+            >
+              <IconComp className="w-3.5 h-3.5" />
+              <span>{opt.label}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

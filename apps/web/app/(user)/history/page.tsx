@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Camera, ClipboardList, Map as MapIcon, ChevronRight, Star,
-  Droplets, Moon, Activity, Sun, Loader2,
+  Droplets, Moon, Activity, Sun, Loader2, BookOpen,
 } from "lucide-react";
 import { getScanHistory, type ScanSummary } from "@/lib/api/scan";
 import {
@@ -183,7 +183,9 @@ export default function HistoryPage() {
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-2xl border border-zinc-100 p-10 text-center"
           >
-            <span className="text-4xl block mb-3">📖</span>
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center mx-auto mb-3 text-white">
+              <BookOpen className="w-7 h-7" />
+            </div>
             <p className="font-semibold text-zinc-900">No history yet</p>
             <p className="text-sm text-zinc-400 mt-1 mb-5">
               Complete your first scan to start building your skin journey.

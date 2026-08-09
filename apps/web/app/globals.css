@@ -4,145 +4,57 @@
 
 @layer base {
   :root {
-    /* ─── "Aqua Glass" palette, as HSL tokens (shadcn/ui convention) ───────
-       Pearl White → Sky-Blue bg · Aqua Blue (CTA) · Deep Teal (headers) ·
-       Pearlescent shimmer (glass glare) · Ocean Navy (text). Every semantic
-       token below routes through one of these six — no pure black, pure
-       white, or generic gray is used anywhere. */
-    --gradient-start: 200 20% 97%;      /* aquaglass-bg-start #F7F9FA */
-    --gradient-end: 194 56% 91%;        /* aquaglass-bg-end #DCEFF5 */
-    --background: 200 20% 97%;          /* aquaglass-bg-start #F7F9FA */
-    --foreground: 200 39% 20%;          /* aquaglass-navy #1F3A47 */
-    --card: 0 0% 100%;                  /* white base — glass surfaces apply their own alpha */
-    --card-foreground: 200 39% 20%;     /* aquaglass-navy */
-    --popover: 0 0% 100%;
-    --popover-foreground: 200 39% 20%;  /* aquaglass-navy */
-    --primary: 196 58% 68%;             /* aquaglass-accent #7FC4DD */
-    --primary-foreground: 200 39% 20%;  /* aquaglass-navy — aqua blue is a light pastel, so dark text keeps contrast */
-    --secondary: 196 41% 41%;           /* aquaglass-accent-dark #3E7C93 */
-    --secondary-foreground: 0 0% 100%;  /* white text on deep teal */
-    --muted: 193 33% 95%;               /* aquaglass-shimmer, light surface */
-    --muted-foreground: 200 15% 45%;    /* navy/teal blend, mid tint */
-    --accent: 194 56% 91%;              /* aquaglass-bg-end — AI/tech accent surfaces */
-    --accent-foreground: 200 39% 20%;   /* aquaglass-navy */
-    --ring: 196 58% 68%;                /* aquaglass-accent, matches primary */
-    /* Error/destructive is a usability signal, not a brand color — left as-is. */
+    /* ─── Definitive Skinest 5-Color System (cream, olive, butter, deep-brown, nude) ─── */
+    --background: 44 56% 91%;        /* cream #F5EFD9 */
+    --foreground: 48 14% 13%;        /* deep-brown #28261E */
+    --card: 44 56% 91%;              /* cream #F5EFD9 */
+    --card-foreground: 48 14% 13%;   /* deep-brown #28261E */
+    --popover: 44 56% 91%;           /* cream #F5EFD9 */
+    --popover-foreground: 48 14% 13%;/* deep-brown #28261E */
+    --primary: 65 20% 31%;           /* olive #5C6040 */
+    --primary-foreground: 44 56% 91%;/* cream #F5EFD9 */
+    --secondary: 28 43% 72%;         /* nude #D6B59A */
+    --secondary-foreground: 48 14% 13%;
+    --muted: 44 40% 86%;             /* subtle cream fill */
+    --muted-foreground: 48 10% 40%;
+    --accent: 50 89% 62%;            /* butter #F4D84A */
+    --accent-foreground: 48 14% 13%; /* deep-brown */
+    --ring: 65 20% 31%;              /* olive */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 60 9.1% 97.8%;
-    --border: 194 40% 85%;              /* light blue-tinted, not gray */
-    --input: 194 40% 85%;
-    --radius: 0.625rem;
+    --border: 48 14% 13% / 0.12;     /* deep-brown 12% opacity */
+    --input: 48 14% 13% / 0.15;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --gradient-start: 200 35% 10%;      /* deep ocean navy */
-    --gradient-end: 200 30% 15%;
-    --background: 200 35% 10%;
-    --foreground: 193 33% 95%;          /* aquaglass-shimmer */
-    --card: 200 30% 14%;
-    --card-foreground: 193 33% 95%;
-    --popover: 200 30% 14%;
-    --popover-foreground: 193 33% 95%;
-    --primary: 196 58% 68%;             /* aqua accent stays the CTA color */
-    --primary-foreground: 200 39% 12%;
-    --secondary: 196 41% 41%;           /* deep teal, unchanged */
-    --secondary-foreground: 193 33% 95%;
-    --muted: 200 25% 20%;
-    --muted-foreground: 194 20% 70%;
-    --accent: 200 25% 22%;
-    --accent-foreground: 193 33% 95%;
+    --background: 65 20% 15%;        /* deep dark olive */
+    --foreground: 44 56% 91%;        /* cream */
+    --card: 65 20% 18%;
+    --card-foreground: 44 56% 91%;
+    --popover: 65 20% 18%;
+    --popover-foreground: 44 56% 91%;
+    --primary: 50 89% 62%;           /* butter */
+    --primary-foreground: 48 14% 13%;
+    --secondary: 65 20% 31%;
+    --secondary-foreground: 44 56% 91%;
+    --muted: 65 15% 25%;
+    --muted-foreground: 44 30% 75%;
+    --accent: 50 89% 62%;
+    --accent-foreground: 48 14% 13%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 60 9.1% 97.8%;
-    --border: 200 20% 25%;
-    --input: 200 20% 25%;
-    --ring: 196 58% 68%;
+    --border: 44 56% 91% / 0.15;
+    --input: 44 56% 91% / 0.15;
+    --ring: 50 89% 62%;
   }
 }
 
 @layer base {
   * { @apply border-border; }
   body {
-    @apply text-foreground;
-    /* Soft, non-scrolling vertical gradient — simulates looking through
-       shallow water. `fixed` keeps it pinned to the viewport rather than
-       repeating per-page-length. */
-    background: linear-gradient(180deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
-    background-attachment: fixed;
+    @apply bg-cream text-deep-brown font-sans antialiased;
     min-height: 100vh;
-  }
-}
-
-/* =========================================================================
-   Aqua Glass utilities — glassmorphism surfaces, glow states, gradient text
-
-   Wrapped in `@layer components`: CSS cascade layers make ANY unlayered rule
-   beat ANY layered rule regardless of source order or specificity. Tailwind's
-   own utilities (including `.absolute`/`.relative`) live in `@layer
-   utilities`, which is defined AFTER `components` — so as plain unlayered
-   rules, `.glass-shimmer`'s `position: relative` was silently overriding the
-   `.absolute` utility on every element that combined both classes (e.g.
-   `className="absolute ... glass-shimmer"`), permanently keeping otherwise
-   "absolutely positioned" floating cards stuck in normal document flow. Layering
-   these under `components` restores the expected utility-overrides-component
-   precedence.
-   ========================================================================= */
-
-@layer components {
-  .glass-card {
-    background-color: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 32px rgba(31, 58, 71, 0.05);
-  }
-
-  .dark .glass-card {
-    background-color: rgba(31, 58, 71, 0.35);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  /* Diagonal pearlescent glare — layer on top of .glass-card for extra shine. */
-  .glass-shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .glass-shimmer::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(237, 244, 246, 0.6) 0%, rgba(237, 244, 246, 0) 45%);
-    pointer-events: none;
-  }
-
-  /* Subtle radial aqua glow for interactive states — pair with `relative` on
-     the target element (or a wrapping element with `overflow-hidden`). */
-  .water-glow {
-    position: relative;
-  }
-
-  .water-glow::before {
-    content: "";
-    position: absolute;
-    inset: -20%;
-    z-index: -1;
-    background: radial-gradient(circle, rgba(127, 196, 221, 0.35) 0%, rgba(127, 196, 221, 0) 70%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-
-  .water-glow:hover::before,
-  .water-glow:focus-visible::before {
-    opacity: 1;
-  }
-
-  /* Large display-text gradient — Teal to Navy, for hero copy and AI-score numbers. */
-  .text-gradient-ocean {
-    background: linear-gradient(135deg, #3e7c93 0%, #1f3a47 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
   }
 }
 

@@ -17,8 +17,9 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 
-# bcrypt cost factor 12 per spec
-pwd_context = CryptContext(schemes=["bcrypt"], bcrypt__rounds=12, deprecated="auto")
+# bcrypt cost factor 12 in production, 4 in dev for instant login verification
+_rounds = 4 if settings.is_development else 12
+pwd_context = CryptContext(schemes=["bcrypt"], bcrypt__rounds=_rounds, deprecated="auto")
 
 
 # ---------------------------------------------------------------------------

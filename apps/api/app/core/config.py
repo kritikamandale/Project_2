@@ -45,7 +45,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3100",
         "http://127.0.0.1:3001",
     ]
-    frontend_url: str = "http://localhost:3100"
+    frontend_url: str = "http://localhost:3000"
     trusted_hosts: list[str] = ["localhost", "127.0.0.1"]
 
     # Only trust X-Forwarded-For / X-Forwarded-Proto when the API actually sits

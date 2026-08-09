@@ -1,0 +1,38 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg-grad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7FC4DD" />
+      <stop offset="50%" stop-color="#5AA8C4" />
+      <stop offset="100%" stop-color="#234350" />
+    </linearGradient>
+    <linearGradient id="drop-grad" x1="256" y1="70" x2="256" y2="430" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="40%" stop-color="#E6F5FA" />
+      <stop offset="100%" stop-color="#ABDBEC" />
+    </linearGradient>
+    <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#1A323C" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Background Tile -->
+  <rect width="512" height="512" rx="128" fill="url(#bg-grad)" />
+
+  <!-- Inner Subtle Glass Edge -->
+  <rect x="12" y="12" width="488" height="488" rx="116" fill="none" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="6" />
+
+  <!-- Main Emblem Drop -->
+  <g filter="url(#drop-shadow)">
+    <!-- Outer Radiant Skin Teardrop -->
+    <path d="M 256 80 C 256 80 135 225 135 318 C 135 385 189 438 256 438 C 323 438 377 385 377 318 C 377 225 256 80 256 80 Z" fill="url(#drop-grad)" />
+
+    <!-- Translucent Dermal Arc Overlay -->
+    <path d="M 256 125 C 256 125 168 240 168 312 C 168 360 207 398 256 398 C 305 398 344 360 344 312 C 344 240 256 125 256 125 Z" fill="#35697D" fill-opacity="0.18" />
+
+    <!-- AI Sparkle Core (4-Point Star inside drop) -->
+    <path d="M 256 215 C 256 262 218 288 218 288 C 218 288 256 314 256 361 C 256 314 294 288 294 288 C 294 288 256 262 256 215 Z" fill="#2C5666" />
+
+    <!-- Secondary Bright Sparkle (Top-Right of drop) -->
+    <path d="M 324 172 C 324 192 306 202 306 202 C 306 202 324 212 324 232 C 324 212 342 202 342 202 C 342 202 324 192 324 172 Z" fill="#FFFFFF" />
+  </g>
+</svg>

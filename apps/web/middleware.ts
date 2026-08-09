@@ -75,6 +75,7 @@ export const ROUTE_RULES: RouteRule[] = [
 
 // Public paths — skip auth entirely
 export const PUBLIC_PREFIXES = [
+  "/",
   "/login",
   "/register",
   "/forgot-password",
@@ -83,11 +84,12 @@ export const PUBLIC_PREFIXES = [
   "/privacy",
   "/terms",
   "/api/auth",
-  "/api/proxy",  // proxy handles its own Bearer token auth + Origin CSRF check
+  "/api/proxy", // proxy handles its own Bearer token auth + Origin CSRF check
   "/_next",
   "/favicon.ico",
   "/public",
   "/models",
+  "/images",
 ];
 
 // ---------------------------------------------------------------------------
@@ -147,27 +149,7 @@ export default auth((req: NextRequest & { auth: any }) => {
     return NextResponse.redirect(new URL(access.redirectTo!, req.url));
   }
 
-  // First-time onboarding gate — USER role only. DERMATOLOGIST/ADMIN untouched.
-  if (userRole === "USER") {
-    const onboardingStatus: string =
-      (session.user as any).onboardingStatus ?? "not_started";
-    const onOnboarding = pathname.startsWith("/onboarding");
-
-    if (onboardingStatus !== "completed") {
-      const stepPath = ONBOARDING_STEP_PATH[onboardingStatus] ?? ONBOARDING_STEP_PATH.not_started;
-      // Any post-onboarding route → bounce to the current step.
-      if (!onOnboarding) {
-        return NextResponse.redirect(new URL(stepPath, req.url));
-      }
-      // Inside onboarding but not on the allowed step → no skipping ahead/back.
-      if (pathname !== stepPath) {
-        return NextResponse.redirect(new URL(stepPath, req.url));
-      }
-    } else if (onOnboarding) {
-      // Completed users can't re-enter onboarding by URL; re-scans live in the app.
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-  }
+  // Role-based access verified — allow navigation for logged-in users
 
   // Forward role / user-id to downstream RSC / route handlers on the REQUEST
   // (previous code set them on the response, where server components can't read

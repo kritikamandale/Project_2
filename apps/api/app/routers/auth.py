@@ -76,8 +76,7 @@ async def register_user(
 ):
     ip = get_client_ip(request)
     try:
-        async with db.begin():
-            await auth_service.register_user(db, redis, body, ip_address=ip)
+        await auth_service.register_user(db, redis, body, ip_address=ip)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -105,8 +104,7 @@ async def register_dermatologist(
 ):
     ip = get_client_ip(request)
     try:
-        async with db.begin():
-            await auth_service.register_dermatologist(db, redis, body, ip_address=ip)
+        await auth_service.register_dermatologist(db, redis, body, ip_address=ip)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -137,14 +135,13 @@ async def login(
     ip = get_client_ip(request)
     ua = get_user_agent(request)
     try:
-        async with db.begin():
-            tokens = await auth_service.login_user(
-                db, redis,
-                email=body.email,
-                password=body.password,
-                ip_address=ip,
-                user_agent=ua,
-            )
+        tokens = await auth_service.login_user(
+            db, redis,
+            email=body.email,
+            password=body.password,
+            ip_address=ip,
+            user_agent=ua,
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -173,11 +170,10 @@ async def refresh_token(
     ip = get_client_ip(request)
     ua = get_user_agent(request)
     try:
-        async with db.begin():
-            tokens = await auth_service.rotate_refresh_token(
-                db, redis, body.refresh_token,
-                ip_address=ip, user_agent=ua,
-            )
+        tokens = await auth_service.rotate_refresh_token(
+            db, redis, body.refresh_token,
+            ip_address=ip, user_agent=ua,
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -246,10 +242,9 @@ async def verify_email(
     redis=Depends(get_redis),
 ):
     try:
-        async with db.begin():
-            await auth_service.confirm_email_verification(
-                db, redis, body.email, body.otp
-            )
+        await auth_service.confirm_email_verification(
+            db, redis, body.email, body.otp
+        )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return MessageResponse(message="Email verified successfully. You can now log in.")
@@ -303,8 +298,7 @@ async def forgot_password(
     db: Annotated[AsyncSession, Depends(get_db)],
     redis=Depends(get_redis),
 ):
-    async with db.begin():
-        await auth_service.initiate_password_reset(db, redis, body.email)
+    await auth_service.initiate_password_reset(db, redis, body.email)
 
     # Always the same message — never confirm whether email exists
     return MessageResponse(
@@ -328,10 +322,9 @@ async def reset_password(
 ):
     # ResetPasswordRequest uses otp field name — here it carries the reset token
     try:
-        async with db.begin():
-            await auth_service.complete_password_reset(
-                db, redis, token=body.otp, new_password=body.new_password
-            )
+        await auth_service.complete_password_reset(
+            db, redis, token=body.otp, new_password=body.new_password
+        )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return MessageResponse(message="Password reset successfully. Please log in.")

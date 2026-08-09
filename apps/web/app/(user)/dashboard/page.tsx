@@ -4,7 +4,34 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-
+import { SkinestLogo, SkinestLogoIcon } from "@/components/shared/skinest-logo";
+import { Button } from "@/components/ui/button";
+import {
+  Clock,
+  AlertTriangle,
+  Info,
+  Sparkles,
+  FlaskConical,
+  BarChart3,
+  Camera,
+  ClipboardList,
+  TrendingUp,
+  Map,
+  User,
+  Bell,
+  Check,
+  ArrowRight,
+  Flame,
+  Calendar,
+  Activity,
+  Droplet,
+  Sun,
+  Moon,
+  Leaf,
+  Lightbulb,
+  ShieldCheck,
+  Layers,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { progressApi } from "@/lib/api/progress";
 import type { ProgressSummaryResponse } from "@/lib/api/progress";
@@ -20,151 +47,95 @@ function AlertBanner({ message, type }: { message: string; type: string }) {
   return (
     <div
       className={[
-        "flex items-start gap-3 rounded-xl border px-4 py-3 text-sm backdrop-blur-sm",
+        "flex items-start gap-3 rounded-xl border px-4 py-3 text-xs font-sans backdrop-blur-sm",
         isOverdue
-          ? "border-rose-200/60 bg-rose-50/80 text-rose-700"
+          ? "border-deep-brown/20 bg-butter/30 text-deep-brown font-medium"
           : isWorsened
-          ? "border-cream-300/60 bg-cream-50/80 text-cream-800"
-          : "border-skin-200/60 bg-skin-50/80 text-skin-800",
+          ? "border-deep-brown/20 bg-nude/40 text-deep-brown font-medium"
+          : "border-deep-brown/10 bg-cream text-deep-brown",
       ].join(" ")}
     >
-      <span className="mt-0.5 shrink-0 text-base">
-        {isOverdue ? "⏰" : isWorsened ? "⚠️" : "ℹ️"}
+      <span className="mt-0.5 shrink-0 text-olive">
+        {isOverdue ? <Clock className="w-4 h-4" /> : isWorsened ? <AlertTriangle className="w-4 h-4" /> : <Info className="w-4 h-4" />}
       </span>
-      <p>{message}</p>
+      <p className="leading-relaxed">{message}</p>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Water-fill glass ring — a circular gauge that "fills" like rising water,
-// used for the primary Skin Score stat instead of a bare icon.
-// ---------------------------------------------------------------------------
-
-function ScoreRing({ value, size = 48 }: { value: number | null; size?: number }) {
-  const pct = value != null ? Math.max(0, Math.min(100, value)) : 0;
-  return (
-    <div
-      className="relative shrink-0 rounded-full overflow-hidden glass-card shadow-water"
-      style={{ width: size, height: size }}
-    >
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-aquaglass-accent-dark to-aquaglass-accent"
-        initial={{ height: 0 }}
-        animate={{ height: value != null ? `${pct}%` : "0%" }}
-        transition={{ duration: 1.4, ease: "easeOut", delay: 0.3 }}
-      >
-        {/* Water-surface highlight line */}
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-white/50" />
-      </motion.div>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="font-number text-sm font-bold text-aquaglass-navy drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
-          {value ?? "—"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Glassmorphism stat card
+// Stat Card — Phase 4 Thin-Border Cream System with Cormorant Numerals
 // ---------------------------------------------------------------------------
 
 function StatCard({
   label,
   value,
   sub,
-  icon,
-  gradient,
+  icon: Icon,
   delay = 0,
-  ring,
 }: {
   label: string;
   value: string | number;
   sub?: string;
-  icon: React.ReactNode;
-  gradient: string;
+  icon: React.ElementType;
   delay?: number;
-  ring?: number | null;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay, type: "spring", stiffness: 200, damping: 20 }}
-      whileHover={{ y: -4, scale: 1.02 }}
-      className="group relative glass-card rounded-2xl p-5 overflow-hidden cursor-default"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.4, ease: "easeOut" }}
+      className="group bg-cream border border-deep-brown/10 rounded-xl p-5 shadow-sm hover:border-olive/30 transition-all duration-200"
     >
-      {/* Accent glow */}
-      <div className={`absolute -top-8 -right-8 w-24 h-24 rounded-full ${gradient} opacity-20 blur-2xl group-hover:opacity-30 transition-opacity duration-500`} />
-
-      <div className="relative z-10 flex items-start gap-3">
-        {ring !== undefined ? (
-          <ScoreRing value={ring} size={48} />
-        ) : (
-          <div className={`w-12 h-12 rounded-2xl ${gradient} flex items-center justify-center text-xl shrink-0 shadow-lg`}>
-            {icon}
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="text-xs text-zinc-400 font-medium tracking-wide uppercase">{label}</p>
-          <p className="font-number text-2xl font-bold text-zinc-900 leading-tight mt-0.5">{value}</p>
-          {sub && <p className="text-xs text-zinc-400 mt-1 truncate">{sub}</p>}
+      <div className="flex items-start justify-between mb-3">
+        <span className="font-sans text-xs font-bold uppercase tracking-widest text-olive">{label}</span>
+        <div className="w-9 h-9 rounded-lg bg-olive/10 text-olive flex items-center justify-center shrink-0">
+          <Icon className="w-4 h-4" />
         </div>
       </div>
+      <p className="font-serif text-4xl font-bold text-deep-brown leading-none tracking-tight">{value}</p>
+      {sub && <p className="font-sans text-xs text-deep-brown/60 mt-2 truncate">{sub}</p>}
     </motion.div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Quick action card — premium style
+// Quick Action Card
 // ---------------------------------------------------------------------------
 
 function ActionCard({
   href,
-  icon,
+  icon: Icon,
   title,
   description,
-  gradient,
   delay,
 }: {
   href: string;
-  icon: React.ReactNode;
+  icon: React.ElementType;
   title: string;
   description: string;
-  gradient: string;
   delay: number;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, type: "spring", stiffness: 200, damping: 20 }}
-      whileHover={{ y: -6, scale: 1.02 }}
-      className="h-full"
+      transition={{ delay, duration: 0.4, ease: "easeOut" }}
     >
       <Link
         href={href}
-        className="group relative flex flex-col h-full glass-card rounded-2xl hover:shadow-glass-lg transition-all duration-300 overflow-hidden"
+        className="group flex flex-col h-full bg-cream border border-deep-brown/10 rounded-xl p-5 shadow-sm hover:border-olive/40 hover:shadow-md transition-all duration-200"
       >
-        {/* Top gradient accent */}
-        <div className={`h-1.5 ${gradient} transition-all duration-300 group-hover:h-2`} />
-        
-        {/* Floating accent blob */}
-        <div className={`absolute top-4 right-4 w-20 h-20 rounded-full ${gradient} opacity-[0.07] blur-2xl group-hover:opacity-[0.15] transition-opacity duration-500`} />
-        
-        <div className="relative z-10 p-5 flex flex-col flex-1">
-          <div className={`w-14 h-14 rounded-2xl ${gradient} flex items-center justify-center text-2xl mb-4 shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
-            {icon}
-          </div>
-          <p className="font-heading font-bold text-zinc-900 group-hover:text-skin-700 transition-colors text-base">
-            {title}
-          </p>
-          <p className="text-sm text-zinc-400 mt-1.5 leading-relaxed flex-1">{description}</p>
-          <div className="flex items-center gap-1 mt-3 text-xs font-semibold text-skin-500 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all duration-300">
-            <span>Get started</span>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-          </div>
+        <div className="w-10 h-10 rounded-lg bg-olive text-butter flex items-center justify-center mb-4 shrink-0 shadow-xs">
+          <Icon className="w-5 h-5" />
+        </div>
+        <h3 className="font-serif font-bold text-deep-brown text-lg group-hover:text-olive transition-colors mb-1">
+          {title}
+        </h3>
+        <p className="font-sans text-xs text-deep-brown/70 leading-relaxed flex-1">{description}</p>
+        <div className="flex items-center gap-1.5 mt-4 text-xs font-sans font-bold text-olive uppercase tracking-wider group-hover:translate-x-1 transition-transform">
+          <span>Go</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </div>
       </Link>
     </motion.div>
@@ -172,100 +143,14 @@ function ActionCard({
 }
 
 // ---------------------------------------------------------------------------
-// Floating face gallery
-// ---------------------------------------------------------------------------
-
-function FaceGallery() {
-  // Polaroid-style frame: thicker white bottom margin + tiny caption, so each
-  // face reads as a photo suspended over the gradient background rather than
-  // a plain rounded image.
-  const Polaroid = ({
-    src,
-    alt,
-    caption,
-    className,
-  }: {
-    src: string;
-    alt: string;
-    caption: string;
-    className: string;
-  }) => (
-    <div className={`${className} bg-white/70 backdrop-blur-md p-2 pb-5 rounded-2xl shadow-glass-lg border border-white/60`}>
-      <div className="relative w-full h-full rounded-lg overflow-hidden">
-        <Image src={src} alt={alt} fill sizes="220px" className="object-cover" />
-      </div>
-      <p className="text-center text-[10px] font-medium text-aquaglass-navy/60 mt-1.5 tracking-wide">{caption}</p>
-    </div>
-  );
-
-  return (
-    <div className="relative w-full h-full min-h-[320px]">
-      {/* Decorative glow orbs */}
-      <div className="absolute top-1/4 left-1/4 w-48 h-48 rounded-full bg-skin-300/30 blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-36 h-36 rounded-full bg-teal-300/25 blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-      <div className="absolute top-1/2 right-1/3 w-28 h-28 rounded-full bg-cream-300/30 blur-3xl animate-pulse" style={{ animationDelay: "2s" }} />
-
-      {/* Face 1 — large, primary */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-        animate={{ opacity: 1, scale: 1, rotate: -3 }}
-        transition={{ delay: 0.3, type: "spring", stiffness: 150 }}
-        className="absolute top-4 left-[10%] z-20"
-      >
-        <Polaroid src="/face1.jpg" alt="Radiant skin" caption="Glow · Day 30" className="w-44 h-44 sm:w-52 sm:h-52" />
-      </motion.div>
-
-      {/* Face 2 — medium, offset right */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
-        animate={{ opacity: 1, scale: 1, rotate: 4 }}
-        transition={{ delay: 0.5, type: "spring", stiffness: 150 }}
-        className="absolute top-16 right-[5%] z-10"
-      >
-        <Polaroid src="/face2.jpg" alt="Clear skin" caption="Clarity · Day 14" className="w-36 h-36 sm:w-44 sm:h-44" />
-      </motion.div>
-
-      {/* Face 3 — small, bottom center */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8, rotate: -2 }}
-        animate={{ opacity: 1, scale: 1, rotate: 2 }}
-        transition={{ delay: 0.7, type: "spring", stiffness: 150 }}
-        className="absolute bottom-2 left-[30%] z-30"
-      >
-        <Polaroid src="/face3.jpg" alt="Healthy skin" caption="Baseline" className="w-32 h-32 sm:w-40 sm:h-40" />
-      </motion.div>
-
-      {/* Floating badges */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1, type: "spring" }}
-        className="absolute top-2 right-[15%] glass-card rounded-full px-3 py-1.5 z-40"
-      >
-        <span className="text-xs font-semibold text-teal-600">✨ AI Powered</span>
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.2, type: "spring" }}
-        className="absolute bottom-8 left-[5%] glass-card rounded-full px-3 py-1.5 z-40"
-      >
-        <span className="text-xs font-semibold text-skin-600">🔬 Dermatologist Approved</span>
-      </motion.div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Skin tips carousel
+// Daily Skin Tips Carousel
 // ---------------------------------------------------------------------------
 
 const SKIN_TIPS = [
-  { icon: "💧", title: "Hydration First", text: "Drink 8 glasses of water daily. Hydrated skin looks plumper, firmer, and more radiant." },
-  { icon: "☀️", title: "SPF Every Day", text: "Apply broad-spectrum SPF 30+ even on cloudy days. UV damage is the #1 cause of premature aging." },
-  { icon: "🌙", title: "Night Repair", text: "Your skin repairs itself at night. Apply retinol or peptide serums before bed for best results." },
-  { icon: "🥗", title: "Eat for Your Skin", text: "Antioxidant-rich foods like berries, spinach, and nuts fight free radicals and boost glow." },
-  { icon: "😴", title: "Beauty Sleep", text: "7-9 hours of quality sleep reduces dark circles, puffiness, and stress-related breakouts." },
+  { Icon: Droplet, title: "Hydration First", text: "Drink 8 glasses of water daily. Hydrated skin repairs its barrier faster." },
+  { Icon: Sun, title: "SPF Every Day", text: "Apply broad-spectrum SPF 30+ even on cloudy days to prevent hyperpigmentation." },
+  { Icon: Moon, title: "Night Repair Routine", text: "Skin cell turnover peaks at night. Apply ceramides and actives before bed." },
+  { Icon: Leaf, title: "Antioxidant Rich Foods", text: "Berries, spinach, and walnuts fight free radical damage and boost natural radiance." },
 ];
 
 function SkinTipsCarousel() {
@@ -276,65 +161,51 @@ function SkinTipsCarousel() {
     return () => clearInterval(interval);
   }, []);
 
+  const current = SKIN_TIPS[active];
+  const IconComp = current.Icon;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
-      className="relative glass-card glass-shimmer rounded-3xl p-6 overflow-hidden"
-    >
-      <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-teal-300/10 blur-3xl" />
-      <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4 relative z-10">💡 Daily Skin Tips</h3>
-      
+    <div className="bg-cream border border-deep-brown/10 rounded-xl p-6 shadow-sm relative overflow-hidden">
+      <p className="font-sans text-xs font-bold uppercase tracking-widest text-olive mb-4 flex items-center gap-1.5">
+        <Lightbulb className="w-4 h-4 text-olive" /> Daily Skincare Insight
+      </p>
+
       <AnimatePresence mode="wait">
         <motion.div
           key={active}
-          initial={{ opacity: 0, x: 30 }}
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -30 }}
+          exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
-          className="relative z-10"
+          className="flex items-start gap-4"
         >
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-2xl shrink-0 shadow-lg">
-              {SKIN_TIPS[active].icon}
-            </div>
-            <div>
-              <h4 className="font-heading font-bold text-zinc-900 text-lg">{SKIN_TIPS[active].title}</h4>
-              <p className="text-sm text-zinc-500 mt-1 leading-relaxed">{SKIN_TIPS[active].text}</p>
-            </div>
+          <div className="w-12 h-12 rounded-xl bg-olive/10 text-olive flex items-center justify-center shrink-0">
+            <IconComp className="w-6 h-6" />
+          </div>
+          <div>
+            <h4 className="font-serif font-bold text-deep-brown text-lg">{current.title}</h4>
+            <p className="font-sans text-xs text-deep-brown/70 mt-1 leading-relaxed">{current.text}</p>
           </div>
         </motion.div>
       </AnimatePresence>
 
-      {/* Dots */}
-      <div className="flex items-center justify-center gap-2 mt-5 relative z-10">
+      <div className="flex items-center justify-center gap-1.5 mt-5">
         {SKIN_TIPS.map((_, i) => (
           <button
             key={i}
             onClick={() => setActive(i)}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === active ? "w-6 bg-teal-500" : "w-1.5 bg-zinc-300 hover:bg-zinc-400"
+              i === active ? "w-5 bg-olive" : "w-1.5 bg-deep-brown/20"
             }`}
           />
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Skeleton
-// ---------------------------------------------------------------------------
-
-function Skeleton({ className }: { className?: string }) {
-  return (
-    <div className={`rounded-2xl bg-gradient-to-r from-zinc-100 via-zinc-50 to-zinc-100 animate-pulse ${className ?? "h-24"}`} />
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Greeting helper
+// Main Dashboard Page
 // ---------------------------------------------------------------------------
 
 function greeting() {
@@ -344,10 +215,6 @@ function greeting() {
   return "Good evening";
 }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [summary, setSummary] = useState<ProgressSummaryResponse | null>(null);
@@ -355,52 +222,39 @@ export default function DashboardPage() {
   const [error, setError] = useState(false);
   const fetchedRef = useRef(false);
 
-  // Questionnaire gate: check if user has completed their skin profile
   const [qStatus, setQStatus] = useState<"checking" | "done" | "pending">("checking");
 
   const firstName = session?.user?.name?.split(" ")[0] ?? "there";
 
   useEffect(() => {
-    // Check questionnaire completion first
-    fetch("/api/proxy/questionnaire/latest")
-      .then((r) => setQStatus(r.ok ? "done" : "pending"))
-      .catch(() => setQStatus("pending"));
-  }, []);
-
-  useEffect(() => {
-    if (qStatus !== "done") return;
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
+    Promise.all([
+      fetch("/api/proxy/questionnaire/latest").then((r) => r.ok).catch(() => false),
+      progressApi.getSummary().catch(() => null),
+    ]).then(([hasQ, summaryData]) => {
+      setQStatus(hasQ ? "done" : "pending");
+      if (summaryData) setSummary(summaryData);
+      setLoading(false);
+    });
+  }, []);
+
+  function handleQuestionnaireComplete() {
+    setQStatus("done");
     progressApi
       .getSummary()
       .then(setSummary)
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [qStatus]);
-
-  function handleQuestionnaireComplete() {
-    // Brief delay so the completion animation plays before switching views
-    setTimeout(() => {
-      setQStatus("done");
-      progressApi
-        .getSummary()
-        .then(setSummary)
-        .catch(() => setError(true))
-        .finally(() => setLoading(false));
-    }, 1800);
   }
 
-  const skinScore =
-    summary?.latest_score != null ? Math.round(summary.latest_score) : null;
+  const skinScore = summary?.latest_score != null ? Math.round(summary.latest_score) : null;
   const streak = summary?.current_streak ?? 0;
   const daysUntil = summary?.days_until_rescan;
   const isOverdue = summary?.is_rescan_overdue ?? false;
-  const improvedCount = summary?.conditions.filter(
-    (c) => c.status === "improved"
-  ).length ?? 0;
+  const improvedCount = summary?.conditions.filter((c) => c.status === "improved").length ?? 0;
   const totalConditions = summary?.conditions.length ?? 0;
-  const notifications = summary?.unread_notification_count ?? 0;
 
   const nextScanLabel = isOverdue
     ? "Overdue"
@@ -410,439 +264,203 @@ export default function DashboardPage() {
       : `${daysUntil}d away`
     : "—";
 
-  // ── Questionnaire gate: checking ──
-  if (qStatus === "checking") {
-    return (
-      <div className="fixed inset-0 z-50 bg-gradient-to-br from-skin-50 via-white to-teal-50 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-4"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-xl animate-pulse">
-            <span className="text-white text-2xl font-bold">S</span>
-          </div>
-          <p className="text-zinc-400 text-sm font-medium">Loading your profile…</p>
-        </motion.div>
-      </div>
-    );
-  }
-
-  // ── Questionnaire gate: not yet completed ──
-  if (qStatus === "pending") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-skin-50 via-white to-skin-100/40">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Welcome header */}
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
-            <div className="flex items-center gap-3 mb-5">
-              <Link href="/" className="inline-flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
-                  <span className="text-white font-bold text-base leading-none">S</span>
-                </div>
-                <span className="font-bold text-lg text-skin-800">Skinest</span>
-              </Link>
-            </div>
-            <h1 className="font-heading text-2xl font-bold text-zinc-900">
-              Welcome, {firstName}! 👋
-            </h1>
-            <p className="text-zinc-500 mt-1 text-sm leading-relaxed">
-              Complete your skin profile first — it only takes ~5 minutes and lets our AI give you
-              accurate, personalised results instead of generic ones.
-            </p>
-          </motion.div>
-
-          {/* Embedded questionnaire */}
-          <QuestionnaireForm onComplete={handleQuestionnaireComplete} />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-skin-50/80 via-white to-teal-50/40 relative overflow-x-hidden">
-      {/* Background decorative elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-skin-200/20 blur-3xl" />
-        <div className="absolute top-1/3 -left-48 w-80 h-80 rounded-full bg-teal-200/15 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-72 h-72 rounded-full bg-cream-200/20 blur-3xl" />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-
-        {/* ── Header ── */}
-        <motion.header
-          initial={{ opacity: 0, y: -12 }}
+    <div className="min-h-screen bg-cream text-deep-brown p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Pending Questionnaire Reminder Banner */}
+        {qStatus === "pending" && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-butter/30 border border-deep-brown/15 text-deep-brown font-sans">
+            <div className="flex items-center gap-3">
+              <ClipboardList className="w-5 h-5 text-olive shrink-0" />
+              <div>
+                <p className="font-bold text-sm">Lifestyle Questionnaire Pending</p>
+                <p className="text-xs text-deep-brown/70">Complete your lifestyle profile to personalize your AI skin recommendations.</p>
+              </div>
+            </div>
+            <Button size="sm" className="bg-olive hover:bg-olive/90 text-cream font-sans font-bold text-xs rounded-lg shrink-0" asChild>
+              <Link href="/questionnaire">Go to Questionnaire &rarr;</Link>
+            </Button>
+          </div>
+        )}
+        {/* ── Greeting Header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between gap-4 mb-8"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-deep-brown/10 pb-6"
         >
-          <div className="flex items-center gap-3">
-            <Link href="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                <span className="text-white font-bold text-lg leading-none">S</span>
-              </div>
-              <span className="font-heading font-bold text-xl text-zinc-800 hidden sm:block">Skinest</span>
-            </Link>
+          <div>
+            <div className="inline-flex items-center gap-2 bg-olive/10 text-olive rounded-full px-3 py-1 text-xs font-sans font-bold uppercase tracking-widest mb-2 border border-deep-brown/10">
+              <span className="w-2 h-2 rounded-full bg-olive animate-pulse" />
+              AI Skin Analysis Engine
+            </div>
+            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-deep-brown">
+              {greeting()}, <span className="font-serif italic font-normal text-olive">{firstName}</span>
+            </h1>
+            <p className="font-sans text-xs sm:text-sm text-deep-brown/80 mt-1 max-w-lg">
+              Here is your personalized skin health dashboard and active routine progress.
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
-            {notifications > 0 && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="relative"
-              >
-                <button className="p-2.5 rounded-xl glass-card hover:shadow-glass-md transition-all">
-                  <span className="text-lg">🔔</span>
-                </button>
-                <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-xs font-bold shadow-lg">
-                  {notifications}
-                </span>
-              </motion.div>
-            )}
-            <Link
-              href="/profile"
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center text-white font-bold text-sm shadow-lg hover:shadow-xl transition-shadow ring-2 ring-white/50"
+            <Button
+              size="lg"
+              className="bg-butter hover:bg-butter/90 text-deep-brown font-sans font-bold text-sm px-6 h-11 rounded-xl border border-deep-brown/10 shadow-sm"
+              asChild
             >
-              {firstName[0]?.toUpperCase() ?? "U"}
-            </Link>
+              <Link href="/scan">
+                <Camera className="w-4 h-4 mr-2" /> ANALYSE MY SKIN →
+              </Link>
+            </Button>
           </div>
-        </motion.header>
+        </motion.div>
 
-        {/* ── Hero section with face gallery ── */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10"
-        >
-          {/* Left — Welcome */}
-          <div className="flex flex-col justify-center py-4">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 }}
-            >
-              <div className="inline-flex items-center gap-2 bg-teal-500/10 text-teal-700 rounded-full px-3.5 py-1.5 text-xs font-semibold mb-4 border border-teal-200/40">
-                <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-                AI Analysis Active
-              </div>
-              <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 leading-tight">
-                {greeting()},<br />
-                <span className="bg-gradient-to-r from-skin-500 to-skin-700 bg-clip-text text-transparent">{firstName}</span> 👋
-              </h1>
-              <p className="text-zinc-500 mt-3 text-base sm:text-lg leading-relaxed max-w-md">
-                Here&apos;s your personalised skin health dashboard. Track your progress, discover insights, and achieve your skin goals.
-              </p>
-              <div className="flex items-center gap-3 mt-6">
-                <Link
-                  href="/scan"
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-skin-500 to-skin-600 hover:from-skin-600 hover:to-skin-700 text-white font-button font-semibold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  New Scan
-                </Link>
-                <Link
-                  href="/progress"
-                  className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md border border-zinc-200/60 hover:border-skin-300 text-zinc-700 hover:text-skin-700 font-button font-semibold px-6 py-3 rounded-xl transition-all shadow-sm hover:shadow-md"
-                >
-                  View Progress
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Right — Face gallery */}
-          <div className="hidden lg:block">
-            <FaceGallery />
-          </div>
-        </motion.section>
-
-        {/* ── API error ── */}
+        {/* ── Error Banner ── */}
         {error && (
-          <div className="flex items-start gap-3 rounded-2xl border border-rose-200/60 bg-rose-50/80 backdrop-blur-sm px-5 py-4 text-sm text-rose-700 mb-6">
-            <span className="mt-0.5 shrink-0">⚠️</span>
-            <p>Could not load your skin data. Check your connection and <button onClick={() => window.location.reload()} className="underline font-medium hover:text-rose-800">try again</button>.</p>
+          <div className="flex items-center gap-3 rounded-xl border border-deep-brown/20 bg-nude/30 px-4 py-3 text-xs text-deep-brown">
+            <AlertTriangle className="w-4 h-4 text-olive shrink-0" />
+            <p>Could not refresh live skin metrics. Retrying in background…</p>
           </div>
         )}
 
         {/* ── Alerts ── */}
         {summary?.alerts && summary.alerts.length > 0 && (
-          <div className="space-y-2 mb-6">
+          <div className="space-y-2">
             {summary.alerts.map((a, i) => (
               <AlertBanner key={i} message={a.message} type={a.type} />
             ))}
           </div>
         )}
 
-        {/* ── Stats strip ── */}
-        {loading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-2xl" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {/* ── Stat Cards Grid (Phase 4 Thin-Border Cream System) ── */}
+        <section>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
-              icon={<span>✨</span>}
+              icon={Sparkles}
               label="Skin Score"
               value={skinScore != null ? skinScore : "—"}
               sub={
                 summary?.total_improvement != null && summary.total_improvement !== 0
                   ? `${summary.total_improvement > 0 ? "+" : ""}${summary.total_improvement.toFixed(1)} from baseline`
-                  : "No scans yet"
+                  : "Baseline evaluation"
               }
-              gradient="bg-gradient-to-br from-teal-400 to-teal-600"
-              ring={skinScore}
               delay={0.1}
             />
             <StatCard
-              icon={<span>🔥</span>}
-              label="Current Streak"
-              value={streak > 0 ? `${streak}d` : "—"}
-              sub={streak > 0 ? "routine adherence" : "Start your routine"}
-              gradient="bg-gradient-to-br from-cream-400 to-cream-600"
+              icon={Flame}
+              label="Streak"
+              value={streak > 0 ? `${streak}d` : "0d"}
+              sub={streak > 0 ? "Daily routine active" : "Log your daily steps"}
               delay={0.15}
             />
             <StatCard
-              icon={<span>📅</span>}
+              icon={Calendar}
               label="Next Scan"
               value={nextScanLabel}
-              sub={isOverdue ? "Please rescan now" : "recommended schedule"}
-              gradient={isOverdue ? "bg-gradient-to-br from-rose-400 to-rose-600" : "bg-gradient-to-br from-skin-400 to-skin-600"}
+              sub={isOverdue ? "Rescan recommended" : "7-day check-in"}
               delay={0.2}
             />
             <StatCard
-              icon={<span>💪</span>}
+              icon={Activity}
               label="Improved"
               value={totalConditions > 0 ? `${improvedCount}/${totalConditions}` : "—"}
-              sub={totalConditions > 0 ? "conditions improving" : "No data yet"}
-              gradient="bg-gradient-to-br from-teal-400 to-teal-600"
+              sub={totalConditions > 0 ? "conditions improving" : "No baseline data"}
               delay={0.25}
             />
           </div>
-        )}
+        </section>
 
-        {/* ── Quick Actions ── */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mb-10"
-        >
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-heading text-lg font-bold text-zinc-800">Quick Actions</h2>
-            <span className="text-xs text-zinc-400 font-medium">Your skin care toolkit</span>
+        {/* ── Quick Actions Grid ── */}
+        <section>
+          <div className="mb-4">
+            <h2 className="font-serif font-bold text-deep-brown text-xl">Quick Actions</h2>
+            <p className="font-sans text-xs text-deep-brown/70">Your essential skincare toolkit</p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <ActionCard
               href="/scan"
-              icon={<span>📸</span>}
-              title="New Scan"
-              description="AI-powered skin analysis in seconds"
-              gradient="bg-gradient-to-br from-skin-400 to-skin-600"
+              icon={Camera}
+              title="New Face Scan"
+              description="10-second on-device AI evaluation"
+              delay={0.2}
+            />
+            <ActionCard
+              href="/results"
+              icon={FlaskConical}
+              title="Recommendations"
+              description="Your tailored 20-week routine"
               delay={0.25}
             />
             <ActionCard
-              href="/history"
-              icon={<span>📋</span>}
-              title="My History"
-              description="Past scans, answers & care plans"
-              gradient="bg-gradient-to-br from-zinc-400 to-zinc-600"
+              href="/roadmap"
+              icon={Map}
+              title="Skincare Roadmap"
+              description="Phased product plan & schedule"
               delay={0.3}
             />
             <ActionCard
               href="/progress"
-              icon={<span>📈</span>}
-              title="Track Progress"
-              description="Skin score trends & routine log"
-              gradient="bg-gradient-to-br from-teal-400 to-teal-600"
+              icon={TrendingUp}
+              title="Progress Tracker"
+              description="Score trends & adherence history"
               delay={0.35}
             />
-            <ActionCard
-              href="/roadmap"
-              icon={<span>🗺️</span>}
-              title="My Roadmap"
-              description="Personalised care plan by AI"
-              gradient="bg-gradient-to-br from-cream-400 to-skin-500"
-              delay={0.4}
-            />
           </div>
-        </motion.section>
+        </section>
 
-        {/* ── Bottom section: Conditions + Tips side by side ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-          {/* Recent conditions */}
-          {!loading && summary && summary.conditions.length > 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="glass-card rounded-3xl p-6"
-            >
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="font-heading text-lg font-bold text-zinc-800">Top Conditions</h2>
-                <Link
-                  href="/progress"
-                  className="text-xs text-skin-600 hover:text-skin-700 font-semibold transition-colors flex items-center gap-1"
-                >
-                  View all
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                </Link>
-              </div>
-              <div className="space-y-3">
+        {/* ── Conditions & Tips Side-by-Side ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Conditions Card */}
+          <div className="bg-cream border border-deep-brown/10 rounded-xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-serif font-bold text-deep-brown text-lg">Target Conditions</h3>
+              <Link href="/progress" className="text-xs font-sans font-bold text-olive hover:underline flex items-center gap-1">
+                View detail <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {summary && summary.conditions.length > 0 ? (
+              <div className="space-y-2.5">
                 {summary.conditions.slice(0, 4).map((c) => {
                   const isImproved = c.status === "improved";
                   const isWorsened = c.status === "worsened";
                   return (
-                    <div key={c.condition} className="flex items-center gap-3 p-3 rounded-xl bg-white/60 hover:bg-white/80 transition-colors">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${
-                        isImproved ? "bg-teal-100 text-teal-600" : isWorsened ? "bg-rose-100 text-rose-600" : "bg-zinc-100 text-zinc-500"
-                      }`}>
-                        {isImproved ? "✅" : isWorsened ? "⚠️" : "➡️"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-zinc-800 capitalize truncate">
-                          {c.condition.replace(/_/g, " ")}
-                        </p>
-                        {c.improvement_pct != null && (
-                          <p
-                            className={`text-xs font-medium ${
-                              isImproved
-                                ? "text-teal-600"
-                                : isWorsened
-                                ? "text-rose-600"
-                                : "text-zinc-400"
-                            }`}
-                          >
-                            {isImproved ? "+" : ""}
-                            {c.improvement_pct.toFixed(1)}% from baseline
+                    <div key={c.condition} className="flex items-center justify-between p-3 rounded-lg border border-deep-brown/10 bg-cream">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-md bg-olive/10 text-olive flex items-center justify-center shrink-0">
+                          {isImproved ? <Check className="w-4 h-4" /> : <Activity className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <p className="font-sans text-xs font-bold text-deep-brown capitalize">
+                            {c.condition.replace(/_/g, " ")}
                           </p>
-                        )}
+                          {c.improvement_pct != null && (
+                            <p className="font-sans text-[11px] text-deep-brown/70">
+                              {isImproved ? "+" : ""}{c.improvement_pct.toFixed(1)}% improvement
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <span
-                        className={`text-xs font-semibold px-3 py-1 rounded-full shrink-0 ${
-                          isImproved
-                            ? "bg-teal-100 text-teal-700"
-                            : isWorsened
-                            ? "bg-rose-100 text-rose-700"
-                            : "bg-zinc-100 text-zinc-500"
-                        }`}
-                      >
+                      <span className="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-butter/40 text-deep-brown border border-deep-brown/10">
                         {c.status}
                       </span>
                     </div>
                   );
                 })}
               </div>
-            </motion.div>
-          ) : !loading && !summary ? (
-            /* ── No data empty state ── */
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="glass-card rounded-3xl p-8 text-center flex flex-col items-center justify-center"
-            >
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center text-4xl mx-auto mb-5 shadow-xl">
-                📸
+            ) : (
+              <div className="text-center py-8">
+                <Camera className="w-10 h-10 text-olive/50 mx-auto mb-2" />
+                <p className="font-sans text-xs text-deep-brown/70">No condition baseline established yet.</p>
+                <Button size="sm" className="mt-4 bg-butter text-deep-brown font-bold text-xs" asChild>
+                  <Link href="/scan">Run Baseline Scan</Link>
+                </Button>
               </div>
-              <h2 className="font-heading text-xl font-bold text-zinc-900 mb-2">
-                Start your skin journey
-              </h2>
-              <p className="text-sm text-zinc-500 mb-6 max-w-xs mx-auto leading-relaxed">
-                Take your first AI scan to get your baseline skin score and a personalised care roadmap.
-              </p>
-              <Link
-                href="/scan"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-skin-500 to-skin-600 hover:from-skin-600 hover:to-skin-700 text-white font-button font-semibold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-xl"
-              >
-                <span>📸</span> Start First Scan
-              </Link>
-            </motion.div>
-          ) : null}
+            )}
+          </div>
 
-          {/* Skin tips carousel */}
+          {/* Daily Skin Tips Carousel */}
           <SkinTipsCarousel />
         </div>
-
-        {/* ── Feature highlights — visual cards ── */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
-          className="mb-10"
-        >
-          <h2 className="font-heading text-lg font-bold text-zinc-800 mb-5">Powered by Advanced AI</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              {
-                gradient: "from-skin-400 to-skin-600",
-                icon: "🧬",
-                title: "Deep Skin Analysis",
-                desc: "4 neural networks analyse your skin type, tone, conditions, and acne severity in real-time.",
-              },
-              {
-                gradient: "from-teal-400 to-teal-600",
-                icon: "🤖",
-                title: "Smart Recommendations",
-                desc: "AI matches your unique skin profile with dermatologist-vetted products from trusted Indian brands.",
-              },
-              {
-                gradient: "from-cream-500 to-skin-500",
-                icon: "📊",
-                title: "Progress Tracking",
-                desc: "Watch your skin transform over time with AI-powered progress scores and trend analysis.",
-              },
-            ].map((feature, i) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 + i * 0.08 }}
-                whileHover={{ y: -4 }}
-                className="relative glass-card rounded-2xl hover:shadow-glass-lg transition-all duration-300 p-6 overflow-hidden group"
-              >
-                <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br ${feature.gradient} opacity-[0.08] blur-2xl group-hover:opacity-[0.15] transition-opacity duration-500`} />
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-2xl mb-4 shadow-lg`}>
-                  {feature.icon}
-                </div>
-                <h3 className="font-heading font-bold text-zinc-900 text-base mb-1.5">{feature.title}</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">{feature.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* ── Footer nav ── */}
-        <motion.footer
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.55 }}
-          className="flex flex-wrap items-center justify-center gap-6 pt-6 pb-8 border-t border-zinc-100/60"
-        >
-          {[
-            { href: "/scan", label: "Scan", icon: "📸" },
-            { href: "/results", label: "Results", icon: "📊" },
-            { href: "/progress", label: "Progress", icon: "📈" },
-            { href: "/roadmap", label: "Roadmap", icon: "🗺️" },
-            { href: "/profile", label: "Profile", icon: "👤" },
-          ].map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-skin-600 transition-colors font-medium group"
-            >
-              <span className="group-hover:scale-110 transition-transform">{link.icon}</span>
-              {link.label}
-            </Link>
-          ))}
-        </motion.footer>
       </div>
     </div>
   );

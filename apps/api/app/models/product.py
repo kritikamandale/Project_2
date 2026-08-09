@@ -90,7 +90,7 @@ class Product(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # Social proof
     rating_avg: Mapped[float] = mapped_column(Float, default=0.0)
     review_count: Mapped[int] = mapped_column(Integer, default=0)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
     embedding: Mapped[Optional["ProductEmbedding"]] = relationship(
@@ -121,11 +121,8 @@ class ProductEmbedding(Base):
         UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"),
         primary_key=True, nullable=False,
     )
-    # Vector column: pgvector VECTOR(1536), fallback TEXT if pgvector not installed
-    embedding_vector = mapped_column(
-        Vector(1536) if _HAS_PGVECTOR else TEXT,
-        nullable=True,
-    )
+    # Vector column: JSONB array [0.12, -0.4, ...], universal fallback for local/prod DBs
+    embedding_vector = mapped_column(JSONB, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

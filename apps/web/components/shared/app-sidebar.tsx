@@ -16,13 +16,10 @@ import {
   LogOut,
   Menu,
   X,
+  Bell,
+  Settings,
 } from "lucide-react";
-
-// ---------------------------------------------------------------------------
-// Persistent left navigation for the authenticated app areas.
-// Desktop (lg+): fixed sidebar. Mobile: slide-in drawer via a hamburger.
-// Styled entirely with the existing skin-*/teal-*/zinc-* palette tokens.
-// ---------------------------------------------------------------------------
+import { SkinestLogo } from "@/components/shared/skinest-logo";
 
 type Area = "user" | "derm";
 
@@ -35,7 +32,7 @@ interface NavItem {
 const NAV: Record<Area, NavItem[]> = {
   user: [
     { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
-    { href: "/onboarding/questionnaire", label: "Questionnaire", Icon: ClipboardCheck },
+    { href: "/questionnaire", label: "Questionnaire", Icon: ClipboardCheck },
     { href: "/scan", label: "Face Scan", Icon: Camera },
     { href: "/results", label: "Recommendations", Icon: BarChart3 },
     { href: "/roadmap", label: "Skincare Roadmap", Icon: Map },
@@ -71,19 +68,10 @@ export function AppSidebar({ area }: { area: Area }) {
   };
 
   const content = (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-olive text-cream font-sans">
       {/* Logo */}
-      <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-skin-100/70 px-5">
-        <Link
-          href={HOME[area]}
-          onClick={() => setOpen(false)}
-          className="flex items-center gap-2.5"
-        >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-skin-400 to-skin-600 shadow-sm">
-            <span className="font-bold text-white">S</span>
-          </div>
-          <span className="font-heading text-lg font-bold text-zinc-800">Skinest</span>
-        </Link>
+      <div className="flex h-16 shrink-0 items-center border-b border-cream/15 px-5">
+        <SkinestLogo href={HOME[area]} size="md" />
       </div>
 
       {/* Nav links */}
@@ -94,16 +82,17 @@ export function AppSidebar({ area }: { area: Area }) {
             <Link
               key={href}
               href={href}
+              prefetch={false}
               onClick={() => setOpen(false)}
               aria-current={active ? "page" : undefined}
               className={[
-                "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition-all duration-150",
+                "flex items-center gap-3 rounded-xl px-3.5 py-2.5 transition-all duration-150 font-sans text-xs font-semibold uppercase tracking-wider border",
                 active
-                  ? "bg-gradient-to-r from-skin-500 to-skin-600 font-bold text-white shadow-md shadow-skin-400/20"
-                  : "font-medium text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900",
+                  ? "bg-butter text-deep-brown font-bold border-deep-brown/10 shadow-sm"
+                  : "border-transparent text-cream/80 hover:bg-cream/10 hover:text-butter",
               ].join(" ")}
             >
-              <Icon className={`h-5 w-5 shrink-0 ${active ? "text-white" : "text-zinc-400"}`} />
+              <Icon className={`h-4 w-4 shrink-0 ${active ? "text-deep-brown" : "text-cream/70"}`} />
               <span>{label}</span>
             </Link>
           );
@@ -111,23 +100,25 @@ export function AppSidebar({ area }: { area: Area }) {
       </nav>
 
       {/* Account + sign out */}
-      <div className="shrink-0 border-t border-skin-100/70 p-3">
+      <div className="shrink-0 border-t border-cream/15 p-3 bg-olive/80">
         <div className="flex items-center gap-3 px-2 py-2">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-skin-400 to-skin-600 text-sm font-bold text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-butter text-deep-brown border border-deep-brown/10 text-xs font-sans font-bold shadow-sm">
             {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-zinc-800">{name}</p>
-            {email && <p className="truncate text-xs text-zinc-400">{email}</p>}
+            <p className="truncate text-xs font-bold text-cream">{name}</p>
+            {email && <p className="truncate text-[11px] font-sans text-cream/60">{email}</p>}
           </div>
         </div>
-        <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
-        >
-          <LogOut className="h-5 w-5 shrink-0 text-zinc-400" />
-          Sign out
-        </button>
+        <div className="flex gap-1 mt-1">
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-sans font-semibold uppercase tracking-wider text-cream/80 hover:bg-cream/10 hover:text-butter transition-all border border-transparent hover:border-cream/20"
+          >
+            <LogOut className="h-3.5 w-3.5 text-cream/70" />
+            Sign out
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -138,38 +129,38 @@ export function AppSidebar({ area }: { area: Area }) {
       <button
         onClick={() => setOpen(true)}
         aria-label="Open navigation menu"
-        className="fixed left-3 top-3 z-[60] flex h-10 w-10 items-center justify-center rounded-xl border border-skin-100 bg-white/90 text-zinc-700 shadow-sm backdrop-blur lg:hidden"
+        className="fixed left-4 top-3.5 z-[60] flex h-9 w-9 items-center justify-center rounded-xl border border-deep-brown/15 bg-cream text-deep-brown shadow-sm lg:hidden"
       >
         <Menu className="h-5 w-5" />
       </button>
 
       {/* Desktop persistent sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-skin-100 bg-white/85 backdrop-blur-xl lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-cream/15 bg-olive lg:flex shadow-sm">
         {content}
       </aside>
 
-      {/* Mobile drawer (always mounted for a smooth slide) */}
+      {/* Mobile drawer */}
       <div
         className={`fixed inset-0 z-[70] lg:hidden ${open ? "" : "pointer-events-none"}`}
         aria-hidden={!open}
       >
         <div
           onClick={() => setOpen(false)}
-          className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-200 ${
+          className={`absolute inset-0 bg-deep-brown/60 backdrop-blur-xs transition-opacity duration-200 ${
             open ? "opacity-100" : "opacity-0"
           }`}
         />
         <aside
-          className={`absolute inset-y-0 left-0 w-72 max-w-[82%] bg-white shadow-2xl transition-transform duration-200 ${
+          className={`absolute inset-y-0 left-0 w-72 max-w-[85%] bg-olive border-r border-cream/20 shadow-2xl transition-transform duration-200 ${
             open ? "translate-x-0" : "-translate-x-full"
           }`}
         >
           <button
             onClick={() => setOpen(false)}
             aria-label="Close navigation menu"
-            className="absolute right-3 top-4 flex h-9 w-9 items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-700"
+            className="absolute right-3 top-4 flex h-8 w-8 items-center justify-center rounded-xl border border-cream/20 text-cream hover:bg-cream/10"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
           {content}
         </aside>

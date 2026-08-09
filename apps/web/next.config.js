@@ -5,25 +5,22 @@ const { withSentryConfig } = require("@sentry/nextjs");
 // Both the standalone re-scan route and the first-time onboarding scan step.
 const SCAN_ROUTES = ["/scan", "/onboarding/scan"];
 
+// Dev mode needs unsafe-eval for hot reloading / source maps; production drops it
+const IS_DEV = process.env.NODE_ENV !== "production";
+
 // Trusted script sources — unsafe-eval only on scan page (TF.js requirement)
 const BASE_CSP = [
   "default-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
+  `img-src 'self' data: blob: https: ${IS_DEV ? "http:" : ""}`,
   "font-src 'self' data:",
-  // Sentry, PostHog, Vercel analytics — the AI recommendation engine is called
-  // server-side only (via the backend proxy), so no external AI host needs to
-  // be allowed here.
-  "connect-src 'self' https://*.sentry.io https://app.posthog.com",
+  "connect-src 'self' https://tfhub.dev https://*.tfhub.dev https://*.gstatic.com https://*.googleapis.com https://cdn.jsdelivr.net https://storage.googleapis.com https://*.sentry.io https://app.posthog.com",
   "worker-src blob:",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
 ];
-
-// Dev mode needs unsafe-eval for hot reloading / source maps; production drops it
-const IS_DEV = process.env.NODE_ENV !== "production";
 
 // The browser calls the FastAPI backend directly (register, scan submit, …),
 // so its origin must be in connect-src in EVERY environment — production too.
@@ -65,6 +62,7 @@ const nextConfig = {
   poweredByHeader: false,  // Remove X-Powered-By: Next.js
 
   images: {
+    unoptimized: true, // Serve images as-is — bypasses sharp; fixes "received null" on local PNGs
     remotePatterns: [
       { protocol: "https", hostname: "*.amazonaws.com" },
       { protocol: "https", hostname: "assets.nykaa.com" },

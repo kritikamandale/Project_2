@@ -133,7 +133,12 @@ export async function loadModel(): Promise<void> {
       try {
         await tf.setBackend("webgl");
         await tf.ready();
+        // Verify WebGL shader context compilation health
+        const test = tf.zeros([1, 1, 1, 1]);
+        await test.data();
+        test.dispose();
       } catch {
+        console.warn("WebGL shader initialization failed; falling back to CPU backend.");
         await tf.setBackend("cpu");
         await tf.ready();
       }
@@ -358,12 +363,28 @@ export async function analyzeFrame(
   const lightingScore = externalLightingScore ?? assessLighting(source);
   const input = preprocess(source);
 
-  // Condition classification via GraphModel
-  const output = await conditionModel!.executeAsync(input) as tf.Tensor | tf.Tensor[];
-  const predTensor = Array.isArray(output) ? output[0] : output;
-  const probsData = await predTensor.data();
-  predTensor.dispose();
-  if (Array.isArray(output)) output.slice(1).forEach((t) => t.dispose());
+  // Condition classification via GraphModel with automatic CPU backend fallback if WebGL shader fails
+  let probsData: Float32Array | Int32Array | Uint8Array;
+  try {
+    const output = await conditionModel!.executeAsync(input) as tf.Tensor | tf.Tensor[];
+    const predTensor = Array.isArray(output) ? output[0] : output;
+    probsData = await predTensor.data();
+    predTensor.dispose();
+    if (Array.isArray(output)) output.slice(1).forEach((t) => t.dispose());
+  } catch (err) {
+    if (tf.getBackend() === "webgl") {
+      console.warn("WebGL execution failed, retrying with CPU backend:", err);
+      await tf.setBackend("cpu");
+      await tf.ready();
+      const output = await conditionModel!.executeAsync(input) as tf.Tensor | tf.Tensor[];
+      const predTensor = Array.isArray(output) ? output[0] : output;
+      probsData = await predTensor.data();
+      predTensor.dispose();
+      if (Array.isArray(output)) output.slice(1).forEach((t) => t.dispose());
+    } else {
+      throw err;
+    }
+  }
 
   const probs = {} as Record<ModelClass, number>;
   CLASS_NAMES.forEach((name, i) => { probs[name] = (probsData[i] as number) ?? 0; });

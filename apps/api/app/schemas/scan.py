@@ -75,6 +75,7 @@ class ScanSubmitResponse(BaseModel):
     conditions_detected: int
     bias_flag: bool = False
     bias_message: Optional[str] = None
+    image_permanently_deleted: bool = True
 
 
 # ---------------------------------------------------------------------------

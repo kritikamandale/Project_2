@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SkinestLogo } from "@/components/shared/skinest-logo";
 
 export const metadata = { title: "Terms of Service — Skinest" };
 
@@ -6,12 +7,9 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-skin-50 via-white to-skin-100/40">
       <div className="max-w-3xl mx-auto px-4 py-16">
-        <Link href="/" className="inline-flex items-center gap-2 mb-10">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
-            <span className="text-white font-bold text-base leading-none">S</span>
-          </div>
-          <span className="font-bold text-lg text-skin-800">Skinest</span>
-        </Link>
+        <div className="mb-10">
+          <SkinestLogo href="/" size="md" />
+        </div>
 
         <h1 className="text-3xl font-bold text-zinc-900 mb-2">Terms of Service</h1>
         <p className="text-sm text-zinc-400 mb-10">Effective date: June 2025 · Last updated: June 2025</p>

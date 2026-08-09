@@ -5,7 +5,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import {
   fetchClimatePreview,
+  getLatestQuestionnaire,
   submitQuestionnaire,
+  type QuestionnaireDetailResponse,
   type AlcoholConsumption,
   type Bedtime,
   type ClimateProfile,
@@ -30,6 +32,33 @@ import {
   type WorkEnvironment,
 } from "@/lib/api/questionnaire";
 
+import {
+  Moon,
+  Droplet,
+  Heart,
+  Monitor,
+  MapPin,
+  Sparkles,
+  Stethoscope,
+  Activity,
+  Check,
+  X,
+  Star,
+  Sun,
+  Shield,
+  Circle,
+  Thermometer,
+  User,
+  CheckCircle2,
+  Lock,
+  Utensils,
+  Smile,
+  Frown,
+  Meh,
+  AlertCircle,
+  Edit3
+} from "lucide-react";
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -37,14 +66,14 @@ import {
 const STORAGE_KEY = "skin_analysis_questionnaire_draft";
 
 const SECTIONS = [
-  { id: 1, title: "Sleep & Recovery",      icon: "😴", shortTitle: "Sleep"     },
-  { id: 2, title: "Hydration & Diet",      icon: "💧", shortTitle: "Diet"      },
-  { id: 3, title: "Stress & Wellbeing",    icon: "🧘", shortTitle: "Stress"    },
-  { id: 4, title: "Screen & Environment",  icon: "📱", shortTitle: "Screen"    },
-  { id: 5, title: "Your Location",         icon: "🌍", shortTitle: "Location"  },
-  { id: 6, title: "Skincare Routine",      icon: "✨", shortTitle: "Routine"   },
-  { id: 7, title: "Health & Medical",      icon: "🏥", shortTitle: "Health"    },
-  { id: 8, title: "Lifestyle & Habits",    icon: "🍽️", shortTitle: "Lifestyle" },
+  { id: 1, title: "Sleep & Recovery",      icon: Moon,        shortTitle: "Sleep"     },
+  { id: 2, title: "Hydration & Diet",      icon: Droplet,     shortTitle: "Diet"      },
+  { id: 3, title: "Stress & Wellbeing",    icon: Heart,       shortTitle: "Stress"    },
+  { id: 4, title: "Screen & Environment",  icon: Monitor,     shortTitle: "Screen"    },
+  { id: 5, title: "Your Location",         icon: MapPin,      shortTitle: "Location"  },
+  { id: 6, title: "Skincare Routine",      icon: Sparkles,    shortTitle: "Routine"   },
+  { id: 7, title: "Health & Medical",      icon: Stethoscope, shortTitle: "Health"    },
+  { id: 8, title: "Lifestyle & Habits",    icon: Activity,    shortTitle: "Lifestyle" },
 ] as const;
 
 const SECTION_WHY: Record<number, string> = {
@@ -53,7 +82,7 @@ const SECTION_WHY: Record<number, string> = {
   3: "Stress raises cortisol, directly worsening oily skin, acne, and eczema.",
   4: "Blue light and pollution accelerate skin aging and hyperpigmentation.",
   5: "UV levels and humidity in your city directly determine your skin's moisture and sun damage risk.",
-  6: "Your current routine reveals gaps — we suggest what to add, not replace everything.",
+  6: "Your current routine reveals gaps: we suggest what to add, not replace everything.",
   7: "Medical context helps us avoid recommendations that conflict with your treatment.",
   8: "Spicy food, alcohol, and late-night habits are among the top hidden drivers of skin inflammation.",
 };
@@ -148,7 +177,56 @@ const DEFAULT_ANSWERS: Answers = {
   alcoholConsumption: null,
 };
 
-type Phase = "resume-prompt" | "intro" | "section" | "submitting" | "done";
+type Phase = "view-summary" | "resume-prompt" | "intro" | "section" | "submitting" | "done";
+
+function mapDetailToAnswers(detail: QuestionnaireDetailResponse): Answers {
+  const routine = detail.routine;
+  const routineSteps: RoutineStep[] = [];
+  if (routine?.uses_cleanser) routineSteps.push("cleanser");
+  if (routine?.uses_toner) routineSteps.push("toner");
+  if (routine?.uses_moisturiser) routineSteps.push("moisturiser");
+  if (routine?.uses_sunscreen) routineSteps.push("sunscreen");
+  if (routine?.uses_serum) routineSteps.push("serum");
+  if (routine?.uses_exfoliant) routineSteps.push("exfoliant");
+  if (routine?.uses_face_mask) routineSteps.push("face_mask");
+  if (routine?.uses_nothing) routineSteps.push("nothing");
+
+  return {
+    sleepHours: detail.sleep_hours_avg ?? 7,
+    sleepQuality: detail.sleep_quality ?? 3,
+    sleepConsistency: detail.sleep_consistency ?? null,
+    waterIntake: detail.water_intake_liters ?? 2,
+    dietType: detail.diet_type ?? null,
+    sugarConsumption: detail.sugar_consumption ?? null,
+    dairyConsumption: detail.dairy_consumption ?? null,
+    stressLevel: detail.stress_level ?? 3,
+    stressSource: detail.stress_source ?? [],
+    exerciseFrequency: detail.exercise_frequency ?? null,
+    screenTime: detail.screen_time_hours ?? 6,
+    workEnvironment: detail.work_environment ?? null,
+    pollutionExposure: detail.pollution_exposure ?? null,
+    city: detail.climate_profile?.city ?? "",
+    waterHardness: detail.climate_profile?.water_hardness ?? null,
+    climateProfile: detail.climate_profile ?? null,
+    routineSteps,
+    cleanserFrequency: detail.cleanser_frequency ?? null,
+    sunscreenUse: detail.sunscreen_use ?? null,
+    knownAllergens: routine?.known_allergens_text ?? "",
+    currentProducts: routine?.products_currently_using ? Object.values(routine.products_currently_using).join(", ") : "",
+    diagnosedConditions: detail.diagnosed_conditions ?? [],
+    medicationAffectsSkin: detail.medication_affects_skin ?? null,
+    medicationName: "",
+    spicyFood: null,
+    junkFood: null,
+    fruitsVeggies: null,
+    bedtime: null,
+    phoneBeforeBed: null,
+    sleepEnvironment: null,
+    sunExposure: null,
+    smokingStatus: null,
+    alcoholConsumption: null,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // ProgressBar
@@ -156,30 +234,35 @@ type Phase = "resume-prompt" | "intro" | "section" | "submitting" | "done";
 
 function ProgressBar({ current, completed }: { current: number; completed: number[] }) {
   return (
-    <div className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100 px-4 py-3 shadow-sm">
+    <div className="sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-deep-brown/10 px-4 py-3 shadow-sm">
       <div className="w-full max-w-5xl mx-auto">
         <div className="flex items-center justify-between gap-0.5 flex-nowrap">
           {SECTIONS.map((s, i) => {
             const isDone = completed.includes(s.id);
             const isCurrent = s.id === current;
+            const IconComp = s.icon;
             return (
               <div key={s.id} className="flex items-center gap-0.5 min-w-0 flex-1">
                 <div
-                  className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium transition-all whitespace-nowrap ${
                     isCurrent
-                      ? "bg-skin-600 text-white shadow-md scale-105"
+                      ? "bg-olive text-cream shadow-md scale-105"
                       : isDone
-                      ? "bg-teal-100 text-teal-700"
-                      : "bg-gray-100 text-gray-400"
+                      ? "bg-butter/20 text-deep-brown"
+                      : "bg-deep-brown/5 text-deep-brown/40"
                   }`}
                 >
-                  <span className="text-xs leading-none">{isDone ? "✓" : s.icon}</span>
+                  {isDone ? (
+                    <Check className="w-3.5 h-3.5" />
+                  ) : (
+                    <IconComp className="w-3.5 h-3.5" />
+                  )}
                   <span className="hidden xs:inline sm:inline">{s.shortTitle}</span>
                 </div>
                 {i < SECTIONS.length - 1 && (
                   <div
                     className={`h-px flex-1 min-w-[4px] rounded-full transition-colors mx-0.5 ${
-                      isDone ? "bg-teal-300" : "bg-gray-200"
+                      isDone ? "bg-butter" : "bg-deep-brown/10"
                     }`}
                   />
                 )}
@@ -187,9 +270,9 @@ function ProgressBar({ current, completed }: { current: number; completed: numbe
             );
           })}
         </div>
-        <div className="mt-2 h-1 bg-gray-100 rounded-full overflow-hidden">
+        <div className="mt-2 h-1 bg-deep-brown/10 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-skin-500 rounded-full"
+            className="h-full bg-butter rounded-full"
             animate={{ width: `${((current - 1) / 8) * 100}%` }}
             transition={{ duration: 0.4, ease: "easeOut" }}
           />
@@ -202,7 +285,7 @@ function ProgressBar({ current, completed }: { current: number; completed: numbe
 function TimeEstimate({ section }: { section: number }) {
   const label =
     section <= 3 ? "About 5 minutes" : section <= 6 ? "About 2 minutes remaining" : "Almost done!";
-  return <span className="text-xs text-gray-400 font-medium">⏱ {label}</span>;
+  return <span className="text-xs text-deep-brown/50 font-medium">{label}</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -220,6 +303,8 @@ function SectionIntroCard({
     onContinue();
   }, [onContinue]);
 
+  const IconComp = section.icon;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -228,14 +313,16 @@ function SectionIntroCard({
       transition={{ duration: 0.35 }}
       className="flex flex-col items-center justify-center min-h-[280px] text-center px-6 py-10"
     >
-      <div className="text-6xl mb-4">{section.icon}</div>
-      <h2 className="font-heading text-2xl font-bold text-gray-900 mb-2">{section.title}</h2>
-      <p className="text-gray-500 max-w-sm text-sm leading-relaxed mb-6">
+      <div className="w-16 h-16 rounded-2xl bg-butter/20 border border-olive/20 flex items-center justify-center mb-4 text-olive">
+        <IconComp className="w-8 h-8" />
+      </div>
+      <h2 className="font-heading text-2xl font-bold text-deep-brown mb-2">{section.title}</h2>
+      <p className="text-deep-brown/60 max-w-sm text-sm leading-relaxed mb-6">
         {SECTION_WHY[section.id]}
       </p>
       <button
         onClick={onContinue}
-        className="text-skin-600 text-sm font-medium underline underline-offset-2"
+        className="text-olive text-sm font-medium underline underline-offset-2"
       >
         Skip intro →
       </button>
@@ -249,11 +336,11 @@ function SectionIntroCard({
 
 function ClimateCard({ profile }: { profile: ClimateProfile }) {
   const zoneLabel: Record<string, string> = {
-    tropical: "🌴 Tropical",
-    arid: "🏜️ Arid",
-    semi_arid: "🌾 Semi-Arid",
-    temperate: "🌤️ Temperate",
-    coastal: "🌊 Coastal",
+    tropical: "Tropical",
+    arid: "Arid",
+    semi_arid: "Semi-Arid",
+    temperate: "Temperate",
+    coastal: "Coastal",
   };
   const hardnessLabel: Record<string, string> = {
     soft: "Soft water",
@@ -266,31 +353,31 @@ function ClimateCard({ profile }: { profile: ClimateProfile }) {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 280, damping: 22 }}
-      className="mt-6 rounded-2xl bg-gradient-to-br from-teal-50 via-skin-50 to-cream-50 border border-skin-100 p-5 shadow-sm"
+      className="mt-6 rounded-xl bg-cream border border-deep-brown/10 p-5 shadow-sm"
     >
-      <p className="text-xs text-skin-500 font-semibold uppercase tracking-wider mb-2">
+      <p className="text-[11px] font-sans font-medium uppercase tracking-[0.18em] text-olive mb-2">
         Your Climate Profile
       </p>
-      <p className="text-xl font-bold text-gray-900 mb-1">
-        📍 {profile.city}, {profile.state}
+      <p className="text-xl font-bold text-deep-brown mb-1 flex items-center gap-1.5">
+        <MapPin className="w-4 h-4 text-olive" /> {profile.city}, {profile.state}
       </p>
       <div className="flex flex-wrap gap-2 mt-3">
         {[
-          { emoji: "🌡️", text: `${profile.avg_temperature_c}°C` },
-          { emoji: "💧", text: `${profile.avg_humidity_pct}% humidity` },
-          { emoji: "☀️", text: `UV ${profile.uv_index}` },
+          { icon: Thermometer, text: `${profile.avg_temperature_c}°C` },
+          { icon: Droplet, text: `${profile.avg_humidity_pct}% humidity` },
+          { icon: Sun, text: `UV ${profile.uv_index}` },
           ...(profile.water_hardness
-            ? [{ emoji: "🪣", text: hardnessLabel[profile.water_hardness] }]
+            ? [{ icon: Shield, text: hardnessLabel[profile.water_hardness] }]
             : []),
-        ].map(({ emoji, text }) => (
+        ].map(({ icon: IconComp, text }) => (
           <span
             key={text}
-            className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-white/80 text-gray-700 border border-gray-200"
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium bg-cream/80 text-deep-brown border border-deep-brown/10"
           >
-            {emoji} {text}
+            <IconComp className="w-3.5 h-3.5 text-olive" /> {text}
           </span>
         ))}
-        <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-skin-100 text-skin-700">
+        <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium bg-olive/10 text-olive">
           {zoneLabel[profile.climate_zone] ?? profile.climate_zone}
         </span>
       </div>
@@ -321,7 +408,7 @@ function RangeSlider({
 }) {
   return (
     <div className="space-y-3">
-      <div className="text-center text-3xl font-bold text-skin-600">{formatLabel(value)}</div>
+      <div className="text-center font-serif text-3xl font-bold text-olive">{formatLabel(value)}</div>
       <SliderPrimitive.Root
         className="relative flex items-center select-none touch-none w-full h-10"
         value={[value]}
@@ -330,15 +417,15 @@ function RangeSlider({
         max={max}
         step={step}
       >
-        <SliderPrimitive.Track className="bg-gray-200 relative grow rounded-full h-2">
-          <SliderPrimitive.Range className="absolute bg-skin-500 rounded-full h-full" />
+        <SliderPrimitive.Track className="bg-deep-brown/10 relative grow rounded-full h-2">
+          <SliderPrimitive.Range className="absolute bg-butter rounded-full h-full" />
         </SliderPrimitive.Track>
         <SliderPrimitive.Thumb
-          className="block w-6 h-6 bg-white border-2 border-skin-500 rounded-full shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-skin-400 transition-shadow"
+          className="block w-6 h-6 bg-cream border-2 border-olive rounded-full shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-olive transition-shadow"
           aria-label={ariaLabel}
         />
       </SliderPrimitive.Root>
-      <div className="flex justify-between text-xs text-gray-400">
+      <div className="flex justify-between text-xs text-deep-brown/40">
         <span>{formatLabel(min)}</span>
         <span>{formatLabel(max)}</span>
       </div>
@@ -351,14 +438,13 @@ function RangeSlider({
 // ---------------------------------------------------------------------------
 
 function CardOption({
-  emoji,
   image,
   label,
   sub,
   selected,
   onClick,
 }: {
-  emoji: string;
+  emoji?: string;
   image?: string;
   label: string;
   sub?: string;
@@ -369,30 +455,25 @@ function CardOption({
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3 text-center transition-all active:scale-95 overflow-hidden ${
+      className={`relative flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all active:scale-95 overflow-hidden ${
         selected
-          ? "border-skin-500 bg-skin-50 shadow-md ring-2 ring-skin-400/20"
-          : "border-gray-200 bg-white hover:border-skin-300 hover:shadow-sm"
+          ? "border-olive bg-butter/20 shadow-sm"
+          : "border-deep-brown/10 bg-cream/50 hover:border-deep-brown/30"
       }`}
     >
-      {image ? (
-        <div className="relative w-full h-28 rounded-xl overflow-hidden bg-gray-100 mb-1 border border-gray-100 group">
+      {image && (
+        <div className="relative w-full h-28 rounded-lg overflow-hidden bg-cream mb-1 border border-deep-brown/10 group">
           <img
             src={image}
             alt={label}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          <span className="absolute top-1.5 right-1.5 bg-white/90 backdrop-blur rounded-full px-2 py-0.5 text-xs shadow-sm font-medium">
-            {emoji}
-          </span>
         </div>
-      ) : (
-        <span className="text-2xl">{emoji}</span>
       )}
-      <span className={`text-sm font-semibold ${selected ? "text-skin-700" : "text-gray-800"}`}>
+      <span className={`text-sm font-medium ${selected ? "text-deep-brown font-semibold" : "text-deep-brown/80"}`}>
         {label}
       </span>
-      {sub && <span className="text-xs text-gray-500 leading-tight">{sub}</span>}
+      {sub && <span className="text-xs text-deep-brown/50 leading-tight">{sub}</span>}
     </button>
   );
 }
@@ -403,7 +484,7 @@ function SingleSelect<T extends string>({
   onChange,
   cols = 2,
 }: {
-  options: { value: T; emoji: string; image?: string; label: string; sub?: string }[];
+  options: { value: T; emoji?: string; image?: string; label: string; sub?: string }[];
   value: T | null;
   onChange: (v: T) => void;
   cols?: number;
@@ -416,7 +497,6 @@ function SingleSelect<T extends string>({
       {options.map((o) => (
         <CardOption
           key={o.value}
-          emoji={o.emoji}
           image={o.image}
           label={o.label}
           sub={o.sub}
@@ -435,7 +515,7 @@ function MultiSelect<T extends string>({
   exclusive = [],
   cols = 2,
 }: {
-  options: { value: T; emoji: string; image?: string; label: string; sub?: string }[];
+  options: { value: T; emoji?: string; image?: string; label: string; sub?: string }[];
   value: T[];
   onChange: (v: T[]) => void;
   exclusive?: T[];
@@ -461,7 +541,6 @@ function MultiSelect<T extends string>({
       {options.map((o) => (
         <CardOption
           key={o.value}
-          emoji={o.emoji}
           image={o.image}
           label={o.label}
           sub={o.sub}
@@ -488,30 +567,30 @@ function YesNoSelect({
     <div className="grid grid-cols-2 gap-3">
       <button
         onClick={() => onChange(true)}
-        className={`rounded-2xl border-2 p-4 font-semibold text-sm transition-all active:scale-95 ${
+        className={`flex items-center justify-center gap-2 rounded-xl border p-4 font-medium text-sm transition-all active:scale-95 ${
           value === true
-            ? "border-teal-500 bg-teal-50 text-teal-700 shadow-md"
-            : "border-gray-200 text-gray-700 hover:border-teal-200"
+            ? "border-olive bg-butter/30 text-deep-brown font-semibold shadow-sm"
+            : "border-deep-brown/10 text-deep-brown/70 hover:border-deep-brown/20 bg-cream/50"
         }`}
       >
-        ✅ {yesLabel}
+        <Check className="w-4 h-4 text-olive" /> {yesLabel}
       </button>
       <button
         onClick={() => onChange(false)}
-        className={`rounded-2xl border-2 p-4 font-semibold text-sm transition-all active:scale-95 ${
+        className={`flex items-center justify-center gap-2 rounded-xl border p-4 font-medium text-sm transition-all active:scale-95 ${
           value === false
-            ? "border-rose-400 bg-rose-50 text-rose-700 shadow-md"
-            : "border-gray-200 text-gray-700 hover:border-rose-200"
+            ? "border-deep-brown/30 bg-deep-brown/10 text-deep-brown font-semibold shadow-sm"
+            : "border-deep-brown/10 text-deep-brown/70 hover:border-deep-brown/20 bg-cream/50"
         }`}
       >
-        ❌ {noLabel}
+        <X className="w-4 h-4 text-deep-brown/60" /> {noLabel}
       </button>
     </div>
   );
 }
 
 function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const labels = ["", "😫 Very Poor", "😔 Poor", "😐 Okay", "😊 Good", "🌟 Excellent"];
+  const labels = ["", "Very Poor", "Poor", "Okay", "Good", "Excellent"];
   return (
     <div className="space-y-2">
       <div className="flex justify-center gap-2">
@@ -519,15 +598,17 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
           <button
             key={star}
             onClick={() => onChange(star)}
-            className={`text-3xl transition-transform hover:scale-110 active:scale-95 ${
-              star <= value ? "opacity-100" : "opacity-30"
-            }`}
+            className="p-1 transition-transform hover:scale-110 active:scale-95"
           >
-            ⭐
+            <Star
+              className={`w-7 h-7 transition-colors ${
+                star <= value ? "fill-butter text-olive" : "text-deep-brown/20"
+              }`}
+            />
           </button>
         ))}
       </div>
-      {value > 0 && <p className="text-center text-sm text-gray-500">{labels[value]}</p>}
+      {value > 0 && <p className="text-center text-sm text-deep-brown/60 font-medium">{labels[value]}</p>}
     </div>
   );
 }
@@ -616,11 +697,11 @@ function CityAutocomplete({ value, onChange }: { value: string; onChange: (city:
               aria-selected={i === activeIndex}
               onMouseDown={() => selectCity(city)}
               onMouseEnter={() => setActiveIndex(i)}
-              className={`px-4 py-2.5 text-sm text-gray-700 cursor-pointer ${
-                i === activeIndex ? "bg-skin-50" : "hover:bg-skin-50"
+              className={`px-4 py-2.5 text-sm text-deep-brown cursor-pointer flex items-center gap-1.5 ${
+                i === activeIndex ? "bg-cream" : "hover:bg-cream"
               }`}
             >
-              📍 {city}
+              <MapPin className="w-3.5 h-3.5 text-olive" /> {city}
             </li>
           ))}
         </ul>
@@ -661,10 +742,10 @@ function Section2Diet({ answers, update }: { answers: Answers; update: <K extend
           onChange={(v) => update("dietType", v)}
           cols={2}
           options={[
-            { value: "veg",     emoji: "🥦", label: "Vegetarian"     },
-            { value: "non_veg", emoji: "🍖", label: "Non-Vegetarian" },
-            { value: "vegan",   emoji: "🌱", label: "Vegan"          },
-            { value: "mixed",   emoji: "🍽️", label: "Mixed"          },
+            { value: "veg",     label: "Vegetarian"     },
+            { value: "non_veg", label: "Non-Vegetarian" },
+            { value: "vegan",   label: "Vegan"          },
+            { value: "mixed",   label: "Mixed"          },
           ]}
         />
       </QuestionBlock>
@@ -674,9 +755,9 @@ function Section2Diet({ answers, update }: { answers: Answers; update: <K extend
           onChange={(v) => update("sugarConsumption", v)}
           cols={3}
           options={[
-            { value: "low",      emoji: "🟢", label: "Low",      sub: "Rarely sweets" },
-            { value: "moderate", emoji: "🟡", label: "Moderate", sub: "Some daily"    },
-            { value: "high",     emoji: "🔴", label: "High",     sub: "Regular habit" },
+            { value: "low",      label: "Low",      sub: "Rarely sweets" },
+            { value: "moderate", label: "Moderate", sub: "Some daily"    },
+            { value: "high",     label: "High",     sub: "Regular habit" },
           ]}
         />
       </QuestionBlock>
@@ -686,9 +767,9 @@ function Section2Diet({ answers, update }: { answers: Answers; update: <K extend
           onChange={(v) => update("dairyConsumption", v)}
           cols={3}
           options={[
-            { value: "never",     emoji: "✋", label: "Never"     },
-            { value: "sometimes", emoji: "🥛", label: "Sometimes" },
-            { value: "daily",     emoji: "🧀", label: "Daily"     },
+            { value: "never",     label: "Never"     },
+            { value: "sometimes", label: "Sometimes" },
+            { value: "daily",     label: "Daily"     },
           ]}
         />
       </QuestionBlock>
@@ -698,11 +779,11 @@ function Section2Diet({ answers, update }: { answers: Answers; update: <K extend
 
 function Section3Stress({ answers, update }: { answers: Answers; update: <K extends keyof Answers>(k: K, v: Answers[K]) => void }) {
   const stressLabels: Record<number, string> = {
-    1: "😌 Very Calm",
-    2: "🙂 Mostly Calm",
-    3: "😐 Moderate",
-    4: "😟 Often Stressed",
-    5: "😰 Very Stressed",
+    1: "Very Calm",
+    2: "Mostly Calm",
+    3: "Moderate",
+    4: "Often Stressed",
+    5: "Very Stressed",
   };
   return (
     <div className="space-y-8">
@@ -714,15 +795,15 @@ function Section3Stress({ answers, update }: { answers: Answers; update: <K exte
               onClick={() => update("stressLevel", level)}
               className={`rounded-xl py-3 text-sm font-bold transition-all active:scale-95 ${
                 answers.stressLevel === level
-                  ? "bg-skin-600 text-white shadow-md"
-                  : "bg-gray-100 text-gray-600 hover:bg-skin-50"
+                  ? "bg-olive text-cream shadow-sm"
+                  : "bg-cream text-deep-brown hover:bg-cream/80 border border-deep-brown/10"
               }`}
             >
               {level}
             </button>
           ))}
         </div>
-        <p className="text-center text-sm text-gray-500 mt-1">{stressLabels[answers.stressLevel]}</p>
+        <p className="text-center text-sm text-deep-brown/60 mt-1">{stressLabels[answers.stressLevel]}</p>
       </QuestionBlock>
       <QuestionBlock label="What are your main sources of stress? (select all that apply)">
         <MultiSelect<StressSource>
@@ -730,11 +811,11 @@ function Section3Stress({ answers, update }: { answers: Answers; update: <K exte
           onChange={(v) => update("stressSource", v)}
           cols={3}
           options={[
-            { value: "work",      emoji: "💼", label: "Work"      },
-            { value: "studies",   emoji: "📚", label: "Studies"   },
-            { value: "family",    emoji: "🏠", label: "Family"    },
-            { value: "financial", emoji: "💰", label: "Financial" },
-            { value: "other",     emoji: "🔮", label: "Other"     },
+            { value: "work",      label: "Work"      },
+            { value: "studies",   label: "Studies"   },
+            { value: "family",    label: "Family"    },
+            { value: "financial", label: "Financial" },
+            { value: "other",     label: "Other"     },
           ]}
         />
       </QuestionBlock>
@@ -744,10 +825,10 @@ function Section3Stress({ answers, update }: { answers: Answers; update: <K exte
           onChange={(v) => update("exerciseFrequency", v)}
           cols={2}
           options={[
-            { value: "none",     emoji: "🛋️", label: "None"          },
-            { value: "light",    emoji: "🚶", label: "1–2x per week" },
-            { value: "moderate", emoji: "🏋️", label: "3–4x per week" },
-            { value: "active",   emoji: "💪", label: "Daily"         },
+            { value: "none",     label: "None"          },
+            { value: "light",    label: "1–2x per week" },
+            { value: "moderate", label: "3–4x per week" },
+            { value: "active",   label: "Daily"         },
           ]}
         />
       </QuestionBlock>
@@ -767,10 +848,10 @@ function Section4Screen({ answers, update }: { answers: Answers; update: <K exte
           onChange={(v) => update("workEnvironment", v)}
           cols={2}
           options={[
-            { value: "indoor_ac",     emoji: "❄️", label: "Indoor (AC)",    sub: "Air-conditioned" },
-            { value: "indoor_non_ac", emoji: "🏠", label: "Indoor (No AC)", sub: "Open windows"    },
-            { value: "outdoor",       emoji: "🌳", label: "Outdoor",        sub: "Mostly outside"  },
-            { value: "mixed",         emoji: "🔄", label: "Mixed",          sub: "Varies daily"    },
+            { value: "indoor_ac",     label: "Indoor (AC)",    sub: "Air-conditioned" },
+            { value: "indoor_non_ac", label: "Indoor (No AC)", sub: "Open windows"    },
+            { value: "outdoor",       label: "Outdoor",        sub: "Mostly outside"  },
+            { value: "mixed",         label: "Mixed",          sub: "Varies daily"    },
           ]}
         />
       </QuestionBlock>
@@ -780,9 +861,9 @@ function Section4Screen({ answers, update }: { answers: Answers; update: <K exte
           onChange={(v) => update("pollutionExposure", v)}
           cols={3}
           options={[
-            { value: "low_city",   emoji: "🌿", label: "Low",        sub: "Small city/town"  },
-            { value: "metro",      emoji: "🏙️", label: "Metro city", sub: "Delhi, Mumbai…"  },
-            { value: "industrial", emoji: "🏭", label: "Industrial", sub: "Near factories"   },
+            { value: "low_city",   label: "Low",        sub: "Small city/town"  },
+            { value: "metro",      label: "Metro city", sub: "Delhi, Mumbai…"  },
+            { value: "industrial", label: "Industrial", sub: "Near factories"   },
           ]}
         />
       </QuestionBlock>
@@ -810,10 +891,10 @@ function Section5Location({
           onChange={(v) => update("waterHardness", v)}
           cols={2}
           options={[
-            { value: "soft",      emoji: "💧", label: "Soft",      sub: "Clear, smooth feel"    },
-            { value: "moderate",  emoji: "🌊", label: "Moderate",  sub: "Slightly stiff"        },
-            { value: "hard",      emoji: "🪨", label: "Hard",      sub: "Slight white residue"  },
-            { value: "very_hard", emoji: "🏔️", label: "Very Hard", sub: "White deposits on taps" },
+            { value: "soft",      label: "Soft",      sub: "Clear, smooth feel"    },
+            { value: "moderate",  label: "Moderate",  sub: "Slightly stiff"        },
+            { value: "hard",      label: "Hard",      sub: "Slight white residue"  },
+            { value: "very_hard", label: "Very Hard", sub: "White deposits on taps" },
           ]}
         />
       </QuestionBlock>
@@ -821,7 +902,7 @@ function Section5Location({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center gap-2 text-sm text-skin-500 py-3"
+          className="flex items-center gap-2 text-sm text-olive py-3"
         >
           <motion.span
             animate={{ rotate: 360 }}
@@ -851,14 +932,14 @@ function Section6Routine({ answers, update }: { answers: Answers; update: <K ext
           cols={2}
           exclusive={["nothing"]}
           options={[
-            { value: "cleanser",    emoji: "🧴", label: "Cleanser"    },
-            { value: "toner",       emoji: "💧", label: "Toner"       },
-            { value: "moisturiser", emoji: "💦", label: "Moisturiser" },
-            { value: "sunscreen",   emoji: "☀️", label: "Sunscreen"   },
-            { value: "serum",       emoji: "✨", label: "Serum"       },
-            { value: "exfoliant",   emoji: "🔬", label: "Exfoliant"   },
-            { value: "face_mask",   emoji: "🎭", label: "Face Mask"   },
-            { value: "nothing",     emoji: "❌", label: "Nothing"     },
+            { value: "cleanser",    label: "Cleanser"    },
+            { value: "toner",       label: "Toner"       },
+            { value: "moisturiser", label: "Moisturiser" },
+            { value: "sunscreen",   label: "Sunscreen"   },
+            { value: "serum",       label: "Serum"       },
+            { value: "exfoliant",   label: "Exfoliant"   },
+            { value: "face_mask",   label: "Face Mask"   },
+            { value: "nothing",     label: "Nothing"     },
           ]}
         />
       </QuestionBlock>
@@ -877,10 +958,10 @@ function Section6Routine({ answers, update }: { answers: Answers; update: <K ext
                 onChange={(v) => update("cleanserFrequency", v)}
                 cols={2}
                 options={[
-                  { value: "morning_only",  emoji: "🌅", label: "Morning only"    },
-                  { value: "morning_night", emoji: "🔄", label: "Morning + Night" },
-                  { value: "night_only",    emoji: "🌙", label: "Night only"      },
-                  { value: "rarely",        emoji: "🙈", label: "Rarely"          },
+                  { value: "morning_only",  label: "Morning only"    },
+                  { value: "morning_night", label: "Morning + Night" },
+                  { value: "night_only",    label: "Night only"      },
+                  { value: "rarely",        label: "Rarely"          },
                 ]}
               />
             </QuestionBlock>
@@ -890,10 +971,10 @@ function Section6Routine({ answers, update }: { answers: Answers; update: <K ext
                 onChange={(v) => update("sunscreenUse", v)}
                 cols={2}
                 options={[
-                  { value: "yes_always", emoji: "🏆", label: "Yes, always" },
-                  { value: "sometimes",  emoji: "🤷", label: "Sometimes"   },
-                  { value: "rarely",     emoji: "😬", label: "Rarely"      },
-                  { value: "never",      emoji: "❌", label: "Never"       },
+                  { value: "yes_always", label: "Yes, always" },
+                  { value: "sometimes",  label: "Sometimes"   },
+                  { value: "rarely",     label: "Rarely"      },
+                  { value: "never",      label: "Never"       },
                 ]}
               />
             </QuestionBlock>
@@ -907,7 +988,7 @@ function Section6Routine({ answers, update }: { answers: Answers; update: <K ext
           onChange={(e) => update("knownAllergens", e.target.value)}
           placeholder="e.g. fragrance, retinol, niacinamide…"
           rows={2}
-          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-skin-400 focus:outline-none resize-none transition-colors"
+          className="w-full rounded-xl border border-deep-brown/15 bg-cream/50 px-4 py-3 text-sm text-deep-brown focus:border-olive focus:outline-none resize-none transition-colors"
         />
       </QuestionBlock>
       <QuestionBlock label="Products you currently use (optional)">
@@ -916,7 +997,7 @@ function Section6Routine({ answers, update }: { answers: Answers; update: <K ext
           onChange={(e) => update("currentProducts", e.target.value)}
           placeholder="e.g. CeraVe Cleanser, Minimalist Niacinamide 10%…"
           rows={2}
-          className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-skin-400 focus:outline-none resize-none transition-colors"
+          className="w-full rounded-xl border border-deep-brown/15 bg-cream/50 px-4 py-3 text-sm text-deep-brown focus:border-olive focus:outline-none resize-none transition-colors"
         />
       </QuestionBlock>
     </div>
@@ -926,9 +1007,9 @@ function Section6Routine({ answers, update }: { answers: Answers; update: <K ext
 function Section7Health({ answers, update }: { answers: Answers; update: <K extends keyof Answers>(k: K, v: Answers[K]) => void }) {
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl bg-gray-50 border border-gray-200 px-4 py-3 flex gap-2 items-start">
-        <span className="text-lg mt-0.5">🔒</span>
-        <p className="text-xs text-gray-600 leading-relaxed">
+      <div className="rounded-xl bg-cream border border-deep-brown/10 px-4 py-3 flex gap-2 items-start">
+        <Lock className="w-4 h-4 text-olive shrink-0 mt-0.5" />
+        <p className="text-xs text-deep-brown/70 leading-relaxed">
           <strong>This is private and never shared.</strong> Health data is encrypted and used solely
           to improve the accuracy of your personalised skin analysis.
         </p>
@@ -940,13 +1021,13 @@ function Section7Health({ answers, update }: { answers: Answers; update: <K exte
           cols={2}
           exclusive={["none", "prefer_not_to_say"]}
           options={[
-            { value: "acne",              emoji: "🔴", image: "/images/conditions/acne.png",     label: "Acne",              sub: "Pimples, blackheads or whiteheads" },
-            { value: "rosacea",           emoji: "🌹", image: "/images/conditions/rosacea.png",  label: "Rosacea",           sub: "Facial redness & visible blood vessels" },
-            { value: "eczema",            emoji: "🌊", image: "/images/conditions/eczema.png",   label: "Eczema",            sub: "Dry, itchy, inflamed patches of skin" },
-            { value: "psoriasis",         emoji: "🔵", image: "/images/conditions/psoriasis.png", label: "Psoriasis",         sub: "Thick, scaly red patches" },
-            { value: "melasma",           emoji: "🟤", image: "/images/conditions/melasma.png",  label: "Melasma",           sub: "Dark hyperpigmented patches on face" },
-            { value: "none",              emoji: "✅", image: "/images/conditions/none.png",     label: "None",              sub: "No diagnosed skin conditions" },
-            { value: "prefer_not_to_say", emoji: "🔒", label: "Prefer not to say", sub: "Skip this question" },
+            { value: "acne",              image: "/images/conditions/acne.png",     label: "Acne",              sub: "Pimples, blackheads or whiteheads" },
+            { value: "rosacea",           image: "/images/conditions/rosacea.png",  label: "Rosacea",           sub: "Facial redness & visible blood vessels" },
+            { value: "eczema",            image: "/images/conditions/eczema.png",   label: "Eczema",            sub: "Dry, itchy, inflamed patches of skin" },
+            { value: "psoriasis",         image: "/images/conditions/psoriasis.png", label: "Psoriasis",         sub: "Thick, scaly red patches" },
+            { value: "melasma",           image: "/images/conditions/melasma.png",  label: "Melasma",           sub: "Dark hyperpigmented patches on face" },
+            { value: "none",              image: "/images/conditions/none.png",     label: "None",              sub: "No diagnosed skin conditions" },
+            { value: "prefer_not_to_say", label: "Prefer not to say", sub: "Skip this question" },
           ]}
         />
       </QuestionBlock>
@@ -970,7 +1051,7 @@ function Section7Health({ answers, update }: { answers: Answers; update: <K exte
                 onChange={(e) => update("medicationName", e.target.value)}
                 placeholder="e.g. isotretinoin, doxycycline, topical steroids…"
                 rows={2}
-                className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-skin-400 focus:outline-none resize-none transition-colors"
+                className="w-full rounded-xl border border-deep-brown/15 bg-cream/50 px-4 py-3 text-sm text-deep-brown focus:border-olive focus:outline-none resize-none transition-colors"
               />
             </QuestionBlock>
           </motion.div>
@@ -989,10 +1070,10 @@ function Section8Lifestyle({ answers, update }: { answers: Answers; update: <K e
           onChange={(v) => update("spicyFood", v)}
           cols={2}
           options={[
-            { value: "never",     emoji: "🌿", label: "Never"     },
-            { value: "sometimes", emoji: "🌶️", label: "Sometimes", sub: "A few times/week" },
-            { value: "often",     emoji: "🔥", label: "Often",     sub: "Most days" },
-            { value: "daily",     emoji: "🌋", label: "Daily"     },
+            { value: "never",     label: "Never"     },
+            { value: "sometimes", label: "Sometimes", sub: "A few times/week" },
+            { value: "often",     label: "Often",     sub: "Most days" },
+            { value: "daily",     label: "Daily"     },
           ]}
         />
       </QuestionBlock>
@@ -1002,10 +1083,10 @@ function Section8Lifestyle({ answers, update }: { answers: Answers; update: <K e
           onChange={(v) => update("junkFood", v)}
           cols={2}
           options={[
-            { value: "never",     emoji: "✅", label: "Rarely"    },
-            { value: "sometimes", emoji: "🍟", label: "Sometimes", sub: "1–2x per week" },
-            { value: "often",     emoji: "🍕", label: "Often",     sub: "3–5x per week" },
-            { value: "daily",     emoji: "⚠️", label: "Daily"     },
+            { value: "never",     label: "Rarely"    },
+            { value: "sometimes", label: "Sometimes", sub: "1–2x per week" },
+            { value: "often",     label: "Often",     sub: "3–5x per week" },
+            { value: "daily",     label: "Daily"     },
           ]}
         />
       </QuestionBlock>
@@ -1015,10 +1096,10 @@ function Section8Lifestyle({ answers, update }: { answers: Answers; update: <K e
           onChange={(v) => update("fruitsVeggies", v)}
           cols={2}
           options={[
-            { value: "less_than_1", emoji: "😕", label: "< 1 serving"  },
-            { value: "1_to_2",      emoji: "🥦", label: "1–2 servings" },
-            { value: "3_to_5",      emoji: "🥗", label: "3–5 servings" },
-            { value: "more_than_5", emoji: "🌿", label: "5+ servings"  },
+            { value: "less_than_1", label: "< 1 serving"  },
+            { value: "1_to_2",      label: "1–2 servings" },
+            { value: "3_to_5",      label: "3–5 servings" },
+            { value: "more_than_5", label: "5+ servings"  },
           ]}
         />
       </QuestionBlock>
@@ -1028,9 +1109,9 @@ function Section8Lifestyle({ answers, update }: { answers: Answers; update: <K e
           onChange={(v) => update("bedtime", v)}
           cols={3}
           options={[
-            { value: "before_10pm",      emoji: "🌅", label: "Before 10 pm"   },
-            { value: "10pm_to_midnight", emoji: "🌙", label: "10 pm–midnight"  },
-            { value: "after_midnight",   emoji: "🌃", label: "After midnight"  },
+            { value: "before_10pm",      label: "Before 10 pm"   },
+            { value: "10pm_to_midnight", label: "10 pm–midnight"  },
+            { value: "after_midnight",   label: "After midnight"  },
           ]}
         />
       </QuestionBlock>
@@ -1043,9 +1124,9 @@ function Section8Lifestyle({ answers, update }: { answers: Answers; update: <K e
           onChange={(v) => update("sleepEnvironment", v)}
           cols={3}
           options={[
-            { value: "ac",          emoji: "❄️", label: "AC",          sub: "Air-conditioned" },
-            { value: "fan",         emoji: "💨", label: "Fan",          sub: "Fan on"          },
-            { value: "natural_air", emoji: "🌿", label: "Natural air",  sub: "Open windows"    },
+            { value: "ac",          label: "AC",          sub: "Air-conditioned" },
+            { value: "fan",         label: "Fan",          sub: "Fan on"          },
+            { value: "natural_air", label: "Natural air",  sub: "Open windows"    },
           ]}
         />
       </QuestionBlock>
@@ -1055,10 +1136,10 @@ function Section8Lifestyle({ answers, update }: { answers: Answers; update: <K e
           onChange={(v) => update("sunExposure", v)}
           cols={2}
           options={[
-            { value: "minimal",   emoji: "🏠", label: "< 15 min",  sub: "Mostly indoors"     },
-            { value: "moderate",  emoji: "🚶", label: "15–30 min", sub: "Brief outdoors"      },
-            { value: "high",      emoji: "☀️", label: "30–60 min", sub: "Regular outdoors"    },
-            { value: "very_high", emoji: "🌞", label: "> 1 hour",  sub: "Often in direct sun" },
+            { value: "minimal",   label: "< 15 min",  sub: "Mostly indoors"     },
+            { value: "moderate",  label: "15–30 min", sub: "Brief outdoors"      },
+            { value: "high",      label: "30–60 min", sub: "Regular outdoors"    },
+            { value: "very_high", label: "> 1 hour",  sub: "Often in direct sun" },
           ]}
         />
       </QuestionBlock>
@@ -1068,10 +1149,10 @@ function Section8Lifestyle({ answers, update }: { answers: Answers; update: <K e
           onChange={(v) => update("smokingStatus", v)}
           cols={2}
           options={[
-            { value: "never",        emoji: "✅", label: "Never smoked"  },
-            { value: "ex_smoker",    emoji: "🚭", label: "Ex-smoker"     },
-            { value: "occasionally", emoji: "💭", label: "Occasionally"  },
-            { value: "regularly",    emoji: "🚬", label: "Regularly"     },
+            { value: "never",        label: "Never smoked"  },
+            { value: "ex_smoker",    label: "Ex-smoker"     },
+            { value: "occasionally", label: "Occasionally"  },
+            { value: "regularly",    label: "Regularly"     },
           ]}
         />
       </QuestionBlock>
@@ -1081,9 +1162,9 @@ function Section8Lifestyle({ answers, update }: { answers: Answers; update: <K e
           onChange={(v) => update("alcoholConsumption", v)}
           cols={3}
           options={[
-            { value: "never",        emoji: "✅", label: "Never"        },
-            { value: "occasionally", emoji: "🍷", label: "Occasionally", sub: "Weekends/events" },
-            { value: "regularly",    emoji: "🍺", label: "Regularly"    },
+            { value: "never",        label: "Never"        },
+            { value: "occasionally", label: "Occasionally", sub: "Weekends/events" },
+            { value: "regularly",    label: "Regularly"    },
           ]}
         />
       </QuestionBlock>
@@ -1127,20 +1208,52 @@ export function QuestionnaireForm({
   const [climateLoading, setClimateLoading] = useState(false);
   const climateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Restore draft
+  const [savedQuestionnaire, setSavedQuestionnaire] = useState<QuestionnaireDetailResponse | null>(null);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+
+  // Restore existing submission from API or draft from localStorage
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.section > 1) {
-          setPhase("resume-prompt");
+    let mounted = true;
+    async function loadInitial() {
+      try {
+        const latest = await getLatestQuestionnaire();
+        if (mounted && latest && latest.id) {
+          setSavedQuestionnaire(latest);
+          setAnswers(mapDetailToAnswers(latest));
+          setPhase("view-summary");
+          setLoadingInitial(false);
           return;
         }
+      } catch {
+        /* User has not submitted a questionnaire yet */
       }
-    } catch { /* ignore */ }
-    setPhase("intro");
+
+      if (!mounted) return;
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed?.section > 1) {
+            setPhase("resume-prompt");
+            setLoadingInitial(false);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+
+      setPhase("intro");
+      setLoadingInitial(false);
+    }
+    loadInitial();
+    return () => { mounted = false; };
   }, []);
+
+  const handleStartUpdate = () => {
+    setCompleted([1, 2, 3, 4, 5, 6, 7, 8]);
+    setCurrentSection(1);
+    setShowIntro(false);
+    setPhase("section");
+  };
 
   // Persist draft
   useEffect(() => {
@@ -1266,27 +1379,157 @@ export function QuestionnaireForm({
 
   const sectionConfig = SECTIONS.find((s) => s.id === currentSection)!;
   const isComplete = isSectionComplete(currentSection, answers);
+  const CurrentSectionIcon = sectionConfig.icon;
 
   // ---- Render ----
 
+  if (loadingInitial) {
+    return (
+      <div className="h-[calc(100vh-5rem)] flex flex-col items-center justify-center gap-3 text-deep-brown overflow-hidden">
+        <Sparkles className="w-8 h-8 text-olive animate-spin" />
+        <p className="text-sm font-medium text-deep-brown/70">Loading your profile…</p>
+      </div>
+    );
+  }
+
+  if (phase === "view-summary" && savedQuestionnaire) {
+    return (
+      <div className="h-full w-full flex flex-col justify-center px-4 sm:px-8 py-4 bg-cream text-deep-brown overflow-hidden">
+        <div className="max-w-7xl w-full mx-auto bg-cream border border-deep-brown/15 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+          
+          {/* Header */}
+          <div className="border-b border-deep-brown/10 pb-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-olive/10 text-olive text-[11px] font-bold uppercase tracking-wider mb-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Recorded Answers Profile
+            </div>
+            <h2 className="text-xl sm:text-2xl font-serif font-bold text-deep-brown">Your Lifestyle & Skincare Profile</h2>
+            <p className="text-xs text-deep-brown/60">
+              Last updated: {new Date(savedQuestionnaire.submitted_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+
+          {/* Answers Summary Grid — 4 Columns on desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs sm:text-sm">
+            {/* Sleep */}
+            <div className="rounded-xl border border-deep-brown/10 bg-cream/60 p-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-olive uppercase tracking-wider flex items-center gap-1.5">
+                <Moon className="w-3.5 h-3.5" /> Sleep & Recovery
+              </p>
+              <p className="font-semibold text-deep-brown">{answers.sleepHours} hrs/night • Quality: {answers.sleepQuality}/5</p>
+              <p className="text-xs text-deep-brown/70">{answers.sleepConsistency ? "Consistent sleep schedule" : "Varying sleep schedule"}</p>
+            </div>
+
+            {/* Hydration & Diet */}
+            <div className="rounded-xl border border-deep-brown/10 bg-cream/60 p-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-olive uppercase tracking-wider flex items-center gap-1.5">
+                <Droplet className="w-3.5 h-3.5" /> Hydration & Diet
+              </p>
+              <p className="font-semibold text-deep-brown">{answers.waterIntake}L water daily • {answers.dietType ? answers.dietType.replace("_", " ") : "Mixed"}</p>
+              <p className="text-xs text-deep-brown/70">Sugar: {answers.sugarConsumption ?? "Moderate"} • Dairy: {answers.dairyConsumption ?? "Sometimes"}</p>
+            </div>
+
+            {/* Stress */}
+            <div className="rounded-xl border border-deep-brown/10 bg-cream/60 p-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-olive uppercase tracking-wider flex items-center gap-1.5">
+                <Heart className="w-3.5 h-3.5" /> Stress & Exercise
+              </p>
+              <p className="font-semibold text-deep-brown">Stress level: {answers.stressLevel}/5</p>
+              <p className="text-xs text-deep-brown/70">Exercise: {answers.exerciseFrequency ? answers.exerciseFrequency.replace("_", " ") : "None"}</p>
+            </div>
+
+            {/* Environment & Screen */}
+            <div className="rounded-xl border border-deep-brown/10 bg-cream/60 p-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-olive uppercase tracking-wider flex items-center gap-1.5">
+                <Monitor className="w-3.5 h-3.5" /> Screen & Environment
+              </p>
+              <p className="font-semibold text-deep-brown">{answers.screenTime} hrs screen time</p>
+              <p className="text-xs text-deep-brown/70">Work: {answers.workEnvironment ? answers.workEnvironment.replace("_", " ") : "Mixed"} • Pollution: {answers.pollutionExposure ?? "Metro"}</p>
+            </div>
+
+            {/* Location & Climate */}
+            <div className="rounded-xl border border-deep-brown/10 bg-cream/60 p-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-olive uppercase tracking-wider flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5" /> Location & Climate
+              </p>
+              <p className="font-semibold text-deep-brown">{answers.city || "Not specified"}</p>
+              <p className="text-xs text-deep-brown/70">Water: {answers.waterHardness ? answers.waterHardness.replace("_", " ") : "Moderate"}</p>
+            </div>
+
+            {/* Skincare Routine */}
+            <div className="rounded-xl border border-deep-brown/10 bg-cream/60 p-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-olive uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" /> Current Routine
+              </p>
+              <p className="font-semibold text-deep-brown capitalize truncate">
+                {answers.routineSteps.length > 0 ? answers.routineSteps.join(", ") : "No steps selected"}
+              </p>
+              <p className="text-xs text-deep-brown/70">Sunscreen: {answers.sunscreenUse ? answers.sunscreenUse.replace("_", " ") : "Not specified"}</p>
+            </div>
+
+            {/* Health & Medical */}
+            <div className="rounded-xl border border-deep-brown/10 bg-cream/60 p-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-olive uppercase tracking-wider flex items-center gap-1.5">
+                <Stethoscope className="w-3.5 h-3.5" /> Health & Medical
+              </p>
+              <p className="font-semibold text-deep-brown capitalize">
+                {answers.diagnosedConditions.length > 0 ? answers.diagnosedConditions.join(", ") : "None reported"}
+              </p>
+              <p className="text-xs text-deep-brown/70">Allergens: {answers.knownAllergens || "None"} • Medication: {answers.medicationAffectsSkin ? "Yes" : "No"}</p>
+            </div>
+
+            {/* Lifestyle & Habits */}
+            <div className="rounded-xl border border-deep-brown/10 bg-cream/60 p-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-olive uppercase tracking-wider flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5" /> Lifestyle & Habits
+              </p>
+              <p className="font-semibold text-deep-brown capitalize">
+                Sun: {answers.sunExposure ? answers.sunExposure.replace("_", " ") : "Moderate"} • Smoking: {answers.smokingStatus ?? "Never"}
+              </p>
+              <p className="text-xs text-deep-brown/70">Spicy Food: {answers.spicyFood ?? "Sometimes"} • Junk Food: {answers.junkFood ?? "Sometimes"}</p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-deep-brown/10">
+            <button
+              onClick={handleStartFresh}
+              className="text-deep-brown/60 hover:text-deep-brown font-medium py-2.5 px-4 rounded-xl border border-deep-brown/15 hover:bg-cream transition-colors text-xs"
+            >
+              Start Over Fresh
+            </button>
+            <button
+              onClick={handleStartUpdate}
+              className="bg-butter hover:bg-butter/90 text-deep-brown font-bold py-2.5 px-6 rounded-xl border border-deep-brown/10 shadow-sm transition-all active:scale-95 text-xs sm:text-sm flex items-center gap-2"
+            >
+              <Edit3 className="w-4 h-4 text-olive" /> Update Answers
+            </button>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
   if (phase === "resume-prompt") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-6 text-center">
-        <div className="text-5xl">👋</div>
-        <h2 className="text-2xl font-bold text-gray-900">Welcome back!</h2>
-        <p className="text-gray-500 text-sm max-w-xs">
+      <div className="h-[calc(100vh-5rem)] flex flex-col items-center justify-center gap-4 px-6 text-center overflow-hidden">
+        <div className="w-16 h-16 rounded-full bg-butter/20 flex items-center justify-center text-olive mb-2">
+          <User className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-deep-brown">Welcome back!</h2>
+        <p className="text-deep-brown/60 text-sm max-w-xs">
           You have an unfinished questionnaire. Continue where you left off?
         </p>
         <div className="flex flex-col gap-2 w-full max-w-xs mt-2">
           <button
             onClick={handleResume}
-            className="w-full bg-skin-600 text-white font-semibold py-3 rounded-xl hover:bg-skin-700 transition-colors"
+            className="w-full bg-butter text-deep-brown font-semibold py-3 rounded-xl hover:bg-butter/90 transition-colors"
           >
             Resume where I left off
           </button>
           <button
             onClick={handleStartFresh}
-            className="w-full text-gray-400 text-sm py-2 hover:text-gray-600 transition-colors"
+            className="w-full text-deep-brown/40 text-sm py-2 hover:text-deep-brown/70 transition-colors"
           >
             Start over
           </button>
@@ -1297,25 +1540,27 @@ export function QuestionnaireForm({
 
   if (phase === "intro") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-6 text-center">
-        <div className="text-5xl">🌿</div>
+      <div className="h-[calc(100vh-5rem)] flex flex-col items-center justify-center gap-6 px-6 text-center overflow-hidden">
+        <div className="w-16 h-16 rounded-full bg-butter/20 flex items-center justify-center text-olive mb-2">
+          <Sparkles className="w-8 h-8" />
+        </div>
         <div>
-          <h2 className="font-heading text-2xl font-bold text-gray-900 mb-2">Lifestyle Questionnaire</h2>
-          <p className="text-gray-500 text-sm max-w-sm leading-relaxed">
+          <h2 className="font-heading text-2xl font-bold text-deep-brown mb-2">Lifestyle Questionnaire</h2>
+          <p className="text-deep-brown/60 text-sm max-w-sm leading-relaxed">
             7 quick sections about your daily habits. Takes about 4 minutes. Your answers directly
             improve the accuracy of your personalised skin analysis.
           </p>
         </div>
-        <div className="flex flex-wrap justify-center items-center gap-3 text-xs text-gray-400">
-          <span>⏱ ~4 minutes</span>
+        <div className="flex flex-wrap justify-center items-center gap-3 text-xs text-deep-brown/50">
+          <span>~4 minutes</span>
           <span>•</span>
-          <span>🔒 Private</span>
+          <span>Private</span>
           <span>•</span>
-          <span>💾 Auto-saves</span>
+          <span>Auto-saves</span>
         </div>
         <button
           onClick={() => { setPhase("section"); setShowIntro(false); }}
-          className="bg-skin-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-skin-700 active:scale-95 transition-all shadow-md shadow-skin-200"
+          className="bg-butter text-deep-brown font-semibold px-8 py-3 rounded-xl hover:bg-butter/90 active:scale-95 transition-all shadow-sm"
         >
           Begin →
         </button>
@@ -1325,16 +1570,16 @@ export function QuestionnaireForm({
 
   if (phase === "submitting") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
+      <div className="h-[calc(100vh-5rem)] flex flex-col items-center justify-center gap-4 text-center overflow-hidden">
         <motion.span
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="text-4xl inline-block"
+          className="text-olive inline-block"
         >
-          ⟳
+          <Sparkles className="w-8 h-8" />
         </motion.span>
-        <p className="text-gray-600 font-medium">Saving your profile…</p>
-        <p className="text-gray-400 text-sm">Fetching live climate data for your city</p>
+        <p className="text-deep-brown font-medium">Saving your profile…</p>
+        <p className="text-deep-brown/50 text-sm">Fetching live climate data for your city</p>
       </div>
     );
   }
@@ -1346,14 +1591,16 @@ export function QuestionnaireForm({
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-6"
       >
-        <div className="text-6xl">🎉</div>
-        <h2 className="text-2xl font-bold text-gray-900">All done!</h2>
-        <p className="text-gray-500 text-sm max-w-sm leading-relaxed">
-          Your lifestyle profile is saved. Next up — let&apos;s scan your face!
+        <div className="w-16 h-16 rounded-full bg-butter/30 flex items-center justify-center text-olive mb-2">
+          <CheckCircle2 className="w-10 h-10" />
+        </div>
+        <h2 className="text-2xl font-bold text-deep-brown">All done!</h2>
+        <p className="text-deep-brown/60 text-sm max-w-sm leading-relaxed">
+          Your lifestyle profile is saved. Next up: let&apos;s scan your face!
         </p>
-        <div className="w-full max-w-xs h-2 bg-gray-100 rounded-full overflow-hidden mt-2">
+        <div className="w-full max-w-xs h-2 bg-deep-brown/10 rounded-full overflow-hidden mt-2">
           <motion.div
-            className="h-full bg-teal-500 rounded-full"
+            className="h-full bg-butter rounded-full"
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
             transition={{ duration: 1.5, ease: "easeOut" }}
@@ -1364,12 +1611,12 @@ export function QuestionnaireForm({
   }
 
   return (
-    <div className="min-h-screen bg-eggshell">
+    <div className="min-h-screen bg-cream">
       <ProgressBar current={currentSection} completed={completed} />
 
       <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-400 font-medium">Section {currentSection} of 8</span>
+          <span className="text-xs text-deep-brown/50 font-medium">Section {currentSection} of 8</span>
           <TimeEstimate section={currentSection} />
         </div>
 
@@ -1388,11 +1635,11 @@ export function QuestionnaireForm({
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.3 }}
             >
-              <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-                <span>{sectionConfig.icon}</span>
+              <h2 className="text-xl font-bold text-deep-brown mb-1 flex items-center gap-2">
+                <CurrentSectionIcon className="w-5 h-5 text-olive" />
                 {sectionConfig.title}
               </h2>
-              <p className="text-xs text-skin-500 mb-6 leading-relaxed">
+              <p className="text-xs text-olive mb-6 leading-relaxed">
                 {SECTION_WHY[currentSection]}
               </p>
 
@@ -1414,21 +1661,21 @@ export function QuestionnaireForm({
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-600"
+            className="mt-4 rounded-xl bg-deep-brown/10 border border-deep-brown/20 px-4 py-3 text-sm text-deep-brown flex items-center gap-2"
           >
-            ⚠️ {error}
+            <AlertCircle className="w-4 h-4 text-olive" /> {error}
           </motion.div>
         )}
       </div>
 
       {/* Sticky bottom nav */}
       {!showIntro && (
-        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-gray-100 px-4 py-3">
+        <div className="fixed bottom-0 inset-x-0 bg-cream/95 backdrop-blur border-t border-deep-brown/10 px-4 py-3">
           <div className="max-w-2xl mx-auto flex items-center gap-3">
             {currentSection > 1 && (
               <button
                 onClick={handleBack}
-                className="flex-shrink-0 text-gray-500 text-sm font-medium py-3 px-4 rounded-xl hover:bg-gray-100 transition-colors"
+                className="flex-shrink-0 text-deep-brown/70 text-sm font-medium py-3 px-4 rounded-xl hover:bg-deep-brown/5 transition-colors"
               >
                 ← Back
               </button>
@@ -1438,8 +1685,8 @@ export function QuestionnaireForm({
               disabled={!isComplete}
               className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${
                 isComplete
-                  ? "bg-skin-600 text-white hover:bg-skin-700 active:scale-95 shadow-md shadow-skin-200"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  ? "bg-butter text-deep-brown hover:bg-butter/90 active:scale-95 shadow-sm"
+                  : "bg-deep-brown/10 text-deep-brown/30 cursor-not-allowed"
               }`}
             >
               {currentSection === 8

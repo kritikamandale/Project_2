@@ -21,9 +21,9 @@ function QuestionnairePageInner() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <div className="h-full flex flex-col justify-center bg-cream text-deep-brown overflow-hidden">
       <QuestionnaireForm onComplete={handleComplete} />
-    </main>
+    </div>
   );
 }
 

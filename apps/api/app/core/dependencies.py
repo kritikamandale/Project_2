@@ -138,8 +138,10 @@ async def get_current_user(
 
     from app.models.user import User
 
+    from sqlalchemy.orm import selectinload
+
     result = await db.execute(
-        select(User).where(
+        select(User).options(selectinload(User.profile)).where(
             User.id == user_id,
             User.is_active.is_(True),
             User.deleted_at.is_(None),

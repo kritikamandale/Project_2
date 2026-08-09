@@ -1,36 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Manrope, Sora } from "next/font/google";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { Providers } from "@/components/shared/providers";
 import { Toaster } from "@/components/shared/toaster";
 import "./globals.css";
 
-// Hero headings, subheadings, and large AI-score numbers (font-heading /
-// font-display / font-number all resolve to this family — see tailwind.config.ts).
-const spaceGrotesk = Space_Grotesk({
+const cormorantGaramond = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["500", "700"],
-  variable: "--font-space-grotesk",
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
-// Body copy — the default reading text everywhere (paragraphs, descriptions,
-// form labels, questionnaire copy, product card text).
 const manrope = Manrope({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-manrope",
   display: "swap",
 });
 
-// Buttons — all CTAs, form submits, and nav actions app-wide.
-const sora = Sora({
-  subsets: ["latin"],
-  weight: ["600"],
-  variable: "--font-sora",
-  display: "swap",
-});
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3100";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -50,22 +39,28 @@ export const metadata: Metadata = {
     siteName: "Skinest",
     url: "/",
   },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: ["/favicon.ico"],
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f1de" }, // eggshell
-    { media: "(prefers-color-scheme: dark)", color: "#3d405b" },  // twilight-indigo
+    { media: "(prefers-color-scheme: light)", color: "#F5EFD9" },
+    { media: "(prefers-color-scheme: dark)", color: "#5C6040" },
   ],
 };
 
-// Organization + WebSite structured data — deliberately NOT schema.org
-// MedicalWebPage/MedicalOrganization. Those types assert clinical authority,
-// which conflicts with this product's own disclaimer that it is not a
-// substitute for professional medical advice; Organization/WebSite describes
-// what this actually is without overclaiming.
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -91,7 +86,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${spaceGrotesk.variable} ${manrope.variable} ${sora.variable} font-sans antialiased`}>
+      <body className={`${cormorantGaramond.variable} ${manrope.variable} font-sans antialiased bg-[#F5EFD9] text-[#28261E]`}>
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger

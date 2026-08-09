@@ -2,6 +2,17 @@
 
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import type { ConditionProgressItem } from "@/lib/api/progress";
+import {
+  Circle,
+  Sun,
+  Sparkle,
+  Droplet,
+  Shield,
+  CircleDot,
+  Activity,
+  Layers,
+  Sparkles
+} from "lucide-react";
 
 interface Props {
   conditions: ConditionProgressItem[];
@@ -14,35 +25,39 @@ const SEVERITY_LABEL: Record<number, string> = {
   3: "Severe",
 };
 
-const CONDITION_ICONS: Record<string, string> = {
-  acne: "🔴",
-  dark_spots: "🟤",
-  pigmentation: "🟠",
-  wrinkles: "〰️",
-  dryness: "💧",
-  redness: "🟥",
-  pores: "🔵",
-  texture: "🌀",
-  uneven_tone: "🎨",
-};
+function renderConditionIcon(condition: string) {
+  const props = { className: "w-4 h-4 text-olive" };
+  switch (condition) {
+    case "acne": return <Circle {...props} />;
+    case "dark_spots": return <Sun {...props} />;
+    case "pigmentation": return <Sun {...props} />;
+    case "wrinkles": return <Activity {...props} />;
+    case "dryness": return <Droplet {...props} />;
+    case "redness": return <Shield {...props} />;
+    case "pores": return <CircleDot {...props} />;
+    case "texture": return <Sparkle {...props} />;
+    case "uneven_tone": return <Layers {...props} />;
+    default: return <Sparkles {...props} />;
+  }
+}
 
 function statusColors(status: ConditionProgressItem["status"]) {
   if (status === "improved")
     return {
-      badge: "bg-teal-100 text-teal-700",
-      border: "border-teal-200",
-      line: "#6e9783",
+      badge: "bg-olive/10 text-olive",
+      border: "border-olive/20",
+      line: "#5C6040",
     };
   if (status === "worsened")
     return {
-      badge: "bg-rose-100 text-rose-700",
-      border: "border-rose-200",
-      line: "#f43f5e",
+      badge: "bg-deep-brown/10 text-deep-brown",
+      border: "border-deep-brown/20",
+      line: "#28261E",
     };
   return {
-    badge: "bg-zinc-100 text-zinc-500",
-    border: "border-zinc-200",
-    line: "#9ea0ad",
+    badge: "bg-cream text-deep-brown/60",
+    border: "border-deep-brown/10",
+    line: "#D6B59A",
   };
 }
 
@@ -69,17 +84,16 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
 
 function ConditionCard({ item }: { item: ConditionProgressItem }) {
   const colors = statusColors(item.status);
-  const icon = CONDITION_ICONS[item.condition] ?? "✨";
   const baseSev = item.baseline_severity != null ? SEVERITY_LABEL[Math.round(item.baseline_severity)] ?? "—" : "—";
   const latSev = item.latest_severity != null ? SEVERITY_LABEL[Math.round(item.latest_severity)] ?? "—" : "—";
   const name = item.condition.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
-    <div className={`rounded-xl border ${colors.border} bg-white p-4 flex flex-col gap-3 shadow-sm`}>
+    <div className={`rounded-xl border ${colors.border} bg-cream p-4 flex flex-col gap-3 shadow-sm`}>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg" aria-hidden="true">{icon}</span>
-          <span className="font-semibold text-zinc-800 text-sm">{name}</span>
+          {renderConditionIcon(item.condition)}
+          <span className="font-semibold text-deep-brown text-sm">{name}</span>
         </div>
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${colors.badge}`}>
           {item.status}

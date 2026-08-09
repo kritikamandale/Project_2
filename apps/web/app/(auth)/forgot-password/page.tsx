@@ -2,10 +2,13 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { SkinestLogo } from "@/components/shared/skinest-logo";
+import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
+import { LockKeyhole, MailCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -42,32 +45,29 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-skin-50 via-white to-skin-100/40 p-4">
+    <AuthSplitLayout>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
+        className="w-full relative z-10"
       >
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shadow-sm">
-              <span className="text-white text-sm font-bold">S</span>
-            </div>
-            <span className="font-heading font-bold text-xl text-skin-800">Skinest</span>
-          </Link>
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-skin-400 to-skin-600 mb-3 shadow-lg">
-            <span className="text-xl">🔐</span>
+        <div className="text-center mb-6">
+          <div className="mb-4 flex justify-center">
+            <SkinestLogo href="/" size="md" />
           </div>
-          <h1 className="text-2xl font-bold font-heading text-gray-900">
-            Forgot your password?
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-olive text-butter border border-deep-brown/10 mb-3 shadow-sm">
+            <LockKeyhole className="w-6 h-6" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold font-serif text-deep-brown">
+            Forgot Your Password?
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Enter your email and we&apos;ll send you a reset link
+          <p className="text-xs font-sans uppercase tracking-widest text-deep-brown/70 mt-1">
+            Enter your email to receive a reset link
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-skin-100 p-8">
+        <div className="bg-cream border border-deep-brown/15 rounded-xl p-6 sm:p-8 shadow-sm">
           <AnimatePresence mode="wait">
             {!submitted ? (
               <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
                     <Button
                       type="submit"
                       disabled={isPending}
-                      className="w-full bg-skin-500 hover:bg-skin-600 text-white"
+                      className="w-full bg-butter hover:bg-butter/90 text-deep-brown font-sans font-bold border border-deep-brown/10 shadow-sm rounded-xl py-3"
                     >
                       {isPending ? "Sending…" : "Send reset link"}
                     </Button>
@@ -100,22 +100,24 @@ export default function ForgotPasswordPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-4 space-y-4"
               >
-                <div className="text-5xl">📬</div>
-                <h3 className="font-semibold text-gray-900 text-lg">
+                <div className="w-12 h-12 rounded-full bg-butter/40 text-deep-brown flex items-center justify-center mx-auto mb-2 border border-deep-brown/10">
+                  <MailCheck className="w-6 h-6 text-olive" />
+                </div>
+                <h3 className="font-serif font-bold text-deep-brown text-xl">
                   Check your inbox
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-deep-brown/80 font-sans">
                   If an account exists for{" "}
                   <strong>{form.getValues("email")}</strong>, a password reset
                   link has been sent. It expires in{" "}
                   <strong>15 minutes</strong>.
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-deep-brown/60 font-sans">
                   Didn&apos;t receive it? Check your spam folder or{" "}
                   <button
                     type="button"
                     onClick={() => setSubmitted(false)}
-                    className="text-skin-600 hover:underline"
+                    className="text-olive font-bold hover:underline"
                   >
                     try again
                   </button>
@@ -125,13 +127,13 @@ export default function ForgotPasswordPage() {
             )}
           </AnimatePresence>
 
-          <div className="text-center mt-4 pt-4 border-t border-skin-100">
-            <Link href="/login" className="text-sm text-skin-600 hover:underline">
+          <div className="text-center mt-4 pt-4 border-t border-deep-brown/10">
+            <Link href="/login" className="text-xs text-olive font-bold hover:underline">
               ← Back to sign in
             </Link>
           </div>
         </div>
       </motion.div>
-    </div>
+    </AuthSplitLayout>
   );
 }

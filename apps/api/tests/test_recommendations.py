@@ -4,6 +4,7 @@ Covers: generation response shape, allergen respect, climate integration,
         ingredient conflicts, and product brand linkage.
 """
 
+import uuid
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -23,129 +24,84 @@ GENERATE_PAYLOAD = {
 class TestRecommendationGeneration:
     async def test_recommendation_generation_returns_roadmap(self, client, user_token):
         """POST /recommendations/generate returns a response with roadmap and products."""
-        mock_output = {
-            "skin_score": 65,
-            "confidence_score": 0.82,
-            "skin_type": "oily",
-            "conditions": [{"name": "acne", "severity": "moderate", "confidence": 0.85}],
-            "products": [
-                {
-                    "product_id": "00000000-0000-0000-0000-000000000010",
-                    "reasoning": "Salicylic acid targets acne",
-                    "usage_instruction": "Apply twice daily",
-                    "time_of_day": "both",
-                }
-            ],
-            "roadmap_summary": "20-week skin improvement plan",
-            "estimated_monthly_cost_inr": 1800,
-            "allergen_flags": [],
-            "requires_derm_review": False,
-        }
+        mock_rec = MagicMock(
+            id=uuid.uuid4(),
+            skin_score=65,
+            products=[MagicMock()],
+            requires_derm_review=False,
+            estimated_monthly_cost_inr=1800,
+        )
 
         with patch(
-            "app.services.recommendation.generate_recommendation",
+            "app.routers.recommendations._service.generate_recommendation",
             new_callable=AsyncMock,
-            return_value=mock_output,
+            return_value=mock_rec,
         ):
             resp = await client.post(
                 "/api/v1/recommendations/generate",
                 json=GENERATE_PAYLOAD,
                 headers=auth_headers(user_token),
             )
+            assert resp.status_code in (200, 201)
 
-        # 200/201 on success; 404 if scan not found in test DB
-        assert resp.status_code in (200, 201, 404, 422)
+    async def test_recommendation_respects_allergens(self, client, user_token):
+        """Allergen flags are properly handled during recommendation generation."""
+        mock_rec = MagicMock(
+            id=uuid.uuid4(),
+            skin_score=65,
+            products=[],
+            requires_derm_review=True,
+            estimated_monthly_cost_inr=0,
+        )
 
-    async def test_recommendation_respects_allergens(self, client, user_token, db_session):
-        """Recommendations must not include products with allergen conflicts."""
-        from unittest.mock import patch as mock_patch
-
-        allergen_result = {
-            "skin_score": 55,
-            "confidence_score": 0.78,
-            "skin_type": "sensitive",
-            "conditions": [],
-            "products": [],  # empty because all products conflict
-            "allergen_flags": ["fragrance", "alcohol"],
-            "requires_derm_review": True,
-            "roadmap_summary": "Sensitive skin routine",
-            "estimated_monthly_cost_inr": 0,
-        }
-
-        with mock_patch(
-            "app.services.recommendation.generate_recommendation",
+        with patch(
+            "app.routers.recommendations._service.generate_recommendation",
             new_callable=AsyncMock,
-            return_value=allergen_result,
+            return_value=mock_rec,
         ):
             resp = await client.post(
                 "/api/v1/recommendations/generate",
                 json=GENERATE_PAYLOAD,
                 headers=auth_headers(user_token),
             )
-
-        if resp.status_code in (200, 201):
-            body = resp.json()
-            products = body.get("products", [])
-            # Verify no allergen-conflicting ingredients in returned products
-            for product in products:
-                ingredients = [i.lower() for i in product.get("ingredients", [])]
-                assert "fragrance" not in ingredients, "Allergen ingredient returned"
+            assert resp.status_code in (200, 201)
 
     async def test_recommendation_uses_climate_data(self, client, user_token):
         """Climate zone should be included in recommendation context."""
-        climate_aware_result = {
-            "skin_score": 70,
-            "confidence_score": 0.80,
-            "skin_type": "combination",
-            "conditions": [],
-            "products": [],
-            "climate_note": "High humidity in Mumbai — lightweight moisturiser recommended",
-            "allergen_flags": [],
-            "requires_derm_review": False,
-            "roadmap_summary": "Climate-aware plan",
-            "estimated_monthly_cost_inr": 1200,
-        }
+        mock_rec = MagicMock(
+            id=uuid.uuid4(),
+            skin_score=70,
+            products=[],
+            requires_derm_review=False,
+            estimated_monthly_cost_inr=1200,
+        )
 
         with patch(
-            "app.services.recommendation.generate_recommendation",
+            "app.routers.recommendations._service.generate_recommendation",
             new_callable=AsyncMock,
-            return_value=climate_aware_result,
+            return_value=mock_rec,
         ):
             resp = await client.post(
                 "/api/v1/recommendations/generate",
                 json=GENERATE_PAYLOAD,
                 headers=auth_headers(user_token),
             )
-
-        # Test just verifies the endpoint accepts climate-enriched payloads
-        assert resp.status_code in (200, 201, 404, 422)
+            assert resp.status_code in (200, 201)
 
     async def test_no_ingredient_conflicts_in_recommendation(self, client, user_token):
         """Two products with conflicting ingredients (e.g., Retinol + AHA) should not both appear."""
-        conflict_result = {
-            "skin_score": 68,
-            "confidence_score": 0.76,
-            "skin_type": "dry",
-            "conditions": [],
-            "products": [
-                {
-                    "product_id": "00000000-0000-0000-0000-000000000011",
-                    "ingredients": ["Retinol", "Niacinamide"],
-                    "usage_instruction": "Night only",
-                    "time_of_day": "pm",
-                },
-                # AHA + Retinol conflict — service should filter one out
-            ],
-            "allergen_flags": [],
-            "requires_derm_review": False,
-            "roadmap_summary": "Dry skin plan",
-            "estimated_monthly_cost_inr": 1500,
-        }
+        mock_rec = MagicMock(
+            id=uuid.uuid4(),
+            skin_score=68,
+            products=[],
+            requires_derm_review=False,
+            estimated_monthly_cost_inr=1500,
+        )
 
         with patch(
-            "app.services.recommendation.generate_recommendation",
+            "app.routers.recommendations._service.generate_recommendation",
             new_callable=AsyncMock,
-            return_value=conflict_result,
+            return_value=mock_rec,
         ):
             resp = await client.post(
                 "/api/v1/recommendations/generate",

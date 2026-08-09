@@ -67,7 +67,7 @@ class ReviewQueue(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     assigned_to: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        nullable=True,
     )
     priority: Mapped[str] = mapped_column(ReviewPriorityEnum, default="normal", nullable=False)
     status: Mapped[str] = mapped_column(ReviewStatusEnum, default="pending", nullable=False, index=True)

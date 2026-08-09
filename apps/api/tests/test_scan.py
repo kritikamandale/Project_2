@@ -17,8 +17,15 @@ VALID_VECTOR_512 = np.random.uniform(-0.5, 0.5, 512).tolist()
 
 def _scan_payload(vector: list = None, fitzpatrick: str = "III") -> dict:
     return {
-        "feature_vector": vector or VALID_VECTOR_512,
+        "skin_type": "oily",
+        "skin_type_confidence": 0.9,
         "fitzpatrick_tone": fitzpatrick,
+        "lighting_quality_score": 0.85,
+        "feature_vector": vector if vector is not None else VALID_VECTOR_512,
+        "model_version": "v1.0",
+        "processed_locally": True,
+        "analysis_timestamp": "2026-08-09T00:00:00Z",
+        "conditions": [],
     }
 
 

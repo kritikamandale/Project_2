@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Clock, AlertTriangle, Info } from "lucide-react";
 import { progressApi } from "@/lib/api/progress";
 import type { ProgressSummaryResponse, ProductRating } from "@/lib/api/progress";
 import { ProgressTimeline } from "@/components/progress/progress-timeline";
@@ -9,10 +10,6 @@ import { ConditionCards } from "@/components/progress/condition-cards";
 import { AdherenceHeatmap } from "@/components/progress/adherence-heatmap";
 import { ProductFeedbackPanel } from "@/components/progress/product-feedback";
 import { RescanCTA } from "@/components/progress/rescan-cta";
-
-// ---------------------------------------------------------------------------
-// Confetti celebration (framer-motion particles)
-// ---------------------------------------------------------------------------
 
 function ConfettiParticle({ x, color, delay }: { x: number; color: string; delay: number }) {
   return (
@@ -26,9 +23,7 @@ function ConfettiParticle({ x, color, delay }: { x: number; color: string; delay
   );
 }
 
-// On-brand celebration confetti — burnt-peach, muted-teal, apricot-cream,
-// twilight-indigo and their shades (no colors outside the 5-color family).
-const CONFETTI_COLORS = ["#e07a5f", "#81b29a", "#f2cc8f", "#be6851", "#6e9783", "#3d405b"];
+const CONFETTI_COLORS = ["#5C6040", "#F4D84A", "#28261E", "#D6B59A"];
 
 function Confetti() {
   const particles = Array.from({ length: 40 }, (_, i) => ({
@@ -45,22 +40,14 @@ function Confetti() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Section wrapper
-// ---------------------------------------------------------------------------
-
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-bold text-zinc-800 border-b border-zinc-100 pb-2">{title}</h2>
+      <h2 className="font-serif text-2xl sm:text-3xl font-bold text-deep-brown border-b border-deep-brown/15 pb-2">{title}</h2>
       {children}
     </section>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Alert banner
-// ---------------------------------------------------------------------------
 
 function AlertBanner({ message, type }: { message: string; type: string }) {
   const isOverdue = type === "overdue_scan";
@@ -68,65 +55,62 @@ function AlertBanner({ message, type }: { message: string; type: string }) {
   return (
     <div
       className={[
-        "flex items-start gap-3 rounded-lg border px-4 py-3 text-sm",
+        "flex items-start gap-3 rounded-xl border px-4 py-3 text-xs font-sans shadow-xs backdrop-blur-sm",
         isOverdue
-          ? "border-rose-200 bg-rose-50 text-rose-700"
+          ? "border-deep-brown/20 bg-butter/30 text-deep-brown font-medium"
           : isWorsened
-          ? "border-cream-300 bg-cream-50 text-cream-800"
-          : "border-zinc-200 bg-zinc-50 text-zinc-700",
+          ? "border-deep-brown/20 bg-nude/40 text-deep-brown font-medium"
+          : "border-deep-brown/10 bg-cream text-deep-brown",
       ].join(" ")}
     >
-      <span className="mt-0.5 shrink-0">{isOverdue ? "⏰" : isWorsened ? "⚠️" : "ℹ️"}</span>
-      <p>{message}</p>
+      <span className="mt-0.5 shrink-0 text-olive">
+        {isOverdue ? <Clock className="w-4 h-4" /> : isWorsened ? <AlertTriangle className="w-4 h-4" /> : <Info className="w-4 h-4" />}
+      </span>
+      <p className="leading-relaxed">{message}</p>
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Skeleton loader
-// ---------------------------------------------------------------------------
-
 function SkeletonBlock({ h = "h-32" }: { h?: string }) {
-  return <div className={`${h} rounded-xl bg-zinc-100 animate-pulse`} />;
+  return <div className={`${h} rounded-xl bg-cream border border-deep-brown/10 animate-pulse`} />;
 }
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export default function ProgressPage() {
   const [summary, setSummary] = useState<ProgressSummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showCelebration, setShowCelebration] = useState(false);
   const [streak, setStreak] = useState(0);
-  const fetchedRef = useRef(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
-    progressApi
-      .getSummary()
-      .then((data) => {
-        setSummary(data);
-        setStreak(data.current_streak);
-      })
-      .catch(() => setError("Could not load your progress. Please try again later."))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    async function load() {
+      try {
+        const data = await progressApi.getSummary();
+        if (!cancelled) {
+          setSummary(data);
+          setStreak(data.current_streak);
+        }
+      } catch (err: any) {
+        if (!cancelled) setError(err.message || "Failed to load progress summary");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function handleProductRated(productId: string, rating: ProductRating) {
-    setSummary((prev) =>
-      prev
-        ? {
-            ...prev,
-            product_effectiveness: prev.product_effectiveness.map((p) =>
-              p.product_id === productId ? { ...p, user_rating: rating } : p
-            ),
-          }
-        : prev
-    );
+    if (!summary) return;
+    setSummary({
+      ...summary,
+      product_effectiveness: summary.product_effectiveness.map((p) =>
+        p.product_id === productId ? { ...p, rating } : p
+      ),
+    });
   }
 
   function handleCheckinComplete(newStreak: number) {
@@ -137,10 +121,9 @@ export default function ProgressPage() {
     }
   }
 
-  // Loading state
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 bg-cream min-h-screen">
         <SkeletonBlock h="h-10" />
         <SkeletonBlock h="h-64" />
         <SkeletonBlock h="h-48" />
@@ -149,22 +132,20 @@ export default function ProgressPage() {
     );
   }
 
-  // Error state
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center">
-          <p className="text-rose-700 font-medium">{error}</p>
+      <div className="max-w-4xl mx-auto px-4 py-8 bg-cream min-h-screen">
+        <div className="rounded-xl border border-deep-brown/15 bg-cream p-6 text-center shadow-sm">
+          <p className="text-deep-brown font-bold font-sans text-sm">{error}</p>
         </div>
       </div>
     );
   }
 
-  // Empty state — no scans yet
   if (!summary || summary.timeline.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        <h1 className="text-2xl font-bold text-zinc-900">My Skin Journey</h1>
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 bg-cream min-h-screen font-sans">
+        <h1 className="font-serif text-3xl sm:text-4xl font-bold text-deep-brown">My Skin Journey</h1>
         <RescanCTA lastScanDate={null} daysUntilRescan={null} isOverdue={false} />
       </div>
     );
@@ -182,102 +163,67 @@ export default function ProgressPage() {
     days_until_rescan,
     is_rescan_overdue,
     alerts,
-    unread_notification_count,
   } = summary;
 
-  const improvementLabel =
-    total_improvement != null && total_improvement !== 0
-      ? `${total_improvement > 0 ? "+" : ""}${total_improvement.toFixed(1)} points in ${
-          timeline.length > 1
-            ? `${Math.round(
-                (new Date(timeline[timeline.length - 1].scanned_at).getTime() -
-                  new Date(timeline[0].scanned_at).getTime()) /
-                  (1000 * 60 * 60 * 24)
-              )} days`
-            : "your journey"
-        }`
-      : null;
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-      {/* Celebration overlay */}
-      <AnimatePresence>{showCelebration && <Confetti />}</AnimatePresence>
+    <div className="min-h-screen bg-cream text-deep-brown p-4 sm:p-6 lg:p-8 font-sans">
+      {showCelebration && <Confetti />}
 
-      {/* Page header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900">My Skin Journey</h1>
-          {improvementLabel && (
-            <motion.p
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-1 text-teal-600 font-semibold text-lg"
-            >
-              {improvementLabel}
-            </motion.p>
-          )}
+      <div className="max-w-4xl mx-auto space-y-10">
+        {/* Header */}
+        <div className="border-b border-deep-brown/10 pb-4">
+          <span className="font-sans text-xs font-bold uppercase tracking-widest text-olive">Analytics</span>
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-deep-brown mt-1">My Skin Journey</h1>
         </div>
-        {unread_notification_count > 0 && (
-          <div className="relative">
-            <button className="p-2 rounded-full bg-zinc-100 hover:bg-zinc-200 transition-colors">
-              <span className="text-lg">🔔</span>
-            </button>
-            <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold">
-              {unread_notification_count}
-            </span>
+
+        {/* Alerts */}
+        {alerts && alerts.length > 0 && (
+          <div className="space-y-2">
+            {alerts.map((a, i) => (
+              <AlertBanner key={i} message={a.message} type={a.type} />
+            ))}
           </div>
         )}
+
+        {/* Section 1: Progress timeline */}
+        <Section title="Skin Score Trend">
+          <ProgressTimeline
+            points={timeline}
+            baselineScore={baseline_score}
+            latestScore={latest_score}
+            totalImprovement={total_improvement}
+            improvementPct={improvement_pct_toward_healthy}
+          />
+        </Section>
+
+        {/* Section 2: Conditions breakdown */}
+        {conditions && conditions.length > 0 && (
+          <Section title="Conditions Breakdown">
+            <ConditionCards conditions={conditions} />
+          </Section>
+        )}
+
+        {/* Section 3: Adherence Heatmap */}
+        <Section title="Routine Adherence">
+          <AdherenceHeatmap initialStreak={streak} onCheckinComplete={handleCheckinComplete} />
+        </Section>
+
+        {/* Section 4: Product effectiveness feedback */}
+        {product_effectiveness && product_effectiveness.length > 0 && (
+          <Section title="Product Effectiveness">
+            <ProductFeedbackPanel products={product_effectiveness} onRated={handleProductRated} />
+          </Section>
+        )}
+
+        {/* Section 5: Rescan CTA */}
+        <Section title="Next Scan">
+          <RescanCTA
+            lastScanDate={last_scan_date}
+            daysUntilRescan={days_until_rescan}
+            isOverdue={is_rescan_overdue}
+          />
+        </Section>
       </div>
-
-      {/* Alerts */}
-      {alerts.length > 0 && (
-        <div className="space-y-2">
-          {alerts.map((a, i) => (
-            <AlertBanner key={i} message={a.message} type={a.type} />
-          ))}
-        </div>
-      )}
-
-      {/* Section 1: Skin Score Timeline */}
-      <Section title="Overall Skin Journey">
-        <ProgressTimeline
-          points={timeline}
-          baselineScore={baseline_score}
-          latestScore={latest_score}
-          totalImprovement={total_improvement}
-          improvementPct={improvement_pct_toward_healthy}
-        />
-      </Section>
-
-      {/* Section 2: Condition-by-Condition Progress */}
-      <Section title="Condition-by-Condition Progress">
-        <ConditionCards conditions={conditions} />
-      </Section>
-
-      {/* Section 3: Routine Adherence */}
-      <Section title="Routine Adherence">
-        <AdherenceHeatmap
-          initialStreak={streak}
-          onCheckinComplete={handleCheckinComplete}
-        />
-      </Section>
-
-      {/* Section 4: Product Effectiveness */}
-      <Section title="Product Effectiveness">
-        <ProductFeedbackPanel
-          products={product_effectiveness}
-          onRated={handleProductRated}
-        />
-      </Section>
-
-      {/* Section 5: Next Re-Scan CTA */}
-      <Section title="Next Re-Scan">
-        <RescanCTA
-          lastScanDate={last_scan_date}
-          daysUntilRescan={days_until_rescan}
-          isOverdue={is_rescan_overdue}
-        />
-      </Section>
     </div>
   );
 }

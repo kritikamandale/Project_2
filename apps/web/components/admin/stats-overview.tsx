@@ -1,8 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Users, Camera, Stethoscope, CheckCircle } from "lucide-react";
 import { adminApi } from "@/lib/api/admin";
 import type { AnalyticsOverview } from "@/lib/api/admin";
+
+type IconName = "users" | "camera" | "stethoscope" | "check";
+const ICON_MAP: Record<IconName, React.ElementType> = {
+  users: Users,
+  camera: Camera,
+  stethoscope: Stethoscope,
+  check: CheckCircle,
+};
 
 function KpiCard({
   label,
@@ -13,13 +22,14 @@ function KpiCard({
   label: string;
   value: string;
   sub?: string;
-  icon: string;
+  icon: IconName;
 }) {
+  const Icon = ICON_MAP[icon];
   return (
     <div className="glass-card rounded-2xl p-5">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center text-lg shrink-0 shadow-lg">
-          {icon}
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-skin-400 to-skin-600 flex items-center justify-center shrink-0 shadow-lg text-white">
+          <Icon className="w-5 h-5" />
         </div>
         <div className="min-w-0">
           <p className="text-xs text-zinc-400 font-medium tracking-wide uppercase">{label}</p>
@@ -67,25 +77,25 @@ export function StatsOverview() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <KpiCard
-        icon="👥"
+        icon="users"
         label="Total Users"
         value={data.total_users.toLocaleString()}
         sub={`${growthSign}${data.users_mom_growth_pct.toFixed(1)}% MoM`}
       />
       <KpiCard
-        icon="📸"
+        icon="camera"
         label="Scans Today"
         value={data.scans_today.toLocaleString()}
         sub={`${data.scans_this_week} this week`}
       />
       <KpiCard
-        icon="🩺"
+        icon="stethoscope"
         label="Derm Queue"
         value={data.pending_derm_reviews.toLocaleString()}
         sub="pending review"
       />
       <KpiCard
-        icon="✅"
+        icon="check"
         label="Recommendation Acceptance"
         value={`${data.recommendation_acceptance_rate.toFixed(1)}%`}
         sub={`${data.active_products.toLocaleString()} active products`}

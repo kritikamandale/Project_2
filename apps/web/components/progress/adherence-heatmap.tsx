@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { progressApi } from "@/lib/api/progress";
 import type { HeatmapDay, AdherenceLevel } from "@/lib/api/progress";
 
+import { Flame } from "lucide-react";
+
 interface Props {
   /** Seed data from summary (7 days). Component fetches full 90-day data itself. */
   initialStreak?: number;
@@ -141,7 +143,7 @@ export function AdherenceHeatmap({ initialStreak = 0, onCheckinComplete }: Props
             <span className="font-bold text-skin-500">
               {streak} day{streak !== 1 ? "s" : ""} in a row
             </span>
-            {streak >= 7 && " 🔥"}
+            {streak >= 7 && <Flame className="inline-block w-4 h-4 ml-1 text-butter" />}
           </p>
         )}
       </div>

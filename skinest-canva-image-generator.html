@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skinest — Maximalist Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#DEC49B;
+    --paper-2:#FBF5EA;
+    --ink:#241C12;
+    --pink:#EB86B2;
+    --pink-deep:#D65D93;
+    --pink-pale:#F6D9E7;
+    --green:#7C8A47;
+    --green-2:#A9B564;
+    --gold:#E7A23A;
+    --line: rgba(36,28,18,0.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+  ::selection{ background:var(--pink-deep); color:var(--paper-2); }
+
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image: radial-gradient(rgba(36,28,18,0.05) 1px, transparent 1px);
+    background-size: 4px 4px;
+    pointer-events:none; z-index:1;
+  }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 28px; position:relative; }
+
+  .edge-tab{
+    position:fixed; top:50%; transform:translateY(-50%);
+    writing-mode:vertical-rl; font-family:'IBM Plex Mono', monospace;
+    font-size:12px; letter-spacing:.28em; font-weight:600; color:var(--green);
+    z-index:40; padding:10px 6px; text-transform:uppercase; mix-blend-mode:multiply;
+  }
+  .edge-tab.left{ left:0; }
+  .edge-tab.right{ right:0; transform:translateY(-50%) rotate(180deg); }
+  @media (max-width:820px){ .edge-tab{ display:none; } }
+
+  nav{ position:relative; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:22px 0; }
+  .logo{ font-family:'Fraunces', serif; font-weight:700; font-size:22px; display:flex; align-items:center; gap:8px; }
+  .logo .dot{ width:10px; height:10px; border-radius:50%; background:var(--pink-deep); display:inline-block; }
+  .nav-links{ display:flex; gap:26px; font-size:14px; font-weight:500; }
+  .nav-links a{ color:var(--ink); text-decoration:none; opacity:.75; }
+  .nav-cta{ font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:600; background:var(--ink); color:var(--paper-2); padding:10px 18px; border-radius:30px; text-decoration:none; letter-spacing:.03em; }
+  @media (max-width:720px){ .nav-links{ display:none; } }
+
+  /* ================= FULL-BLEED HERO ================= */
+  .hero-full{
+    position:relative; z-index:5; margin:16px 0 70px;
+    border-radius:34px; overflow:hidden;
+    min-height:680px; display:flex; align-items:flex-end;
+    box-shadow:0 20px 50px rgba(36,28,18,0.25);
+  }
+  .hero-media{ position:absolute; inset:0; z-index:0; }
+  .hero-media svg{ width:100%; height:100%; display:block; }
+
+  .hero-stickers{ position:absolute; inset:0; z-index:2; pointer-events:none; }
+  .hs{ position:absolute; }
+  .hs svg{ display:block; filter:drop-shadow(0 4px 10px rgba(36,28,18,0.2)); }
+
+  .seal{
+    position:absolute; top:38px; right:38px; z-index:3;
+    width:118px; height:118px; border-radius:50%; background:var(--gold); color:var(--ink);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:600;
+    box-shadow:0 10px 24px rgba(36,28,18,0.3);
+    animation:spin-slow 16s linear infinite;
+  }
+  .seal span{ display:block; font-family:'Fraunces'; font-size:24px; font-weight:700; }
+  @keyframes spin-slow{ from{ transform:rotate(0);} to{ transform:rotate(360deg);} }
+
+  .badge-analysis{
+    position:absolute; left:38px; top:38px; z-index:3;
+    background:var(--ink); color:var(--paper-2); border-radius:16px; padding:14px 18px; width:180px;
+    font-family:'IBM Plex Mono', monospace; font-size:11px; line-height:1.8; transform:rotate(-3deg);
+    box-shadow:6px 6px 0 var(--pink);
+  }
+  .badge-analysis b{ font-family:'Space Grotesk'; font-size:13px; display:block; margin-bottom:4px; }
+
+  .scan-sweep{
+    position:absolute; left:0; right:0; height:2px; background:var(--paper-2);
+    box-shadow:0 0 16px 3px rgba(251,245,234,0.9); z-index:2; opacity:.85;
+    animation:scan 4s ease-in-out infinite;
+  }
+  @keyframes scan{ 0%,100%{ top:10%; } 50%{ top:82%; } }
+
+  .hero-copy{
+    position:relative; z-index:4; width:100%;
+    padding:54px 44px 46px;
+    background:linear-gradient(0deg, rgba(36,28,18,0.82) 0%, rgba(36,28,18,0.55) 45%, rgba(36,28,18,0) 100%);
+    color:var(--paper-2);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--pink-pale); font-weight:600; display:inline-flex; align-items:center; gap:8px; margin-bottom:16px;
+  }
+  .eyebrow::before{ content:"●"; color:var(--gold); }
+
+  h1.headline{
+    font-family:'Fraunces', serif; font-weight:400; font-size:clamp(40px,6.4vw,84px);
+    line-height:1.0; margin:0 0 20px; letter-spacing:-0.01em; max-width:14ch;
+  }
+  h1.headline em{ font-style:italic; font-weight:300; color:var(--pink-pale); }
+
+  .sub{ font-size:17px; line-height:1.6; max-width:44ch; opacity:.92; margin-bottom:26px; font-family:'Fraunces'; font-weight:300; font-style:italic; }
+
+  .hero-ctas{ display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+  .btn-primary{
+    background:var(--pink-deep); color:var(--paper-2); border:none;
+    font-family:'Space Grotesk'; font-weight:600; font-size:15px;
+    padding:16px 26px; border-radius:40px; cursor:pointer; text-decoration:none;
+    display:inline-flex; align-items:center; gap:8px;
+    box-shadow:5px 5px 0 var(--gold);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary:hover{ transform:translate(-3px,-3px); box-shadow:8px 8px 0 var(--gold); }
+  .btn-ghost{
+    font-family:'Space Grotesk'; font-weight:600; font-size:15px; color:var(--paper-2);
+    text-decoration:none; border-bottom:2px solid var(--paper-2); padding-bottom:2px;
+  }
+
+  @media (max-width:720px){
+    .hero-full{ min-height:560px; border-radius:24px; }
+    .hero-copy{ padding:36px 24px 32px; }
+    .seal{ width:90px; height:90px; top:20px; right:20px; font-size:9px; }
+    .seal span{ font-size:18px; }
+    .badge-analysis{ display:none; }
+  }
+
+  /* ================= stat strip ================= */
+  .stat-strip{
+    position:relative; z-index:5; background:var(--ink); color:var(--paper-2);
+    padding:16px 0; overflow:hidden; transform:rotate(-1.2deg); margin:60px -4px 70px;
+    box-shadow:0 10px 0 var(--pink);
+  }
+  .marquee{ display:flex; gap:60px; white-space:nowrap; animation:scroll 26s linear infinite; width:max-content; }
+  .marquee span{ font-family:'IBM Plex Mono', monospace; font-size:14px; letter-spacing:.05em; display:flex; align-items:center; gap:10px; }
+  .marquee b{ font-family:'Fraunces'; font-size:20px; color:var(--gold); }
+  @keyframes scroll{ from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
+
+  .section{ position:relative; z-index:5; padding:20px 0 90px; }
+  .kicker{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--green); font-weight:600; margin-bottom:10px; }
+  h2.sec-title{ font-family:'Fraunces', serif; font-weight:600; font-size:clamp(28px,4vw,44px); margin:0 0 40px; max-width:16ch; line-height:1.05; }
+  h2.sec-title em{ color:var(--pink-deep); font-style:italic; font-weight:400; }
+
+  .concern-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  @media (max-width:820px){ .concern-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:520px){ .concern-grid{ grid-template-columns:1fr; } }
+  .concern{
+    background:var(--paper-2); padding:24px; position:relative;
+    clip-path:polygon(0% 3%,4% 0%,96% 1%,100% 4%,99% 97%,95% 100%,3% 99%,1% 95%);
+    box-shadow:0 8px 18px rgba(36,28,18,0.12); transition:transform .2s ease;
+  }
+  .concern:hover{ transform:translateY(-6px) rotate(-1deg); }
+  .concern:nth-child(2n){ transform:rotate(1.4deg); }
+  .concern:nth-child(2n):hover{ transform:translateY(-6px) rotate(0.4deg); }
+  .concern:nth-child(3n){ transform:rotate(-1.6deg); }
+  .concern-icon{ width:52px; height:52px; margin-bottom:16px; }
+  .concern h3{ font-family:'Fraunces'; font-size:20px; margin:0 0 8px; font-weight:600; }
+  .concern p{ font-size:13.5px; opacity:.75; margin:0 0 14px; line-height:1.5; }
+  .severity{ display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:600; }
+  .severity .bar{ flex:1; height:6px; border-radius:4px; background:var(--paper); overflow:hidden; }
+  .severity .bar i{ display:block; height:100%; border-radius:4px; }
+
+  .shelf{ position:relative; margin-top:10px; }
+  .shelf-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:26px; position:relative; z-index:2; }
+  @media (max-width:900px){ .shelf-row{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:520px){ .shelf-row{ grid-template-columns:1fr; } }
+  .shelf-line{ position:absolute; left:0; right:0; bottom:-18px; height:14px; background:var(--ink); z-index:1; border-radius:4px; box-shadow:0 8px 0 rgba(36,28,18,0.15); }
+  .jar{ text-align:center; padding-bottom:34px; position:relative; }
+  .jar-visual{ width:88px; height:110px; margin:0 auto 18px; position:relative; background:var(--paper-2); border-radius:14px 14px 20px 20px; border:2.5px solid var(--ink); }
+  .jar-visual::before{ content:""; position:absolute; top:-14px; left:50%; transform:translateX(-50%); width:40px; height:16px; background:var(--ink); border-radius:6px 6px 0 0; }
+  .jar-num{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Fraunces'; font-weight:700; font-size:30px; color:var(--pink-deep); }
+  .jar h4{ font-family:'Fraunces'; font-size:17px; font-weight:600; margin:0 0 6px; }
+  .jar p{ font-size:12.5px; opacity:.7; max-width:22ch; margin:0 auto; line-height:1.5; }
+  .jar:nth-child(1) .jar-visual{ background:var(--pink-pale); }
+  .jar:nth-child(2) .jar-visual{ background:#F1D9A8; }
+  .jar:nth-child(3) .jar-visual{ background:#C9DAC0; }
+  .jar:nth-child(4) .jar-visual{ background:var(--green-2); }
+
+  .feat-grid{ display:grid; grid-template-columns:repeat(4, 1fr); grid-auto-rows:120px; gap:18px; }
+  @media (max-width:900px){ .feat-grid{ grid-template-columns:repeat(2,1fr); grid-auto-rows:130px; } }
+  @media (max-width:520px){ .feat-grid{ grid-template-columns:1fr; grid-auto-rows:auto; } }
+  .feat{ border-radius:20px; padding:20px; display:flex; flex-direction:column; justify-content:space-between; position:relative; overflow:hidden; }
+  .feat h5{ font-family:'Fraunces'; font-size:16px; margin:0; font-weight:600; }
+  .feat p{ font-size:12px; margin:0; opacity:.8; line-height:1.45; }
+  .feat .tag{ font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.1em; opacity:.6; }
+  .f1{ grid-column:span 2; grid-row:span 2; background:var(--ink); color:var(--paper-2); }
+  .f1 p{ opacity:.75; }
+  .f2{ grid-column:span 2; background:var(--pink-deep); color:var(--paper-2); }
+  .f3{ background:var(--paper-2); border:2px solid var(--line); }
+  .f4{ background:var(--gold); }
+  .f5{ background:var(--pink-pale); }
+  .f6{ background:var(--green); color:var(--paper-2); }
+  .f7{ background:#C9DAC0; }
+  .f8{ grid-column:span 2; background:var(--paper-2); border:2px solid var(--line); }
+
+  /* ================= why we built this: problem cards ================= */
+  .problem-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+  @media (max-width:720px){ .problem-grid{ grid-template-columns:1fr; } }
+  .problem-card{
+    background:var(--paper-2); border-radius:18px; padding:22px;
+    box-shadow:0 6px 16px rgba(36,28,18,0.1); display:flex; gap:14px; align-items:flex-start;
+  }
+  .problem-card:nth-child(2n){ transform:rotate(0.8deg); }
+  .problem-card:nth-child(2n+1){ transform:rotate(-0.8deg); }
+  .problem-icon{
+    width:42px; height:42px; border-radius:12px; background:var(--pink-pale);
+    display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;
+  }
+  .problem-card h4{ font-family:'Fraunces'; font-size:15.5px; margin:0 0 6px; font-weight:600; }
+  .problem-card p{ font-size:12.5px; line-height:1.55; opacity:.75; margin:0; }
+
+  /* ================= FAQ accordion ================= */
+  .faq-list{ display:flex; flex-direction:column; gap:14px; max-width:820px; }
+  .faq-item{ background:var(--paper-2); border-radius:16px; padding:4px 24px; box-shadow:0 6px 14px rgba(36,28,18,0.1); }
+  .faq-item summary{
+    cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center;
+    gap:16px; padding:18px 0; font-family:'Space Grotesk'; font-weight:600; font-size:15px;
+  }
+  .faq-item summary::-webkit-details-marker{ display:none; }
+  .faq-item summary::after{
+    content:"+"; font-family:'Fraunces'; font-size:22px; color:var(--pink-deep);
+    transition:transform .2s ease; flex-shrink:0;
+  }
+  .faq-item[open] summary::after{ transform:rotate(45deg); }
+  .faq-item p{ margin:0 0 18px; font-size:13.5px; line-height:1.65; opacity:.8; max-width:70ch; }
+
+  .notes{ display:flex; gap:22px; overflow-x:auto; padding:10px 4px 30px; scrollbar-width:none; }
+  .notes::-webkit-scrollbar{ display:none; }
+  .note-card{ flex:0 0 260px; background:var(--paper-2); padding:22px; border-radius:4px 18px 18px 4px; box-shadow:4px 6px 0 var(--line); font-size:13.5px; line-height:1.55; }
+  .note-card:nth-child(2n){ transform:rotate(-1.6deg); }
+  .note-card:nth-child(2n+1){ transform:rotate(1.2deg); }
+  .note-card q{ display:block; margin-bottom:16px; }
+  .who{ font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:600; color:var(--green); }
+
+  /* ================= customer reviews ================= */
+  .review-summary{
+    display:flex; align-items:center; gap:30px; flex-wrap:wrap;
+    background:var(--paper-2); border-radius:26px; padding:30px 34px; margin-bottom:36px;
+    box-shadow:0 10px 24px rgba(36,28,18,0.14);
+  }
+  .review-score{ font-family:'Fraunces'; font-weight:600; font-size:60px; line-height:1; color:var(--ink); }
+  .review-score-sub{ font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:.6; margin-top:2px; }
+  .review-stars-big{ color:var(--gold); font-size:22px; letter-spacing:3px; margin-bottom:6px; }
+  .review-meta{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; opacity:.75; max-width:32ch; line-height:1.6; }
+  .review-meta b{ color:var(--pink-deep); }
+  .avatars-stack{ display:flex; margin-left:auto; }
+  .avatars-stack span{
+    width:34px; height:34px; border-radius:50%; border:2.5px solid var(--paper-2);
+    margin-left:-10px; display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces'; font-weight:700; font-size:12px; color:var(--paper-2);
+  }
+  @media (max-width:640px){ .avatars-stack{ display:none; } }
+
+  .review-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:22px; }
+  @media (max-width:820px){ .review-grid{ grid-template-columns:1fr; } }
+
+  .review-card{
+    background:var(--paper-2); border-radius:20px; padding:24px;
+    box-shadow:0 8px 20px rgba(36,28,18,0.12);
+  }
+  .review-card:nth-child(2n){ transform:rotate(0.8deg); }
+  .review-card:nth-child(2n+1){ transform:rotate(-0.8deg); }
+
+  .r-head{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .avatar{
+    width:42px; height:42px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces'; font-weight:700; font-size:15px; color:var(--paper-2);
+  }
+  .r-name{ font-weight:600; font-size:14.5px; line-height:1.3; }
+  .r-skintype{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; opacity:.6; text-transform:uppercase; letter-spacing:.04em; }
+  .r-stars{ color:var(--gold); font-size:14px; letter-spacing:2px; margin-left:auto; }
+
+  .verified-pill{
+    display:inline-flex; align-items:center; gap:5px; background:var(--pink-pale); color:var(--pink-deep);
+    font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.04em;
+    text-transform:uppercase; padding:4px 10px; border-radius:20px; margin-bottom:12px;
+  }
+
+  .review-card q{ display:block; font-size:14px; line-height:1.6; margin:0 0 16px; }
+
+  .proof-strip{ border-top:1.5px dashed var(--line); padding-top:14px; }
+  .proof-label{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; opacity:.55; margin-bottom:10px; }
+  .proof-bar-row{ display:grid; grid-template-columns:52px 1fr 34px; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; margin-bottom:6px; }
+  .proof-bar-row .bar{ height:7px; border-radius:4px; background:var(--paper); overflow:hidden; }
+  .proof-bar-row .bar i{ display:block; height:100%; border-radius:4px; }
+  .proof-delta{
+    display:inline-flex; align-items:center; gap:5px; margin-top:6px;
+    background:var(--green); color:var(--paper-2); font-family:'IBM Plex Mono',monospace;
+    font-size:11px; font-weight:600; padding:5px 11px; border-radius:20px;
+  }
+
+  .cta-block{ position:relative; z-index:5; background:var(--green); color:var(--paper-2); border-radius:34px; padding:70px 40px; text-align:center; overflow:hidden; margin-bottom:40px; }
+  .cta-block h2{ font-family:'Fraunces'; font-weight:600; font-size:clamp(30px,5vw,52px); margin:0 0 18px; }
+  .cta-block em{ font-style:italic; color:var(--gold); }
+  .cta-block p{ opacity:.85; max-width:44ch; margin:0 auto 30px; }
+  .cta-row{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .btn-light{ background:var(--paper-2); color:var(--ink); font-family:'Space Grotesk'; font-weight:600; padding:16px 26px; border-radius:40px; text-decoration:none; box-shadow:5px 5px 0 var(--gold); }
+  .btn-outline{ border:2px solid var(--paper-2); color:var(--paper-2); padding:14px 24px; border-radius:40px; text-decoration:none; font-weight:600; }
+
+  footer{ position:relative; z-index:5; text-align:center; padding:30px 0 60px; font-size:12px; opacity:.55; font-family:'IBM Plex Mono', monospace; }
+</style>
+</head>
+<body>
+
+<div class="edge-tab left">SCAN · ANALYSE · GLOW</div>
+<div class="edge-tab right">MADE FOR INDIAN SKIN</div>
+
+<div class="wrap">
+
+  <nav>
+    <div class="logo"><span class="dot"></span>skinest</div>
+    <div class="nav-links"><a href="#about">About</a><a href="#works">How it works</a><a href="#features">Features</a><a href="#faq">FAQ</a></div>
+    <a class="nav-cta" href="#">GET STARTED →</a>
+  </nav>
+
+  <!-- ================= FULL-BLEED HERO ================= -->
+  <section class="hero-full">
+    <div class="hero-media">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="skinGrad" cx="62%" cy="38%" r="75%">
+            <stop offset="0%" stop-color="#FBE3D3"/>
+            <stop offset="45%" stop-color="#F3B6C9"/>
+            <stop offset="100%" stop-color="#D9578F"/>
+          </radialGradient>
+          <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#F6D9E7"/>
+            <stop offset="100%" stop-color="#DEC49B"/>
+          </linearGradient>
+          <radialGradient id="dew" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <rect width="1200" height="800" fill="url(#bgGrad)"/>
+
+        <!-- green diagonal ribbon, nod to reference's striped card -->
+        <g opacity="0.9">
+          <rect x="-100" y="560" width="1400" height="140" fill="#7C8A47" transform="rotate(-4 600 630)"/>
+          <rect x="-100" y="560" width="1400" height="140" fill="none" stroke="#A9B564" stroke-width="10" stroke-dasharray="2 26" transform="rotate(-4 600 630)"/>
+        </g>
+
+        <!-- abstract face / skin macro shot -->
+        <ellipse cx="700" cy="360" rx="420" ry="430" fill="url(#skinGrad)"/>
+        <!-- cheekbone shadow -->
+        <ellipse cx="560" cy="480" rx="180" ry="120" fill="#D9578F" opacity="0.18"/>
+        <!-- dewy glow highlights -->
+        <circle cx="640" cy="230" r="130" fill="url(#dew)"/>
+        <circle cx="860" cy="380" r="90" fill="url(#dew)" opacity="0.7"/>
+        <circle cx="520" cy="360" r="60" fill="url(#dew)" opacity="0.5"/>
+        <!-- freckles -->
+        <g fill="#7A3F52" opacity="0.35">
+          <circle cx="760" cy="330" r="3"/><circle cx="780" cy="345" r="2.4"/><circle cx="800" cy="325" r="2"/>
+          <circle cx="820" cy="350" r="2.6"/><circle cx="745" cy="360" r="2"/><circle cx="790" cy="375" r="2.2"/>
+          <circle cx="815" cy="300" r="2"/><circle cx="700" cy="300" r="2"/>
+        </g>
+        <!-- water droplet -->
+        <path d="M900 250 C900 270 884 284 868 284 C852 284 838 270 838 252 C838 228 868 195 868 195 C868 195 900 228 900 250 Z" fill="#FFFFFF" opacity="0.55"/>
+
+        <!-- AI scan reticle -->
+        <g stroke="#FBF5EA" stroke-width="1.4" opacity="0.55">
+          <line x1="420" y1="140" x2="420" y2="200"/><line x1="420" y1="140" x2="480" y2="140"/>
+          <line x1="980" y1="140" x2="980" y2="200"/><line x1="980" y1="140" x2="920" y2="140"/>
+          <line x1="420" y1="620" x2="420" y2="560"/><line x1="420" y1="620" x2="480" y2="620"/>
+          <line x1="980" y1="620" x2="980" y2="560"/><line x1="980" y1="620" x2="920" y2="620"/>
+        </g>
+
+        <!-- scattered botanical dots, echoing reference's flowers -->
+        <g>
+          <circle cx="140" cy="120" r="16" fill="#EB86B2"/>
+          <circle cx="120" cy="150" r="9" fill="#EB86B2" opacity="0.7"/>
+          <circle cx="1090" cy="640" r="20" fill="#A9B564"/>
+          <circle cx="1060" cy="690" r="11" fill="#7C8A47" opacity="0.8"/>
+          <circle cx="1120" cy="180" r="12" fill="#E7A23A"/>
+          <circle cx="90" cy="600" r="14" fill="#7C8A47"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="hero-stickers">
+      <div class="hs" style="top:70px; left:52%;">
+        <svg width="46" height="46" viewBox="0 0 46 46"><path d="M23 4c9 11 14 18 14 25a14 14 0 1 1-28 0c0-7 5-14 14-25z" fill="#A9B564"/></svg>
+      </div>
+    </div>
+
+    <div class="scan-sweep"></div>
+    <div class="seal">SCAN<span>95%</span>VERIFIED</div>
+    <div class="badge-analysis"><b>Analysis complete</b>Hydration&nbsp;&nbsp;78%<br>UV damage&nbsp;&nbsp;&nbsp;Low<br>Tone type&nbsp;&nbsp;&nbsp;&nbsp;III</div>
+
+    <div class="hero-copy">
+      <div class="eyebrow">AI-Powered · Dermatologist-Reviewed</div>
+      <h1 class="headline">Know your skin.<br><em>Transform</em> your routine.</h1>
+      <p class="sub">15+ conditions, read with clinical accuracy — reviewed by real dermatologists, built for Indian skin.</p>
+      <div class="hero-ctas">
+        <a class="btn-primary" href="#">Run your free scan →</a>
+        <a class="btn-ghost" href="#works">See how it works</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="stat-strip">
+    <div class="marquee">
+      <span><b>95%</b> AI analysis accuracy</span>
+      <span><b>15+</b> skin conditions detected</span>
+      <span><b>50+</b> expert dermatologists</span>
+      <span><b>100%</b> privacy guaranteed</span>
+      <span><b>10,000+</b> scans completed</span>
+      <span><b>95%</b> AI analysis accuracy</span>
+      <span><b>15+</b> skin conditions detected</span>
+      <span><b>50+</b> expert dermatologists</span>
+      <span><b>100%</b> privacy guaranteed</span>
+      <span><b>10,000+</b> scans completed</span>
+    </div>
+  </div>
+
+  <section class="section" id="about">
+    <div class="kicker">About Skinest</div>
+    <h2 class="sec-title" style="max-width:20ch;">What is <em>Skinest?</em></h2>
+    <p style="font-size:16px; line-height:1.7; max-width:62ch; opacity:.85; margin:-14px 0 36px; font-family:'Fraunces'; font-style:italic; font-weight:300;">
+      Skinest combines computer vision, the Skinest Intelligence Engine, and dermatologist expertise to give you personalised, science-backed skincare advice — from your phone.
+    </p>
+    <div class="concern-grid">
+      <div class="concern">
+        <svg class="concern-icon" viewBox="0 0 52 52"><rect width="52" height="52" rx="16" fill="#F3B6C9"/><path d="M14 18v-4h4M38 18v-4h-4M14 34v4h4M38 34v4h-4" stroke="#D65D93" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="18" y="20" width="16" height="12" rx="3" fill="#D65D93" opacity="0.5"/></svg>
+        <h3>Scan in seconds</h3>
+        <p>Use your phone camera — no app needed. Our smart AI spots 15+ skin concerns in real time.</p>
+      </div>
+      <div class="concern">
+        <svg class="concern-icon" viewBox="0 0 52 52"><rect width="52" height="52" rx="16" fill="#C9DAC0"/><circle cx="26" cy="26" r="11" fill="none" stroke="#4E6A43" stroke-width="2.6"/><circle cx="26" cy="26" r="4" fill="#4E6A43"/></svg>
+        <h3>AI that understands you</h3>
+        <p>Beyond the scan, our AI combines your skin type, tone classification, lifestyle and diet into one complete profile.</p>
+      </div>
+      <div class="concern">
+        <svg class="concern-icon" viewBox="0 0 52 52"><rect width="52" height="52" rx="16" fill="#F1D9A8"/><circle cx="26" cy="20" r="7" fill="#8a5a1e"/><path d="M14 38c0-8 6-12 12-12s12 4 12 12" fill="none" stroke="#8a5a1e" stroke-width="2.6" stroke-linecap="round"/></svg>
+        <h3>Dermatologist review</h3>
+        <p>Every analysis is reviewed by a certified dermatologist who validates and refines the AI findings before you see results.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="why">
+    <div class="kicker">Why we built this</div>
+    <h2 class="sec-title" style="max-width:18ch;">Great skin advice shouldn't be a <em>luxury.</em></h2>
+    <div style="max-width:64ch; margin:-14px 0 40px;">
+      <p style="font-size:15px; line-height:1.75; opacity:.85; margin:0 0 16px;">Most skincare advice is calibrated for Western skin. For India's diverse skin tone spectrum, humidity-driven conditions, and unique dietary factors, that advice simply doesn't work.</p>
+      <p style="font-size:15px; line-height:1.75; opacity:.85; margin:0 0 16px;">A good dermatologist visit costs <strong style="color:var(--pink-deep);">₹500–₹2,000</strong> with waiting rooms, repeat appointments, and generic prescriptions. Most people end up following influencer routines that damage their skin.</p>
+      <p style="font-size:15px; line-height:1.75; opacity:.85; margin:0;">We built Skinest to <strong style="color:var(--pink-deep);">democratise expert skin analysis</strong>, surface products available in India (Nykaa, Minimalist, Dermaco), and make dermatologist expertise accessible to everyone — free.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-icon">😓</div>
+        <div><h4>Generic advice fails Indian skin</h4><p>Advice optimised for lighter skin tones (Types I–II) causes hyperpigmentation on deeper complexions. Skinest is calibrated for all 6 tone categories.</p></div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">💎</div>
+        <div><h4>Expensive dermatologist visits</h4><p>Most people can't afford frequent consultations. Skinest puts expert-level analysis in everyone's hands, free.</p></div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">🧴</div>
+        <div><h4>Product overload with no direction</h4><p>Thousands of products, contradictory claims. Skinest cuts through the noise with ingredient-level, evidence-backed picks.</p></div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">🚫</div>
+        <div><h4>No way to track skin changes</h4><p>Progress is invisible without tracking. Skinest logs your journey so you can see what's working.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="concerns">
+    <div class="kicker">What we analyse</div>
+    <h2 class="sec-title">15+ skin attributes. <em>One scan.</em></h2>
+    <div class="concern-grid">
+      <div class="concern">
+        <svg class="concern-icon" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="#F3B6C9"/><circle cx="18" cy="22" r="3" fill="#D65D93"/><circle cx="30" cy="16" r="2.4" fill="#D65D93"/><circle cx="33" cy="30" r="3.4" fill="#D65D93"/><circle cx="19" cy="34" r="2" fill="#D65D93"/></svg>
+        <h3>Acne &amp; breakouts</h3>
+        <p>From mild spots to stubborn, deeper breakouts.</p>
+        <div class="severity">MILD <div class="bar"><i style="width:35%;background:var(--gold);"></i></div></div>
+      </div>
+      <div class="concern">
+        <svg class="concern-icon" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="#C9DAC0"/><path d="M26 10c8 10 12 16 12 22a12 12 0 1 1-24 0c0-6 4-12 12-22z" fill="#4E6A43"/></svg>
+        <h3>Dryness &amp; dehydration</h3>
+        <p>How well your skin holds on to moisture.</p>
+        <div class="severity">HIGH <div class="bar"><i style="width:80%;background:var(--pink-deep);"></i></div></div>
+      </div>
+      <div class="concern">
+        <svg class="concern-icon" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="#F1D9A8"/><ellipse cx="18" cy="28" rx="6" ry="8" fill="#8a5a1e"/><ellipse cx="34" cy="28" rx="6" ry="8" fill="#8a5a1e"/></svg>
+        <h3>Dark circles</h3>
+        <p>Under-eye darkness, puffiness &amp; tired-looking skin.</p>
+        <div class="severity">MODERATE <div class="bar"><i style="width:58%;background:#8a5a1e;"></i></div></div>
+      </div>
+      <div class="concern">
+        <svg class="concern-icon" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="#F1D9A8"/><path d="M26 8v8M26 36v8M8 26h8M36 26h8M13 13l6 6M33 33l6 6M13 39l6-6M33 19l6-6" stroke="#E7A23A" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3>Radiance &amp; glow</h3>
+        <p>How bright, dull or tired your skin looks today.</p>
+        <div class="severity">GOOD <div class="bar"><i style="width:25%;background:var(--green);"></i></div></div>
+      </div>
+      <div class="concern">
+        <svg class="concern-icon" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="#F3B6C9"/><circle cx="16" cy="18" r="1.6" fill="#8a4a37"/><circle cx="24" cy="14" r="1.6" fill="#8a4a37"/><circle cx="32" cy="19" r="1.6" fill="#8a4a37"/><circle cx="20" cy="24" r="1.6" fill="#8a4a37"/><circle cx="30" cy="28" r="1.6" fill="#8a4a37"/><circle cx="14" cy="30" r="1.6" fill="#8a4a37"/></svg>
+        <h3>Texture &amp; pores</h3>
+        <p>Bumpy texture, visible pores and rough patches.</p>
+        <div class="severity">MILD <div class="bar"><i style="width:30%;background:var(--gold);"></i></div></div>
+      </div>
+      <div class="concern">
+        <svg class="concern-icon" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="#C9DAC0"/><path d="M10 30c6-14 26-14 32 0" stroke="#4E6A43" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="17" cy="20" r="2.5" fill="#4E6A43"/><circle cx="35" cy="20" r="2.5" fill="#4E6A43"/></svg>
+        <h3>Uneven tone</h3>
+        <p>Dark spots, sun spots and patchy skin tone.</p>
+        <div class="severity">MODERATE <div class="bar"><i style="width:55%;background:var(--pink-deep);"></i></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="works">
+    <div class="kicker">How it works</div>
+    <h2 class="sec-title">From scan to <em>routine</em> in minutes.</h2>
+    <div class="shelf">
+      <div class="shelf-row">
+        <div class="jar"><div class="jar-visual"><div class="jar-num">1</div></div><h4>Scan your skin</h4><p>Open your camera in-browser. Nothing to install, nothing stored.</p></div>
+        <div class="jar"><div class="jar-visual"><div class="jar-num">2</div></div><h4>Tell us about you</h4><p>A short questionnaire on lifestyle, diet and sleep.</p></div>
+        <div class="jar"><div class="jar-visual"><div class="jar-num">3</div></div><h4>AI analyses everything</h4><p>The Skinest engine builds your profile, ingredient by ingredient.</p></div>
+        <div class="jar"><div class="jar-visual"><div class="jar-num">4</div></div><h4>Track your progress</h4><p>Rescan weekly and watch your skin's timeline unfold.</p></div>
+      </div>
+      <div class="shelf-line"></div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="kicker">Features</div>
+    <h2 class="sec-title">Everything your skin <em>needs</em>.</h2>
+    <div class="feat-grid">
+      <div class="feat f1"><div class="tag">Instant</div><div><h5 style="font-size:22px;">Instant skin scan</h5><p>Just use your phone's camera — no app to download. Get a full skin check-up in seconds, with an easy-to-read breakdown of what your skin needs.</p></div></div>
+      <div class="feat f2"><div class="tag">Smart</div><h5>Smart routine builder</h5><p>Your plan is built just for you, based on your own skin — never a generic template.</p></div>
+      <div class="feat f3"><div class="tag">Medical</div><h5>Dermatologist reviewed</h5><p>A real, certified dermatologist checks every result before you see it.</p></div>
+      <div class="feat f7"><div class="tag">Tracking</div><h5>See your progress</h5></div>
+      <div class="feat f6"><div class="tag">Privacy</div><h5>Your privacy, protected</h5><p>Photos are checked instantly and never saved anywhere.</p></div>
+      <div class="feat f8"><div class="tag">Inclusive</div><div><h5 style="font-size:18px;">Made for every skin tone</h5><p>Our advice works beautifully for all skin tones — not just the lighter complexions most beauty apps assume.</p></div></div>
+      <div class="feat f5"><div class="tag">Routine</div><h5>Your step-by-step plan</h5></div>
+    </div>
+  </section>
+
+  <section class="section" id="reviews">
+    <div class="kicker">Customer reviews</div>
+    <h2 class="sec-title">Loved by <em>thousands</em> of verified scans.</h2>
+
+    <div class="review-summary">
+      <div>
+        <div class="review-score">4.8<span style="font-size:22px; opacity:.5;">/5</span></div>
+        <div class="review-score-sub">2,347 verified reviews</div>
+      </div>
+      <div>
+        <div class="review-stars-big">★★★★★</div>
+        <div class="review-meta">Every review here is tied to a <b>real completed AI scan</b> — no review is published without one.</div>
+      </div>
+      <div class="avatars-stack">
+        <span style="background:var(--pink-deep);">P</span>
+        <span style="background:var(--green);">A</span>
+        <span style="background:var(--gold);">M</span>
+        <span style="background:#8a5a1e;">R</span>
+      </div>
+    </div>
+
+    <div class="review-grid">
+
+      <div class="review-card">
+        <div class="r-head">
+          <div class="avatar" style="background:var(--pink-deep);">P</div>
+          <div><div class="r-name">Priya S.</div><div class="r-skintype">Combination · Type III</div></div>
+          <div class="r-stars">★★★★★</div>
+        </div>
+        <div class="verified-pill">✓ Verified scan</div>
+        <q>"Identified my dehydration barrier issue in one scan. My texture cleared up in weeks — and I could actually see the number move."</q>
+        <div class="proof-strip">
+          <div class="proof-label">Hydration score · 6-week scan history</div>
+          <div class="proof-bar-row"><span>Week 1</span><div class="bar"><i style="width:62%;background:var(--pink-deep);"></i></div><span>62%</span></div>
+          <div class="proof-bar-row"><span>Week 6</span><div class="bar"><i style="width:81%;background:var(--green);"></i></div><span>81%</span></div>
+          <div class="proof-delta">▲ +19% improvement</div>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="r-head">
+          <div class="avatar" style="background:var(--green);">A</div>
+          <div><div class="r-name">Ananya R.</div><div class="r-skintype">Oily · Type IV</div></div>
+          <div class="r-stars">★★★★★</div>
+        </div>
+        <div class="verified-pill">✓ Verified scan</div>
+        <q>"Finally, advice calibrated to my exact skin tone — not a generic SPF 30 recommendation for everyone."</q>
+        <div class="proof-strip">
+          <div class="proof-label">Tone evenness · 6-week scan history</div>
+          <div class="proof-bar-row"><span>Week 1</span><div class="bar"><i style="width:54%;background:var(--pink-deep);"></i></div><span>54%</span></div>
+          <div class="proof-bar-row"><span>Week 6</span><div class="bar"><i style="width:77%;background:var(--green);"></i></div><span>77%</span></div>
+          <div class="proof-delta">▲ +23% improvement</div>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="r-head">
+          <div class="avatar" style="background:var(--gold);">M</div>
+          <div><div class="r-name">Meera T.</div><div class="r-skintype">Dry · Type II</div></div>
+          <div class="r-stars">★★★★★</div>
+        </div>
+        <div class="verified-pill">✓ Verified scan</div>
+        <q>"The dermatologist review caught something the AI flagged that I'd genuinely ignored for years."</q>
+        <div class="proof-strip">
+          <div class="proof-label">Texture score · 6-week scan history</div>
+          <div class="proof-bar-row"><span>Week 1</span><div class="bar"><i style="width:58%;background:var(--pink-deep);"></i></div><span>58%</span></div>
+          <div class="proof-bar-row"><span>Week 6</span><div class="bar"><i style="width:84%;background:var(--green);"></i></div><span>84%</span></div>
+          <div class="proof-delta">▲ +26% improvement</div>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="r-head">
+          <div class="avatar" style="background:#8a5a1e;">R</div>
+          <div><div class="r-name">Rhea D.</div><div class="r-skintype">Sensitive · Type II</div></div>
+          <div class="r-stars">★★★★★</div>
+        </div>
+        <div class="verified-pill">✓ Verified scan</div>
+        <q>"Weekly rescans actually show me progress instead of guessing whether a product is working."</q>
+        <div class="proof-strip">
+          <div class="proof-label">Acne clarity · 6-week scan history</div>
+          <div class="proof-bar-row"><span>Week 1</span><div class="bar"><i style="width:41%;background:var(--pink-deep);"></i></div><span>41%</span></div>
+          <div class="proof-bar-row"><span>Week 6</span><div class="bar"><i style="width:88%;background:var(--green);"></i></div><span>88%</span></div>
+          <div class="proof-delta">▲ +47% improvement</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="kicker">FAQ</div>
+    <h2 class="sec-title">Common <em>questions.</em></h2>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>Is Skinest free to use?</summary>
+        <p>Yes — the AI skin scan, your personalised routine, and dermatologist review are all free. We believe expert-level skin analysis shouldn't be a luxury.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How accurate is the AI analysis?</summary>
+        <p>Skinest's AI detects 15+ skin conditions with high accuracy, and every result is checked by a certified dermatologist before it reaches you — combining computer vision with real medical review.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does my photo get stored?</summary>
+        <p>No. Your photo is analysed instantly and never saved. You can also delete your account at any time and everything goes with it.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What skin concerns can Skinest detect?</summary>
+        <p>Acne and breakouts, dryness and dehydration, dark circles, radiance and glow, texture and pores, uneven tone, and more — 15+ attributes from a single scan.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Are products available in India?</summary>
+        <p>Yes — every recommendation is a handpicked pick from brands available in India, like Nykaa, Minimalist, and Dermaco, chosen to suit your skin tone and India's weather.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How are dermatologists involved?</summary>
+        <p>A real, certified dermatologist reviews every AI analysis — approving it, adding helpful notes, or flagging anything that needs extra attention — before you ever see your results.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="section" style="padding-bottom:20px;">
+    <div class="cta-block">
+      <h2>Your skin deserves better <em>than guesswork.</em></h2>
+      <p>Free. Private. Science-backed. Join thousands who've found their personalised routine.</p>
+      <div class="cta-row">
+        <a class="btn-light" href="#">Create free account →</a>
+        <a class="btn-outline" href="#">Already have an account</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>SKINEST — PROTOTYPE UI CONCEPT · MAXIMALIST DIRECTION · NOT FINAL COPY</footer>
+
+</div>
+
+</body>
+</html>

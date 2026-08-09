@@ -36,14 +36,14 @@ import {
 
 function SeverityBar({ severity }: { severity: string }) {
   const map: Record<string, { w: string; color: string }> = {
-    none: { w: "w-0", color: "bg-gray-200" },
-    mild: { w: "w-1/4", color: "bg-cream-400" },
-    moderate: { w: "w-2/4", color: "bg-skin-400" },
-    severe: { w: "w-full", color: "bg-red-500" },
+    none: { w: "w-0", color: "bg-deep-brown/20" },
+    mild: { w: "w-1/4", color: "bg-olive/60" },
+    moderate: { w: "w-2/4", color: "bg-olive" },
+    severe: { w: "w-full", color: "bg-deep-brown" },
   };
   const { w, color } = map[severity] ?? map.mild;
   return (
-    <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+    <div className="w-16 h-1.5 bg-nude/30 rounded-full overflow-hidden border border-deep-brown/10">
       <div className={`h-full rounded-full ${w} ${color}`} />
     </div>
   );
@@ -885,16 +885,16 @@ export default function CaseDetailPage() {
               )}
 
               {/* Submit buttons */}
-              <div className="flex flex-col gap-2 pt-2 border-t border-gray-50">
+              <div className="flex flex-col gap-2 pt-2 border-t border-deep-brown/10 font-sans">
                 <button
                   onClick={() => handleSubmitReview("approved")}
                   disabled={submitting}
-                  className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-60 px-4 py-3 rounded-xl transition-colors"
+                  className="w-full flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider text-deep-brown bg-butter hover:bg-butter/90 border border-deep-brown/10 shadow-sm disabled:opacity-60 px-4 py-3 rounded-xl transition-colors"
                 >
                   {submitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin text-olive" />
                   ) : (
-                    <CheckCircle2 className="w-4 h-4" />
+                    <CheckCircle2 className="w-4 h-4 text-olive" />
                   )}
                   Approve All &amp; Submit
                 </button>
@@ -903,18 +903,18 @@ export default function CaseDetailPage() {
                   <button
                     onClick={() => handleSubmitReview("request_info")}
                     disabled={submitting}
-                    className="flex items-center justify-center gap-1.5 text-sm font-medium text-cream-700 bg-cream-50 hover:bg-cream-100 border border-cream-200 disabled:opacity-60 px-4 py-2.5 rounded-xl transition-colors"
+                    className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-deep-brown bg-cream hover:bg-nude/20 border border-deep-brown/15 disabled:opacity-60 px-4 py-2.5 rounded-xl transition-colors"
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-3.5 h-3.5 text-olive" />
                     Request Info
                   </button>
 
                   <button
                     onClick={() => handleSubmitReview("rejected")}
                     disabled={submitting}
-                    className="flex items-center justify-center gap-1.5 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 disabled:opacity-60 px-4 py-2.5 rounded-xl transition-colors"
+                    className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-deep-brown bg-deep-brown/10 hover:bg-deep-brown/20 border border-deep-brown/15 disabled:opacity-60 px-4 py-2.5 rounded-xl transition-colors"
                   >
-                    <XCircle className="w-3.5 h-3.5" />
+                    <XCircle className="w-3.5 h-3.5 text-deep-brown" />
                     Reject with Notes
                   </button>
                 </div>

@@ -621,85 +621,6 @@ BIODERMA_PRODUCTS = [
 # were missing from the initial catalog. All brands are well-known in India
 # and carry dermatologist recommendations.
 # ---------------------------------------------------------------------------
-PLUM_PRODUCTS = [
-    {
-        "brand": "others", "brand_display": "Plum",
-        "product_name": "Plum Green Tea Gentle Face Wash",
-        "category": "cleanser", "price_inr": 245.0, "mrp_inr": 285.0,
-        "key_ingredients": ["green tea extract", "glycerin", "aloe vera", "centella asiatica"],
-        "key_actives": ["green tea extract", "glycerin", "centella asiatica"],
-        "targets_conditions": ["acne", "redness", "pores", "texture"],
-        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
-        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
-        "climate_zones_suitable": ["arid", "semi_arid", "tropical", "coastal", "temperate"],
-        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
-        "product_url": "https://www.plumgoodness.com/products/green-tea-gentle-face-wash",
-        "image_url": "https://plumgoodness.com/cdn/shop/files/2706_1024x.jpg",
-        "rating_avg": 4.5, "review_count": 28400,
-    },
-    {
-        "brand": "others", "brand_display": "Plum",
-        "product_name": "Plum Green Tea Oil-Free Moisturiser",
-        "category": "moisturiser", "price_inr": 395.0, "mrp_inr": 450.0,
-        "key_ingredients": ["green tea extract", "hyaluronic acid", "niacinamide", "glycerin"],
-        "key_actives": ["green tea extract", "hyaluronic acid", "niacinamide"],
-        "targets_conditions": ["acne", "pores", "redness", "uneven_tone"],
-        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
-        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
-        "climate_zones_suitable": ["arid", "semi_arid", "tropical", "coastal"],
-        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
-        "product_url": "https://www.plumgoodness.com/products/green-tea-oil-free-moisturiser",
-        "image_url": "https://plumgoodness.com/cdn/shop/files/7206_1024x.jpg",
-        "rating_avg": 4.4, "review_count": 19600,
-    },
-    {
-        "brand": "others", "brand_display": "Plum",
-        "product_name": "Plum Shield Me Up SPF 50+ PA++++ Sunscreen Gel",
-        "category": "sunscreen", "price_inr": 349.0, "mrp_inr": 399.0,
-        "key_ingredients": ["zinc oxide", "tinosorb S", "hyaluronic acid", "aloe vera"],
-        "key_actives": ["zinc oxide", "tinosorb S", "hyaluronic acid"],
-        "targets_conditions": ["pigmentation", "dark_spots", "acne"],
-        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
-        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
-        "climate_zones_suitable": ["arid", "semi_arid", "tropical", "coastal"],
-        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
-        "product_url": "https://www.plumgoodness.com/products/shield-me-up-spf-50-sunscreen-gel",
-        "image_url": "https://plumgoodness.com/cdn/shop/files/shield_sunscreen_1024x.jpg",
-        "rating_avg": 4.6, "review_count": 14200,
-    },
-]
-
-DOT_AND_KEY_PRODUCTS = [
-    {
-        "brand": "others", "brand_display": "Dot & Key",
-        "product_name": "Dot & Key Ceramide + Peptide Barrier Repair Moisturiser",
-        "category": "moisturiser", "price_inr": 595.0, "mrp_inr": 695.0,
-        "key_ingredients": ["ceramides", "peptides", "niacinamide", "hyaluronic acid", "squalane"],
-        "key_actives": ["ceramide", "peptides", "niacinamide", "hyaluronic acid"],
-        "targets_conditions": ["dryness", "redness", "texture"],
-        "skin_types_suitable": ["sensitive", "dry", "normal", "combination", "oily"],
-        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
-        "climate_zones_suitable": ["arid", "semi_arid", "temperate"],
-        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": True,
-        "product_url": "https://dotandkey.com/products/ceramide-peptide-barrier-repair-moisturiser",
-        "image_url": "https://dotandkey.com/cdn/shop/files/ceramide_moisturiser_1024x.jpg",
-        "rating_avg": 4.5, "review_count": 8700,
-    },
-    {
-        "brand": "others", "brand_display": "Dot & Key",
-        "product_name": "Dot & Key Waterlight Gel Moisturiser SPF 35",
-        "category": "moisturiser", "price_inr": 545.0, "mrp_inr": 645.0,
-        "key_ingredients": ["hyaluronic acid", "niacinamide", "green tea", "SPF 35 filters"],
-        "key_actives": ["hyaluronic acid", "niacinamide", "green tea"],
-        "targets_conditions": ["dryness", "pores", "pigmentation"],
-        "skin_types_suitable": ["oily", "combination", "sensitive", "normal"],
-        "fitzpatrick_suitable": ["I", "II", "III", "IV", "V", "VI"],
-        "climate_zones_suitable": ["arid", "semi_arid", "tropical"],
-        "is_dermatologist_approved": True, "pregnancy_safe": True, "is_new": False,
-        "product_url": "https://dotandkey.com/products/waterlight-gel-moisturiser-spf-35",
-        "rating_avg": 4.4, "review_count": 11200,
-    },
-]
 
 THE_DERMA_CO_PRODUCTS = [
     {
@@ -944,7 +865,7 @@ async def seed_products(session: AsyncSession, approval_derm_id: uuid.UUID) -> N
     all_products = (
         NYKAA_PRODUCTS + MINIMALIST_PRODUCTS + DERMACO_PRODUCTS
         + REEQUIL_PRODUCTS + CERAVE_PRODUCTS + BIODERMA_PRODUCTS
-        + PLUM_PRODUCTS + DOT_AND_KEY_PRODUCTS + THE_DERMA_CO_PRODUCTS
+        + THE_DERMA_CO_PRODUCTS
     )
     for p in all_products:
         cat = p.get("category", "cleanser")

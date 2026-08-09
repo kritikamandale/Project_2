@@ -98,7 +98,7 @@ class SkinCondition(UUIDPrimaryKeyMixin, Base):
 
     scan_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("skin_scans.id", ondelete="CASCADE"),
-        nullable=False, index=True,
+        nullable=False,
     )
     condition_name: Mapped[str] = mapped_column(ConditionNameEnum, nullable=False)
     severity: Mapped[str] = mapped_column(SeverityEnum, nullable=False)
