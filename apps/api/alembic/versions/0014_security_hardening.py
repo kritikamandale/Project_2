@@ -77,8 +77,18 @@ def upgrade() -> None:
         $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp""")
 
     # 4. Revoke EXECUTE from PUBLIC/anon/authenticated on SECURITY DEFINER / internal functions
-    op.execute("""REVOKE EXECUTE ON FUNCTION audit_trigger_fn() FROM PUBLIC, anon, authenticated""")
-    op.execute("""REVOKE EXECUTE ON FUNCTION app_current_user_id() FROM PUBLIC, anon""")
+    op.execute("""DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+                EXECUTE 'REVOKE EXECUTE ON FUNCTION audit_trigger_fn() FROM anon';
+                EXECUTE 'REVOKE EXECUTE ON FUNCTION app_current_user_id() FROM anon';
+            END IF;
+            IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+                EXECUTE 'REVOKE EXECUTE ON FUNCTION audit_trigger_fn() FROM authenticated';
+            END IF;
+            EXECUTE 'REVOKE EXECUTE ON FUNCTION audit_trigger_fn() FROM PUBLIC';
+            EXECUTE 'REVOKE EXECUTE ON FUNCTION app_current_user_id() FROM PUBLIC';
+        END $$""")
 
 
 def downgrade() -> None:
