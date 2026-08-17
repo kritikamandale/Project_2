@@ -46,9 +46,10 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3100",
         "http://127.0.0.1:3001",
+        "https://skiinest.vercel.app",
     ]
-    frontend_url: str = "http://localhost:3000"
-    trusted_hosts: list[str] = ["localhost", "127.0.0.1"]
+    frontend_url: str = "https://skiinest.vercel.app"
+    trusted_hosts: list[str] = ["*"]
 
     # Only trust X-Forwarded-For / X-Forwarded-Proto when the API actually sits
     # behind a trusted reverse proxy (the Next.js proxy / a load balancer that
