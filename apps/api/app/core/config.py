@@ -169,10 +169,10 @@ class Settings(BaseSettings):
     # -------------------------------------------------------------------------
     # AWS S3 (ephemeral image storage)
     # -------------------------------------------------------------------------
-    aws_access_key_id: str
-    aws_secret_access_key: str
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
     aws_region: str = "ap-south-1"
-    s3_bucket_name: str
+    s3_bucket_name: str = "skin-analysis-ephemeral"
     s3_presigned_url_expiry: int = 60   # seconds — images auto-deleted
     s3_lifecycle_expiry_days: int = 1
 
