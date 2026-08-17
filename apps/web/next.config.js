@@ -25,10 +25,21 @@ const BASE_CSP = [
 // The browser calls the FastAPI backend directly (register, scan submit, …),
 // so its origin must be in connect-src in EVERY environment — production too.
 // Previously this was dev-only, which broke all API calls from a `next start`
-// or deployed build with "Refused to connect … Content Security Policy".
+function normalizeUrl(url) {
+  if (!url) return "http://localhost:8000";
+  let trimmed = url.trim().replace(/['"]/g, "");
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+    trimmed = `https://${trimmed}`;
+  }
+  return trimmed.replace(/\/+$/, "");
+}
+
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL;
+const NORMALIZED_API_URL = normalizeUrl(RAW_API_URL);
+
 const API_ORIGIN = (() => {
   try {
-    return new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").origin;
+    return new URL(NORMALIZED_API_URL).origin;
   } catch {
     return "http://localhost:8000";
   }
@@ -80,7 +91,7 @@ const nextConfig = {
     return [
       {
         source: "/api/v1/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/:path*`,
+        destination: `${NORMALIZED_API_URL}/api/v1/:path*`,
       },
     ];
   },
