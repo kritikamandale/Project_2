@@ -36,7 +36,9 @@ class Settings(BaseSettings):
     # dev works without extra config, but production deployments must set it.
     environment: Literal["development", "staging", "production"] = "development"
     debug: bool = False
-    secret_key: str = Field(..., min_length=32)          # required — no default
+    secret_key: str = Field(
+        "dev_secret_key_32_characters_minimum_length_required!", min_length=32
+    )
     allowed_origins: list[str] = [
         "http://localhost:3000",
         "http://localhost:3100",
@@ -84,7 +86,9 @@ class Settings(BaseSettings):
     # JWT — RS256 in production, HS256 in development
     # Set jwt_private_key / jwt_public_key (PEM, \n-escaped) to enable RS256.
     # -------------------------------------------------------------------------
-    jwt_secret_key: str = Field(..., min_length=32)    # required — no default
+    jwt_secret_key: str = Field(
+        "dev_jwt_secret_key_32_characters_minimum_length_required!", min_length=32
+    )
     jwt_private_key: str = ""   # RSA private key PEM (production)
     jwt_public_key: str = ""    # RSA public key PEM (production)
     access_token_expire_minutes: int = 15
@@ -138,7 +142,7 @@ class Settings(BaseSettings):
     # -------------------------------------------------------------------------
     # Privileged connection — owns the schema. Used by Alembic migrations and
     # seed scripts (DDL + RLS-bypass). Keep this as the postgres/owner role.
-    database_url: PostgresDsn
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/skin_analysis"
 
     # Least-privilege runtime connection (optional). When set, the running API
     # uses THIS instead of database_url, so RLS policies are actually enforced
@@ -162,7 +166,7 @@ class Settings(BaseSettings):
     # -------------------------------------------------------------------------
     # Redis 7
     # -------------------------------------------------------------------------
-    redis_url: RedisDsn
+    redis_url: str = "redis://localhost:6379/0"
     session_ttl: int = 3600       # seconds
     cache_ttl: int = 300          # seconds
 
