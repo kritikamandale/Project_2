@@ -16,12 +16,59 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Internal send helper
+# Internal send helpers (SMTP & Resend)
 # ---------------------------------------------------------------------------
 
+async def _send_smtp(to_email: str, subject: str, html_body: str, plain_body: str = "") -> bool:
+    if not settings.smtp_host:
+        return False
+
+    def sync_send() -> None:
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        sender = settings.smtp_user or settings.email_from
+        msg["From"] = f"{settings.email_from_name} <{sender}>"
+        msg["To"] = to_email
+
+        if plain_body:
+            msg.attach(MIMEText(plain_body, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
+
+        port = settings.smtp_port or 587
+        if settings.smtp_use_tls:
+            with smtplib.SMTP(settings.smtp_host, port, timeout=10) as server:
+                server.starttls()
+                if settings.smtp_user and settings.smtp_password:
+                    server.login(settings.smtp_user, settings.smtp_password)
+                server.sendmail(sender, [to_email], msg.as_string())
+        else:
+            with smtplib.SMTP(settings.smtp_host, port, timeout=10) as server:
+                if settings.smtp_user and settings.smtp_password:
+                    server.login(settings.smtp_user, settings.smtp_password)
+                server.sendmail(sender, [to_email], msg.as_string())
+
+    try:
+        await asyncio.to_thread(sync_send)
+        logger.info("Email sent via SMTP (%s) to %s", settings.smtp_host, to_email)
+        return True
+    except Exception as exc:
+        logger.warning("SMTP delivery to %s failed: %s", to_email, exc)
+        return False
+
+
 async def _send(to_email: str, subject: str, html_body: str, plain_body: str = "") -> None:
-    sent_via_resend = False
-    if settings.resend_api_key:
+    sent = False
+
+    # 1. Try SMTP if configured (e.g., Gmail SMTP sends to ANY address for free)
+    if settings.smtp_host:
+        sent = await _send_smtp(to_email, subject, html_body, plain_body)
+
+    # 2. Fallback to Resend if SMTP is not set or failed
+    if not sent and settings.resend_api_key:
         resend.api_key = settings.resend_api_key
         params: resend.Emails.SendParams = {
             "from": f"{settings.email_from_name} <{settings.email_from}>",
@@ -32,12 +79,12 @@ async def _send(to_email: str, subject: str, html_body: str, plain_body: str = "
         try:
             result = await asyncio.to_thread(resend.Emails.send, params)
             logger.info("Email sent via Resend to %s — id=%s", to_email, result.get("id"))
-            sent_via_resend = True
+            sent = True
         except Exception as exc:
             logger.warning("Resend could not deliver to %s: %s", to_email, exc)
 
-    # In development or if Resend fails, log to stdout/terminal so dev links are easily copyable
-    if not sent_via_resend or settings.is_development:
+    # In development or if no remote provider succeeded, log to stdout/terminal
+    if not sent or settings.is_development:
         msg = (
             f"\n========== DEV EMAIL LOG ==========\n"
             f"To: {to_email}\nSubject: {subject}\n\n{plain_body or html_body}\n"

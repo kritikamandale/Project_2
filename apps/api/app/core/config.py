@@ -204,13 +204,21 @@ class Settings(BaseSettings):
     sentry_traces_sample_rate: float = 0.1
 
     # -------------------------------------------------------------------------
-    # Email — Resend (https://resend.com)
-    # Free tier: onboarding@resend.dev only delivers to the Resend account-owner email.
-    # In dev mode the OTP is always printed to the terminal as a fallback.
+    # Email — Resend or SMTP (Gmail / Brevo / standard SMTP)
+    # Resend free tier (onboarding@resend.dev) only delivers to the Resend owner email.
+    # To send to ANY email address for free without buying a domain, configure Gmail SMTP:
+    # SMTP_HOST=smtp.gmail.com, SMTP_PORT=587, SMTP_USER=your@gmail.com, SMTP_PASSWORD=app_password
     # -------------------------------------------------------------------------
     resend_api_key: str = ""
     email_from: str = "onboarding@resend.dev"
     email_from_name: str = "Skinest"
+
+    # SMTP configuration
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
 
     # -------------------------------------------------------------------------
     # Climate API (OpenWeatherMap — India-specific skin factors)
