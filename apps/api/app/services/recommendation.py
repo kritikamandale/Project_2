@@ -661,7 +661,7 @@ class RecommendationService:
                 user_id=user.id,
                 scan_id=scan.id,
                 scan_number=scan_number,
-                overall_score=scan.overall_score or claude_output.skin_score,
+                overall_score=getattr(scan, "overall_score", None) or claude_output.skin_score,
                 notes=f"Automatic progress log for scan #{scan_number}",
             )
             db.add(progress_scan)
