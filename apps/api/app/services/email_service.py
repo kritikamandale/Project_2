@@ -28,35 +28,43 @@ async def _send_smtp(to_email: str, subject: str, html_body: str, plain_body: st
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
 
+        smtp_user = (settings.smtp_user or settings.email_from).strip()
+        smtp_pass = settings.smtp_password.replace(" ", "").strip()
+        smtp_host = settings.smtp_host.strip()
+        port = settings.smtp_port or 587
+
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        sender = settings.smtp_user or settings.email_from
-        msg["From"] = f"{settings.email_from_name} <{sender}>"
+        msg["From"] = f"{settings.email_from_name} <{smtp_user}>"
         msg["To"] = to_email
 
         if plain_body:
             msg.attach(MIMEText(plain_body, "plain"))
         msg.attach(MIMEText(html_body, "html"))
 
-        port = settings.smtp_port or 587
-        if settings.smtp_use_tls:
-            with smtplib.SMTP(settings.smtp_host, port, timeout=10) as server:
+        if port == 465:
+            with smtplib.SMTP_SSL(smtp_host, port, timeout=12) as server:
+                if smtp_user and smtp_pass:
+                    server.login(smtp_user, smtp_pass)
+                server.sendmail(smtp_user, [to_email], msg.as_string())
+        elif settings.smtp_use_tls or port == 587:
+            with smtplib.SMTP(smtp_host, port, timeout=12) as server:
                 server.starttls()
-                if settings.smtp_user and settings.smtp_password:
-                    server.login(settings.smtp_user, settings.smtp_password)
-                server.sendmail(sender, [to_email], msg.as_string())
+                if smtp_user and smtp_pass:
+                    server.login(smtp_user, smtp_pass)
+                server.sendmail(smtp_user, [to_email], msg.as_string())
         else:
-            with smtplib.SMTP(settings.smtp_host, port, timeout=10) as server:
-                if settings.smtp_user and settings.smtp_password:
-                    server.login(settings.smtp_user, settings.smtp_password)
-                server.sendmail(sender, [to_email], msg.as_string())
+            with smtplib.SMTP(smtp_host, port, timeout=12) as server:
+                if smtp_user and smtp_pass:
+                    server.login(smtp_user, smtp_pass)
+                server.sendmail(smtp_user, [to_email], msg.as_string())
 
     try:
         await asyncio.to_thread(sync_send)
         logger.info("Email sent via SMTP (%s) to %s", settings.smtp_host, to_email)
         return True
     except Exception as exc:
-        logger.warning("SMTP delivery to %s failed: %s", to_email, exc)
+        logger.error("SMTP delivery to %s failed via %s:%s — Error: %s", to_email, settings.smtp_host, settings.smtp_port, exc)
         return False
 
 
