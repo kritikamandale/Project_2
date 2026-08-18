@@ -350,7 +350,12 @@ class RecommendationService:
                 )
             )
             if questionnaire is None:
-                raise ValueError(f"Questionnaire {questionnaire_id} not found or not owned by user.")
+                # Questionnaire not found — treat as optional and continue without it.
+                # This can happen if the ID was stale or from a different session.
+                logger.warning(
+                    "Questionnaire %s not found for user %s — proceeding without questionnaire context.",
+                    questionnaire_id, user.id,
+                )
 
         climate: Optional[EnvironmentProfile] = await db.scalar(
             select(EnvironmentProfile).where(EnvironmentProfile.user_id == user.id)

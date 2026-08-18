@@ -520,7 +520,10 @@ export default function ResultsPage() {
   const router = useRouter();
 
   const scanId = params.id;
-  const questionnaireId = searchParams.get("questionnaire_id") ?? undefined;
+  // Normalize empty-string to undefined so the sessionStorage key always
+  // uses "none" as the suffix — matching what /onboarding/recommendations stores.
+  const rawQid = searchParams.get("questionnaire_id");
+  const questionnaireId = rawQid && rawQid.length > 0 ? rawQid : undefined;
 
   const [state, setState] = useState<"generating" | "ready" | "error">("generating");
   const [recommendation, setRecommendation] = useState<RecommendationDetail | null>(null);
@@ -532,50 +535,50 @@ export default function ResultsPage() {
     initialized.current = true;
 
     async function init() {
+      // Key must match what /onboarding/recommendations page stored:
+      // `rec_${scanId}_${questionnaireId ?? "none"}`
       const storageKey = `rec_${scanId}_${questionnaireId ?? "none"}`;
       const cachedId = typeof window !== "undefined" ? sessionStorage.getItem(storageKey) : null;
 
       try {
         let detail: RecommendationDetail | null = null;
 
+        // 1. Try the cached recommendation ID from sessionStorage (set by /onboarding/recommendations).
         if (cachedId) {
           try {
             detail = await getRecommendation(cachedId);
           } catch {
-            /* cache miss — fallback below */
+            /* cache miss or stale — continue to fallbacks */
           }
         }
 
+        // 2. Try fetching the latest recommendation for this user (avoids re-running the AI engine).
         if (!detail) {
           try {
-            // First try fetching by ID directly (in case URL param is recommendation ID)
-            detail = await getRecommendation(scanId);
+            detail = await getLatestRecommendation();
           } catch {
-            // Otherwise generate fresh for this scan_id
-            const genRes = await generateRecommendation({
-              scan_id: scanId,
-              questionnaire_id: questionnaireId,
-            });
-            if (typeof window !== "undefined") {
-              sessionStorage.setItem(storageKey, genRes.recommendation_id);
-            }
-            detail = await getRecommendation(genRes.recommendation_id);
+            /* no recommendations yet — generate one below */
           }
+        }
+
+        // 3. Nothing found — generate fresh for this scan_id.
+        if (!detail) {
+          const genRes = await generateRecommendation({
+            scan_id: scanId,
+            questionnaire_id: questionnaireId,
+          });
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem(storageKey, genRes.recommendation_id);
+          }
+          detail = await getRecommendation(genRes.recommendation_id);
         }
 
         setRecommendation(detail);
         setState("ready");
-      } catch {
-        // Fallback: show latest recommendation if available
-        try {
-          const latest = await getLatestRecommendation();
-          setRecommendation(latest);
-          setState("ready");
-        } catch (err2: unknown) {
-          const msg = err2 instanceof Error ? err2.message : "Failed to load recommendation.";
-          setErrorMsg(msg);
-          setState("error");
-        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to load recommendation.";
+        setErrorMsg(msg);
+        setState("error");
       }
     }
 

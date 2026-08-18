@@ -87,9 +87,10 @@ function OnboardingRecommendationsPageInner() {
 
         // Open the gate in the JWT, then show the full roadmap on the results screen.
         await update({ onboardingStatus: "completed" });
-        router.replace(
-          `/results/${scanId}?questionnaire_id=${questionnaireId ?? ""}`,
-        );
+        const resultsUrl = questionnaireId
+          ? `/results/${scanId}?questionnaire_id=${questionnaireId}`
+          : `/results/${scanId}`;
+        router.replace(resultsUrl);
       } catch (e) {
         setError((e as Error).message ?? "Failed to generate your recommendations.");
       }
