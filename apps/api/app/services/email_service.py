@@ -1,8 +1,14 @@
 """
-Async email service — sends transactional emails via Resend.
+Async email service — sends transactional emails.
 
-Free-tier note: onboarding@resend.dev can only deliver to the Resend account-owner email.
-In development the OTP/reset link is ALWAYS printed to the terminal so any test account works.
+Priority order:
+  1. Brevo HTTP API  (recommended for Railway — 300 free emails/day to ANY address)
+  2. SMTP            (blocked by Railway but works locally)
+  3. Resend API      (free tier only delivers to account-owner email)
+  4. Terminal log    (always shown in development as a safe fallback)
+
+Set BREVO_API_KEY in Railway environment variables to enable Brevo.
+Sign up free at https://app.brevo.com — no domain or credit card needed.
 """
 
 import asyncio
@@ -16,10 +22,41 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Internal send helpers (SMTP & Resend)
+# Internal send helpers
 # ---------------------------------------------------------------------------
 
+async def _send_brevo(to_email: str, subject: str, html_body: str, plain_body: str = "") -> bool:
+    """Send via Brevo HTTP API — works on Railway (no SMTP port blocking)."""
+    if not settings.brevo_api_key:
+        return False
+    import httpx
+    payload = {
+        "sender": {"name": settings.email_from_name, "email": settings.email_from},
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "htmlContent": html_body,
+    }
+    if plain_body:
+        payload["textContent"] = plain_body
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                "https://api.brevo.com/v3/smtp/email",
+                json=payload,
+                headers={"api-key": settings.brevo_api_key, "Content-Type": "application/json"},
+            )
+        if resp.status_code in (200, 201):
+            logger.info("Email sent via Brevo to %s", to_email)
+            return True
+        logger.error("Brevo API error %s: %s", resp.status_code, resp.text)
+        return False
+    except Exception as exc:
+        logger.error("Brevo delivery to %s failed: %s", to_email, exc)
+        return False
+
+
 async def _send_smtp(to_email: str, subject: str, html_body: str, plain_body: str = "") -> bool:
+    """SMTP fallback — works locally but blocked by Railway."""
     if not settings.smtp_host:
         return False
 
@@ -47,14 +84,9 @@ async def _send_smtp(to_email: str, subject: str, html_body: str, plain_body: st
                 if smtp_user and smtp_pass:
                     server.login(smtp_user, smtp_pass)
                 server.sendmail(smtp_user, [to_email], msg.as_string())
-        elif settings.smtp_use_tls or port == 587:
-            with smtplib.SMTP(smtp_host, port, timeout=12) as server:
-                server.starttls()
-                if smtp_user and smtp_pass:
-                    server.login(smtp_user, smtp_pass)
-                server.sendmail(smtp_user, [to_email], msg.as_string())
         else:
             with smtplib.SMTP(smtp_host, port, timeout=12) as server:
+                server.starttls()
                 if smtp_user and smtp_pass:
                     server.login(smtp_user, smtp_pass)
                 server.sendmail(smtp_user, [to_email], msg.as_string())
@@ -64,18 +96,22 @@ async def _send_smtp(to_email: str, subject: str, html_body: str, plain_body: st
         logger.info("Email sent via SMTP (%s) to %s", settings.smtp_host, to_email)
         return True
     except Exception as exc:
-        logger.error("SMTP delivery to %s failed via %s:%s — Error: %s", to_email, settings.smtp_host, settings.smtp_port, exc)
+        logger.error("SMTP delivery to %s failed: %s", to_email, exc)
         return False
 
 
 async def _send(to_email: str, subject: str, html_body: str, plain_body: str = "") -> None:
     sent = False
 
-    # 1. Try SMTP if configured (e.g., Gmail SMTP sends to ANY address for free)
-    if settings.smtp_host:
+    # 1. Brevo HTTP API (best for Railway — not blocked)
+    if not sent:
+        sent = await _send_brevo(to_email, subject, html_body, plain_body)
+
+    # 2. SMTP fallback (works locally, blocked by Railway)
+    if not sent and settings.smtp_host:
         sent = await _send_smtp(to_email, subject, html_body, plain_body)
 
-    # 2. Fallback to Resend if SMTP is not set or failed
+    # 3. Resend fallback (free tier restricted to account-owner email only)
     if not sent and settings.resend_api_key:
         resend.api_key = settings.resend_api_key
         params: resend.Emails.SendParams = {
@@ -91,7 +127,7 @@ async def _send(to_email: str, subject: str, html_body: str, plain_body: str = "
         except Exception as exc:
             logger.warning("Resend could not deliver to %s: %s", to_email, exc)
 
-    # In development or if no remote provider succeeded, log to stdout/terminal
+    # Always log to terminal in development
     if not sent or settings.is_development:
         msg = (
             f"\n========== DEV EMAIL LOG ==========\n"

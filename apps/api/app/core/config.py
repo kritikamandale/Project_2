@@ -204,16 +204,18 @@ class Settings(BaseSettings):
     sentry_traces_sample_rate: float = 0.1
 
     # -------------------------------------------------------------------------
-    # Email — Resend or SMTP (Gmail / Brevo / standard SMTP)
-    # Resend free tier (onboarding@resend.dev) only delivers to the Resend owner email.
-    # To send to ANY email address for free without buying a domain, configure Gmail SMTP:
-    # SMTP_HOST=smtp.gmail.com, SMTP_PORT=587, SMTP_USER=your@gmail.com, SMTP_PASSWORD=app_password
+    # Email — Brevo HTTP API (recommended for Railway) or SMTP or Resend
+    # Brevo free tier: 300 emails/day to ANY address, no domain needed.
+    # Sign up at https://app.brevo.com and copy your SMTP & API Keys -> API Keys
     # -------------------------------------------------------------------------
+    brevo_api_key: str = ""
+
+    # Resend or SMTP (fallback — SMTP is blocked by Railway)
     resend_api_key: str = ""
     email_from: str = "onboarding@resend.dev"
     email_from_name: str = "Skinest"
 
-    # SMTP configuration
+    # SMTP configuration (works locally, NOT on Railway)
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""

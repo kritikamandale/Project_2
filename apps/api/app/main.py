@@ -185,60 +185,73 @@ async def health_check():
 @app.get("/test-email", tags=["health"])
 async def test_email(to: str = ""):
     """
-    Diagnostic endpoint — tests your SMTP configuration live.
+    Diagnostic endpoint — tests your email configuration live.
     Usage: GET /test-email?to=youremail@gmail.com
-    Returns the exact success or error message so you can fix config quickly.
+    Tests Brevo first (works on Railway), then SMTP.
     """
     if not to or "@" not in to:
         return {
             "error": "Please pass ?to=youremail@example.com in the URL",
+            "brevo_api_key_set": bool(settings.brevo_api_key),
             "smtp_host": settings.smtp_host or "(not set)",
             "smtp_port": settings.smtp_port,
             "smtp_user": settings.smtp_user or "(not set)",
-            "smtp_password_set": bool(settings.smtp_password),
             "email_from": settings.email_from,
         }
 
-    import smtplib
-    smtp_user = (settings.smtp_user or settings.email_from).strip()
-    smtp_pass = settings.smtp_password.replace(" ", "").strip()
-    smtp_host = settings.smtp_host.strip() if settings.smtp_host else ""
-    port = settings.smtp_port or 587
-
     config_info = {
-        "smtp_host": smtp_host or "(not set)",
-        "smtp_port": port,
-        "smtp_user": smtp_user or "(not set)",
-        "smtp_password_length": len(smtp_pass),
+        "brevo_api_key_set": bool(settings.brevo_api_key),
+        "smtp_host": settings.smtp_host or "(not set)",
+        "smtp_port": settings.smtp_port,
+        "smtp_user": settings.smtp_user or "(not set)",
+        "smtp_password_length": len(settings.smtp_password.replace(" ", "")),
         "email_from": settings.email_from,
         "sending_to": to,
     }
 
-    if not smtp_host:
-        return {"result": "SKIP — SMTP_HOST is not set", **config_info}
+    # ---- Test Brevo first (HTTP API — not blocked by Railway) ----
+    if settings.brevo_api_key:
+        import httpx
+        payload = {
+            "sender": {"name": settings.email_from_name, "email": settings.email_from},
+            "to": [{"email": to}],
+            "subject": "Skinest Email Test (Brevo)",
+            "textContent": "This is a test email from your Skinest backend via Brevo. It is working correctly!",
+        }
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.post(
+                    "https://api.brevo.com/v3/smtp/email",
+                    json=payload,
+                    headers={"api-key": settings.brevo_api_key, "Content-Type": "application/json"},
+                )
+            if resp.status_code in (200, 201):
+                return {"result": "SUCCESS via Brevo! Check your inbox (and spam).", "brevo_response": resp.json(), **config_info}
+            return {"result": "FAIL — Brevo API error", "status_code": resp.status_code, "brevo_error": resp.text, **config_info}
+        except Exception as e:
+            return {"result": f"FAIL — Brevo exception: {type(e).__name__}", "error": str(e), **config_info}
 
+    # ---- SMTP fallback ----
+    import smtplib
+    smtp_host = settings.smtp_host.strip() if settings.smtp_host else ""
+    if not smtp_host:
+        return {"result": "SKIP — Neither BREVO_API_KEY nor SMTP_HOST is set in Railway", **config_info}
+
+    smtp_user = (settings.smtp_user or settings.email_from).strip()
+    smtp_pass = settings.smtp_password.replace(" ", "").strip()
+    port = settings.smtp_port or 587
     try:
         if port == 465:
             with smtplib.SMTP_SSL(smtp_host, port, timeout=12) as server:
                 if smtp_user and smtp_pass:
                     server.login(smtp_user, smtp_pass)
-                server.sendmail(
-                    smtp_user, [to],
-                    f"Subject: Skinest SMTP Test\n\nThis is a test email from your Skinest backend. SMTP is working correctly!"
-                )
+                server.sendmail(smtp_user, [to], "Subject: Skinest SMTP Test\n\nSMTP is working!")
         else:
             with smtplib.SMTP(smtp_host, port, timeout=12) as server:
                 server.starttls()
                 if smtp_user and smtp_pass:
                     server.login(smtp_user, smtp_pass)
-                server.sendmail(
-                    smtp_user, [to],
-                    f"Subject: Skinest SMTP Test\n\nThis is a test email from your Skinest backend. SMTP is working correctly!"
-                )
-        return {"result": "SUCCESS — email sent! Check your inbox (and spam folder).", **config_info}
-    except smtplib.SMTPAuthenticationError as e:
-        return {"result": "FAIL — Authentication error (wrong email/password?)", "error": str(e), **config_info}
-    except smtplib.SMTPConnectError as e:
-        return {"result": "FAIL — Cannot connect to SMTP server (wrong host/port?)", "error": str(e), **config_info}
+                server.sendmail(smtp_user, [to], "Subject: Skinest SMTP Test\n\nSMTP is working!")
+        return {"result": "SUCCESS via SMTP! Check your inbox (and spam).", **config_info}
     except Exception as e:
-        return {"result": f"FAIL — {type(e).__name__}", "error": str(e), **config_info}
+        return {"result": f"FAIL — {type(e).__name__} (Railway blocks SMTP — set BREVO_API_KEY instead)", "error": str(e), **config_info}
