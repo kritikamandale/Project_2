@@ -291,48 +291,53 @@ async def register_user(
 ) -> User:
     """
     Create a new USER-role account.
-    Raises ValueError with a user-facing message on invalid input.
+    If the email exists and is already verified, raises ValueError.
+    If the email exists but is NOT verified, updates password & sends fresh OTP.
     """
     if is_disposable_email(body.email):
         raise ValueError("Disposable email addresses are not allowed")
     if is_common_password(body.password):
         raise ValueError("Password is too common. Please choose a more secure password")
 
-    email = body.email.lower()
+    email = body.email.lower().strip()
 
-    # Uniqueness check — compare against the normalized (lowercased) email that we
-    # actually store, otherwise "Alice@x.com" slips past a check for "alice@x.com"
-    # and then trips the DB unique constraint as an uncaught 500.
-    existing = await db.execute(select(User).where(User.email == email))
-    if existing.scalar_one_or_none():
-        raise ValueError("An account with this email already exists")
+    existing_result = await db.execute(select(User).where(User.email == email))
+    existing_user = existing_result.scalar_one_or_none()
 
-    user = User(
-        email=email,
-        hashed_password=hash_password(body.password),
-        full_name=body.full_name,
-        role="USER",
-        is_verified=False,
-        is_active=True,
-    )
-    db.add(user)
-    await db.flush()  # get user.id
+    if existing_user:
+        if existing_user.is_verified:
+            raise ValueError("An account with this email already exists. Please log in.")
+        # Account exists but is unverified — update credentials and resend verification OTP
+        existing_user.hashed_password = hash_password(body.password)
+        existing_user.full_name = body.full_name
+        user = existing_user
+    else:
+        user = User(
+            email=email,
+            hashed_password=hash_password(body.password),
+            full_name=body.full_name,
+            role="USER",
+            is_verified=False,
+            is_active=True,
+        )
+        db.add(user)
+        await db.flush()  # get user.id
 
-    # Record consent timestamp (DPDP Act Section 6 requirement)
-    db.add(UserProfile(
-        user_id=user.id,
-        consent_given_at=datetime.now(timezone.utc),
-        country="India",
-    ))
+        # Record consent timestamp (DPDP Act Section 6 requirement)
+        db.add(UserProfile(
+            user_id=user.id,
+            consent_given_at=datetime.now(timezone.utc),
+            country="India",
+        ))
 
     # Send OTP
-    otp = await create_verification_otp(redis, body.email.lower())
-    await send_verification_otp(body.email, body.full_name, otp)
+    otp = await create_verification_otp(redis, email)
+    await send_verification_otp(email, body.full_name, otp)
 
     await write_audit_log(
         db, "REGISTER", "users", user_id=user.id,
         entity_id=user.id, ip_address=ip_address,
-        metadata={"email": body.email, "role": "USER"},
+        metadata={"email": email, "role": "USER"},
     )
     return user
 
