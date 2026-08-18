@@ -180,3 +180,65 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.get("/health", tags=["health"])
 async def health_check():
     return {"status": "ok", "version": settings.app_version, "env": settings.environment}
+
+
+@app.get("/test-email", tags=["health"])
+async def test_email(to: str = ""):
+    """
+    Diagnostic endpoint — tests your SMTP configuration live.
+    Usage: GET /test-email?to=youremail@gmail.com
+    Returns the exact success or error message so you can fix config quickly.
+    """
+    if not to or "@" not in to:
+        return {
+            "error": "Please pass ?to=youremail@example.com in the URL",
+            "smtp_host": settings.smtp_host or "(not set)",
+            "smtp_port": settings.smtp_port,
+            "smtp_user": settings.smtp_user or "(not set)",
+            "smtp_password_set": bool(settings.smtp_password),
+            "email_from": settings.email_from,
+        }
+
+    import smtplib
+    smtp_user = (settings.smtp_user or settings.email_from).strip()
+    smtp_pass = settings.smtp_password.replace(" ", "").strip()
+    smtp_host = settings.smtp_host.strip() if settings.smtp_host else ""
+    port = settings.smtp_port or 587
+
+    config_info = {
+        "smtp_host": smtp_host or "(not set)",
+        "smtp_port": port,
+        "smtp_user": smtp_user or "(not set)",
+        "smtp_password_length": len(smtp_pass),
+        "email_from": settings.email_from,
+        "sending_to": to,
+    }
+
+    if not smtp_host:
+        return {"result": "SKIP — SMTP_HOST is not set", **config_info}
+
+    try:
+        if port == 465:
+            with smtplib.SMTP_SSL(smtp_host, port, timeout=12) as server:
+                if smtp_user and smtp_pass:
+                    server.login(smtp_user, smtp_pass)
+                server.sendmail(
+                    smtp_user, [to],
+                    f"Subject: Skinest SMTP Test\n\nThis is a test email from your Skinest backend. SMTP is working correctly!"
+                )
+        else:
+            with smtplib.SMTP(smtp_host, port, timeout=12) as server:
+                server.starttls()
+                if smtp_user and smtp_pass:
+                    server.login(smtp_user, smtp_pass)
+                server.sendmail(
+                    smtp_user, [to],
+                    f"Subject: Skinest SMTP Test\n\nThis is a test email from your Skinest backend. SMTP is working correctly!"
+                )
+        return {"result": "SUCCESS — email sent! Check your inbox (and spam folder).", **config_info}
+    except smtplib.SMTPAuthenticationError as e:
+        return {"result": "FAIL — Authentication error (wrong email/password?)", "error": str(e), **config_info}
+    except smtplib.SMTPConnectError as e:
+        return {"result": "FAIL — Cannot connect to SMTP server (wrong host/port?)", "error": str(e), **config_info}
+    except Exception as e:
+        return {"result": f"FAIL — {type(e).__name__}", "error": str(e), **config_info}
