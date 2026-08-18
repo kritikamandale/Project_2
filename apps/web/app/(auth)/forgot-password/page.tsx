@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { forgotPassword } from "@/lib/api/auth";
+import { maskEmail } from "@/lib/utils";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -108,7 +109,7 @@ export default function ForgotPasswordPage() {
                 </h3>
                 <p className="text-xs text-deep-brown/80 font-sans">
                   If an account exists for{" "}
-                  <strong>{form.getValues("email")}</strong>, a password reset
+                  <strong>{maskEmail(form.getValues("email"))}</strong>, a password reset
                   link has been sent. It expires in{" "}
                   <strong>15 minutes</strong>.
                 </p>

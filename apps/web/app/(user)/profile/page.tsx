@@ -11,6 +11,7 @@ import type { UserWithProfile, UserProfileUpdatePayload } from "@/lib/api/user";
 import { getLatestRecommendation, type RecommendationDetail } from "@/lib/api/recommendations";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { maskEmail } from "@/lib/utils";
 
 const GENDERS = ["female", "male", "non_binary", "prefer_not_to_say"] as const;
 
@@ -94,7 +95,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <h1 className="font-serif text-2xl font-bold text-deep-brown">{user.full_name}</h1>
-              <p className="text-xs font-sans font-semibold text-deep-brown/60">{user.email}</p>
+              <p className="text-xs font-sans font-semibold text-deep-brown/60">{maskEmail(user.email)}</p>
             </div>
           </div>
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-xs font-bold text-olive hover:text-olive/80 transition-colors">
@@ -217,7 +218,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-3xl p-6 border border-deep-brown/15 shadow-xs space-y-3">
           <h2 className="font-serif text-lg font-bold text-deep-brown">Account Management</h2>
           <p className="text-xs text-deep-brown/70">
-            Signed in as <span className="font-bold text-deep-brown">{session?.user?.email}</span>
+            Signed in as <span className="font-bold text-deep-brown">{session?.user?.email ? maskEmail(session.user.email) : ""}</span>
           </p>
           <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-deep-brown/10">
             <Link href="/privacy" className="text-xs text-olive hover:underline font-bold">

@@ -20,6 +20,7 @@ import {
   Settings,
 } from "lucide-react";
 import { SkinestLogo } from "@/components/shared/skinest-logo";
+import { maskEmail } from "@/lib/utils";
 
 type Area = "user" | "derm";
 
@@ -107,7 +108,7 @@ export function AppSidebar({ area }: { area: Area }) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-bold text-cream">{name}</p>
-            {email && <p className="truncate text-[11px] font-sans text-cream/60">{email}</p>}
+            {email && <p className="truncate text-[11px] font-sans text-cream/60">{maskEmail(email)}</p>}
           </div>
         </div>
         <div className="flex gap-1 mt-1">

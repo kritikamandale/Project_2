@@ -11,6 +11,7 @@ import { Mail, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { verifyEmail, resendOtp } from "@/lib/api/auth";
+import { maskEmail } from "@/lib/utils";
 
 const OTP_LENGTH = 6;
 
@@ -126,7 +127,7 @@ function VerifyEmailPageInner() {
           </h1>
           <p className="text-xs font-sans uppercase tracking-widest text-deep-brown/70 mt-1">
             Enter the 6-digit code sent to{" "}
-            <strong className="text-deep-brown">{email || "your email"}</strong>
+            <strong className="text-deep-brown">{email ? maskEmail(email) : "your email"}</strong>
           </p>
         </div>
 
@@ -197,7 +198,7 @@ function VerifyEmailPageInner() {
                       exit={{ opacity: 0 }}
                       className="text-center text-sm text-teal-600 mb-3"
                     >
-                      ✓ New code sent to {email}
+                      ✓ New code sent to {maskEmail(email)}
                     </motion.p>
                   )}
                 </AnimatePresence>
