@@ -1,6 +1,6 @@
 """
 Roadmap generation service — builds a week-by-week 20-week skincare plan
-from Claude's phased product list.
+from AI recommendation phased product list.
 
 Phase 1 (Weeks  1– 4): Basics — cleanser + moisturiser + sunscreen
 Phase 2 (Weeks  5–12): Primary treatment — add targeted actives
@@ -13,7 +13,7 @@ from typing import Optional
 
 from app.models.questionnaire import EnvironmentProfile
 from app.schemas.recommendation import (
-    ClaudeProductItem,
+    EngineProductItem,
     ConditionTimeline,
     RoadmapPhase,
     RoadmapResponse,
@@ -117,7 +117,7 @@ _ONGOING_COPY = {
 
 
 def generate_roadmap(
-    products: list[ClaudeProductItem],
+    products: list[EngineProductItem],
     conditions: list[str],
     climate: Optional[EnvironmentProfile],
 ) -> dict:
@@ -130,11 +130,11 @@ def generate_roadmap(
 
 
 def _build_roadmap(
-    products: list[ClaudeProductItem],
+    products: list[EngineProductItem],
     conditions: list[str],
     climate: Optional[EnvironmentProfile],
 ) -> RoadmapResponse:
-    by_phase: dict[int, list[ClaudeProductItem]] = {1: [], 2: [], 3: []}
+    by_phase: dict[int, list[EngineProductItem]] = {1: [], 2: [], 3: []}
     for p in products:
         by_phase.setdefault(p.phase, []).append(p)
 

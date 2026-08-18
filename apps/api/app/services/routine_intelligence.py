@@ -63,7 +63,7 @@ _OPTIONAL_DROP_ORDER = ["toner", "serum"]
 
 # ---------------------------------------------------------------------------
 # Conflicts — reuse _CONFLICT_MAP (single source of truth, shared with the
-# Claude recommendation flow). "aha"/"bha" are generic category tokens inside
+# AI Engine recommendation flow). "aha"/"bha" are generic category tokens inside
 # that map; expand them to the concrete actives our catalogue actually stores.
 # ---------------------------------------------------------------------------
 

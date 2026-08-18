@@ -22,11 +22,11 @@ class FeedbackRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Internal Claude output shape (used for parsing the LLM JSON response)
+# Internal recommendation engine output shape (used for parsing LLM response)
 # ---------------------------------------------------------------------------
 
-class ClaudeProductItem(BaseModel):
-    """One product slot inside Claude's recommendation JSON."""
+class EngineProductItem(BaseModel):
+    """One product slot inside the AI recommendation JSON."""
     category: str
     name: str
     brand: str
@@ -41,10 +41,10 @@ class ClaudeProductItem(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0, default=0.8)
 
 
-class ClaudeOutput(BaseModel):
-    """Full JSON structure Claude is asked to return."""
+class EngineOutput(BaseModel):
+    """Full JSON structure returned by the recommendation engine."""
     skin_score: float = Field(ge=0.0, le=100.0)
-    products: list[ClaudeProductItem]
+    products: list[EngineProductItem]
     morning_routine: list[str] = Field(default_factory=list)
     night_routine: list[str] = Field(default_factory=list)
     ingredients_to_use: list[str] = Field(default_factory=list)
@@ -53,6 +53,11 @@ class ClaudeOutput(BaseModel):
     dermatologist_note: str = ""
     climate_insight: str = ""
     overall_confidence: float = Field(ge=0.0, le=1.0, default=0.8)
+
+
+# Aliases for backward compatibility
+ClaudeProductItem = EngineProductItem
+ClaudeOutput = EngineOutput
 
 
 # ---------------------------------------------------------------------------

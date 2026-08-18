@@ -1,11 +1,11 @@
 """
-Recommendation engine — Claude API + Pinecone product retrieval + DB persistence.
+Recommendation engine — AI API + Pinecone product retrieval + DB persistence.
 
 Flow:
   1. Fetch scan, questionnaire, climate profile from DB
   2. Retrieve candidate products (Pinecone → PostgreSQL fallback)
-  3. Call Claude API with structured dermatologist prompt
-  4. Parse + validate Claude JSON (ingredient conflicts, allergen check)
+  3. Call AI LLM API with structured dermatologist prompt
+  4. Parse + validate AI JSON (ingredient conflicts, allergen check)
   5. Persist Recommendation + RecommendationProduct rows
   6. Queue for dermatologist review if confidence < 0.75 or diagnosed conditions
 """
@@ -34,7 +34,7 @@ from app.models.questionnaire import EnvironmentProfile, QuestionnaireResponse, 
 from app.models.recommendation import Recommendation, RecommendationProduct
 from app.models.scan import SkinScan
 from app.models.user import User
-from app.schemas.recommendation import ClaudeOutput, ClaudeProductItem
+from app.schemas.recommendation import EngineOutput, EngineProductItem
 from app.services.roadmap import generate_roadmap
 
 logger = logging.getLogger(__name__)
@@ -103,7 +103,7 @@ _CONDITION_TIMELINES: dict[str, dict] = {
 }
 
 # ---------------------------------------------------------------------------
-# Claude prompt templates
+# AI prompt templates
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """You are a board-certified dermatologist specialising in Indian skin types, Fitzpatrick skin tones, and regional microclimates across India (e.g. Rajasthan's hot & dry arid climate, Mumbai's humid coastal climate, Delhi's high pollution semi-arid climate).
@@ -274,7 +274,7 @@ _TIME_OF_DAY_ALIASES: dict[str, str] = {
 }
 
 
-def _normalize_claude_output(parsed_dict: dict) -> None:
+def _normalize_engine_output(parsed_dict: dict) -> None:
     for product in parsed_dict.get("products") or []:
         raw = str(product.get("time_of_day", "")).strip().lower()
         product["time_of_day"] = _TIME_OF_DAY_ALIASES.get(raw, "both")
@@ -364,15 +364,15 @@ class RecommendationService:
         candidates_orm = await self._retrieve_candidates(scan, questionnaire, climate, db)
         candidates_dicts = _products_to_dicts(candidates_orm)
 
-        # 4. Call Claude
-        claude_output = await self._call_claude(scan, questionnaire, routine, climate, user, candidates_dicts)
+        # 4. Call AI engine
+        engine_output = await self._call_engine(scan, questionnaire, routine, climate, user, candidates_dicts)
 
-        # 5. Match Claude names back to DB products
-        matched_products = _match_products_to_db(claude_output.products, candidates_orm)
+        # 5. Match AI generated names back to DB products
+        matched_products = _match_products_to_db(engine_output.products, candidates_orm)
 
         # 6. Validate
         allergen_flags = _check_allergens(matched_products, routine)
-        ingredient_conflicts = _check_ingredient_conflicts(claude_output.products)
+        ingredient_conflicts = _check_ingredient_conflicts(engine_output.products)
         if ingredient_conflicts:
             logger.warning(
                 "Ingredient conflicts detected for user %s — flagging for derm review: %s",
@@ -385,9 +385,6 @@ class RecommendationService:
         # 8. Determine if derm review needed
         diagnosed = questionnaire.diagnosed_conditions if questionnaire else None
 
-        # Free text that goes straight into the LLM prompt — if any of it reads
-        # like an attempt to override the system prompt, don't trust the
-        # model's own self-reported confidence for this request; force review.
         free_text_inputs = [
             routine.known_allergens_text if routine else None,
             questionnaire.medication_name_text if questionnaire and hasattr(questionnaire, "medication_name_text") else None,
@@ -398,20 +395,19 @@ class RecommendationService:
             logger.warning("Possible prompt-injection attempt in free text for user %s — forcing derm review.", user.id)
 
         needs_review = (
-            claude_output.overall_confidence < 0.75
+            engine_output.overall_confidence < 0.75
             or bool(diagnosed and any(d not in ("none", "prefer_not_to_say") for d in diagnosed))
             or bool(allergen_flags)
-            or bool(ingredient_conflicts)  # unsafe combos always require derm review
+            or bool(ingredient_conflicts)
             or injection_suspected
         )
 
-        # Merge conflict info into allergen_flags so the UI surfaces them
         if ingredient_conflicts:
             allergen_flags = list(allergen_flags) + [f"Ingredient conflict: {c}" for c in ingredient_conflicts]
 
         # 9. Build roadmap JSON
         roadmap_dict = generate_roadmap(
-            products=claude_output.products,
+            products=engine_output.products,
             conditions=[c.condition_name for c in (scan.conditions or []) if c.severity != "none"],
             climate=climate,
         )
@@ -421,7 +417,7 @@ class RecommendationService:
             scan=scan,
             questionnaire=questionnaire,
             user=user,
-            claude_output=claude_output,
+            engine_output=engine_output,
             matched_products=matched_products,
             roadmap_dict=roadmap_dict,
             allergen_flags=allergen_flags,
@@ -541,7 +537,7 @@ class RecommendationService:
 
         return list(collected_products.values())[:top_k]
 
-    async def _call_claude(
+    async def _call_engine(
         self,
         scan: SkinScan,
         questionnaire: Optional[QuestionnaireResponse],
@@ -549,7 +545,7 @@ class RecommendationService:
         climate: Optional[EnvironmentProfile],
         user: User,
         candidates: list[dict],
-    ) -> ClaudeOutput:
+    ) -> EngineOutput:
         if settings.groq_api_key:
             user_prompt = _build_user_prompt(scan, questionnaire, routine, climate, user, candidates)
             try:
@@ -561,8 +557,8 @@ class RecommendationService:
                     max_tokens=settings.groq_max_tokens,
                 )
                 parsed_dict = json.loads(raw_text)
-                _normalize_claude_output(parsed_dict)
-                return ClaudeOutput(**parsed_dict)
+                _normalize_engine_output(parsed_dict)
+                return EngineOutput(**parsed_dict)
             except Exception as exc:
                 logger.warning("Groq API call failed or returned invalid JSON (%s) — using expert dynamic fallback generator.", exc)
 
@@ -574,8 +570,8 @@ class RecommendationService:
         scan: SkinScan,
         questionnaire: Optional[QuestionnaireResponse],
         user: User,
-        claude_output: ClaudeOutput,
-        matched_products: list[tuple[ClaudeProductItem, Optional[Product]]],
+        engine_output: EngineOutput,
+        matched_products: list[tuple[EngineProductItem, Optional[Product]]],
         roadmap_dict: dict,
         allergen_flags: list[str],
         monthly_cost: Optional[float],
@@ -583,13 +579,13 @@ class RecommendationService:
         db: AsyncSession,
     ) -> Recommendation:
         metadata = {
-            "lifestyle_tips": claude_output.lifestyle_tips,
-            "ingredients_to_use": claude_output.ingredients_to_use,
-            "ingredients_to_avoid": claude_output.ingredients_to_avoid,
-            "dermatologist_note": claude_output.dermatologist_note,
-            "climate_insight": claude_output.climate_insight,
-            "morning_routine": claude_output.morning_routine,
-            "night_routine": claude_output.night_routine,
+            "lifestyle_tips": engine_output.lifestyle_tips,
+            "ingredients_to_use": engine_output.ingredients_to_use,
+            "ingredients_to_avoid": engine_output.ingredients_to_avoid,
+            "dermatologist_note": engine_output.dermatologist_note,
+            "climate_insight": engine_output.climate_insight,
+            "morning_routine": engine_output.morning_routine,
+            "night_routine": engine_output.night_routine,
         }
 
         rec = Recommendation(
@@ -598,10 +594,10 @@ class RecommendationService:
             scan_id=scan.id,
             questionnaire_id=questionnaire.id if questionnaire else None,
             recommendation_engine_version="2.0",
-            ai_reasoning=claude_output.dermatologist_note,
+            ai_reasoning=engine_output.dermatologist_note,
             roadmap_weeks=20,
-            skin_score=claude_output.skin_score,
-            confidence_score=claude_output.overall_confidence,
+            skin_score=engine_output.skin_score,
+            confidence_score=engine_output.overall_confidence,
             estimated_monthly_cost_inr=monthly_cost,
             roadmap_json=roadmap_dict,
             allergen_flags=allergen_flags or None,
@@ -611,7 +607,7 @@ class RecommendationService:
         db.add(rec)
         await db.flush()  # populate rec.id
 
-        for order, (claude_item, product) in enumerate(matched_products):
+        for order, (engine_item, product) in enumerate(matched_products):
             if product is None:
                 continue
             rp = RecommendationProduct(
@@ -619,13 +615,13 @@ class RecommendationService:
                 recommendation_id=rec.id,
                 product_id=product.id,
                 order_in_routine=order,
-                start_week=claude_item.start_week,
-                reason_text=claude_item.reason,
-                is_mandatory=claude_item.phase == 1,
-                phase=claude_item.phase,
-                highlighted_ingredient=claude_item.key_ingredient,
-                usage_instruction=claude_item.usage,
-                time_of_day=claude_item.time_of_day,
+                start_week=engine_item.start_week,
+                reason_text=engine_item.reason,
+                is_mandatory=engine_item.phase == 1,
+                phase=engine_item.phase,
+                highlighted_ingredient=engine_item.key_ingredient,
+                usage_instruction=engine_item.usage,
+                time_of_day=engine_item.time_of_day,
             )
             db.add(rp)
 
@@ -633,7 +629,7 @@ class RecommendationService:
         if needs_review and settings.enable_dermatologist_review:
             priority = (
                 "high"
-                if allergen_flags or claude_output.overall_confidence < 0.6
+                if allergen_flags or engine_output.overall_confidence < 0.6
                 else "normal"
             )
             queue_entry = ReviewQueue(
@@ -661,7 +657,7 @@ class RecommendationService:
                 user_id=user.id,
                 scan_id=scan.id,
                 scan_number=scan_number,
-                overall_score=getattr(scan, "overall_score", None) or claude_output.skin_score,
+                overall_score=getattr(scan, "overall_score", None) or engine_output.skin_score,
                 notes=f"Automatic progress log for scan #{scan_number}",
             )
             db.add(progress_scan)
@@ -710,7 +706,7 @@ def _build_deterministic_fallback(
     questionnaire: Optional[QuestionnaireResponse],
     climate: Optional[EnvironmentProfile],
     candidates: list[dict],
-) -> ClaudeOutput:
+) -> EngineOutput:
     """
     Expert rule-based dynamic generator.
     Runs if LLM API is unavailable, ensuring 100% dynamic, tailored recommendations
@@ -749,13 +745,13 @@ def _build_deterministic_fallback(
     for cat in by_cat:
         by_cat[cat].sort(key=score_prod, reverse=True)
 
-    selected_items: list[ClaudeProductItem] = []
+    selected_items: list[EngineProductItem] = []
 
     # 1. Cleanser (Phase 1)
     cleansers = by_cat.get("cleanser", [])
     if cleansers:
         c = cleansers[0]
-        selected_items.append(ClaudeProductItem(
+        selected_items.append(EngineProductItem(
             category="cleanser",
             name=c["product_name"],
             brand=c.get("brand_display") or c["brand"],
@@ -774,7 +770,7 @@ def _build_deterministic_fallback(
     moisturisers = by_cat.get("moisturiser", [])
     if moisturisers:
         m = moisturisers[0]
-        selected_items.append(ClaudeProductItem(
+        selected_items.append(EngineProductItem(
             category="moisturiser",
             name=m["product_name"],
             brand=m.get("brand_display") or m["brand"],
@@ -793,7 +789,7 @@ def _build_deterministic_fallback(
     sunscreens = by_cat.get("sunscreen", [])
     if sunscreens:
         s = sunscreens[0]
-        selected_items.append(ClaudeProductItem(
+        selected_items.append(EngineProductItem(
             category="sunscreen",
             name=s["product_name"],
             brand=s.get("brand_display") or s["brand"],
@@ -812,7 +808,7 @@ def _build_deterministic_fallback(
     serums = by_cat.get("serum", []) or by_cat.get("treatment", [])
     if serums:
         sr = serums[0]
-        selected_items.append(ClaudeProductItem(
+        selected_items.append(EngineProductItem(
             category=sr.get("category", "serum"),
             name=sr["product_name"],
             brand=sr.get("brand_display") or sr["brand"],
@@ -839,7 +835,7 @@ def _build_deterministic_fallback(
         f"Step 3: Moisturise with {selected_items[1].name}" if len(selected_items) > 1 else "Step 3: Moisturise",
     ]
 
-    return ClaudeOutput(
+    return EngineOutput(
         skin_score=78.0,
         overall_confidence=0.91,
         products=selected_items,
@@ -878,16 +874,16 @@ def _products_to_dicts(products: list[Product]) -> list[dict]:
 
 
 def _match_products_to_db(
-    claude_items: list[ClaudeProductItem],
+    engine_items: list[EngineProductItem],
     candidates: list[Product],
-) -> list[tuple[ClaudeProductItem, Optional[Product]]]:
+) -> list[tuple[EngineProductItem, Optional[Product]]]:
     name_map = {p.product_name.lower(): p for p in candidates}
     brand_map: dict[str, list[Product]] = {}
     for p in candidates:
         brand_map.setdefault(p.brand.lower(), []).append(p)
 
-    results: list[tuple[ClaudeProductItem, Optional[Product]]] = []
-    for item in claude_items:
+    results: list[tuple[EngineProductItem, Optional[Product]]] = []
+    for item in engine_items:
         # Exact name match
         match = name_map.get(item.name.lower())
 
@@ -912,7 +908,7 @@ def _match_products_to_db(
 
 
 def _check_allergens(
-    matched: list[tuple[ClaudeProductItem, Optional[Product]]],
+    matched: list[tuple[EngineProductItem, Optional[Product]]],
     routine: Optional[SkincareRoutineCurrent],
 ) -> list[str]:
     if not routine or not routine.known_allergens_text:
@@ -929,7 +925,7 @@ def _check_allergens(
     return flagged
 
 
-def _check_ingredient_conflicts(items: list[ClaudeProductItem]) -> list[str]:
+def _check_ingredient_conflicts(items: list[EngineProductItem]) -> list[str]:
     """Log (don't raise) ingredient conflicts — informational only."""
     all_ingredients = []
     for item in items:
@@ -946,7 +942,7 @@ def _check_ingredient_conflicts(items: list[ClaudeProductItem]) -> list[str]:
 
 
 def _estimate_monthly_cost(
-    matched: list[tuple[ClaudeProductItem, Optional[Product]]],
+    matched: list[tuple[EngineProductItem, Optional[Product]]],
 ) -> Optional[float]:
     prices = [p.price_inr for _, p in matched if p and p.price_inr]
     return round(sum(prices), 2) if prices else None

@@ -58,7 +58,7 @@ All endpoints require `Authorization: Bearer <access_token>` unless marked **Pub
 | Method | Path | Description | Role |
 |--------|------|-------------|------|
 | GET | `/recommendations/{scan_id}` | Get full recommendation for a scan | USER+ |
-| POST | `/recommendations/{scan_id}/regenerate` | Force re-run Claude engine | USER+ |
+| POST | `/recommendations/{scan_id}/regenerate` | Force re-run AI recommendation engine | USER+ |
 | GET | `/recommendations/{scan_id}/routine` | Get morning/night routine only | USER+ |
 
 ---

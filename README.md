@@ -149,7 +149,7 @@ See [docs/DATA_PRIVACY.md](docs/DATA_PRIVACY.md) for full compliance details.
 
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS, shadcn/ui, Framer Motion
 - **Backend**: FastAPI, Pydantic v2, SQLAlchemy 2.0
-- **AI/ML**: TensorFlow.js (in-browser), scikit-learn + OpenCV (server), Claude API (recommendations)
+- **AI/ML**: TensorFlow.js (in-browser), scikit-learn + OpenCV (server), Groq LLM API (recommendations)
 - **Databases**: PostgreSQL 15, Redis 7, Pinecone (vectors)
 - **Auth**: NextAuth.js v5 (JWT + refresh token rotation)
 - **Storage**: AWS S3 (ephemeral — Mumbai region)

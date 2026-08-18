@@ -163,7 +163,7 @@ async def generate_recommendation(
 ):
     """
     Run the full recommendation engine for a scan.
-    Combines scan results + questionnaire + climate profile → Claude AI → 20-week roadmap.
+    Combines scan results + questionnaire + climate profile → AI Engine → 20-week roadmap.
     """
     try:
         rec = await _service.generate_recommendation(

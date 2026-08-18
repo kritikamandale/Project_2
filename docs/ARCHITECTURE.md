@@ -40,8 +40,8 @@ The platform is a **monorepo** containing a Next.js 14 frontend and a FastAPI ba
                     └────────┘  └─────────┘  └──────────────┘  └───────────────┘
                                                                         │
                                                               ┌─────────▼──────────┐
-                                                              │   Claude API        │
-                                                              │ (Anthropic SDK)     │
+                                                              ┌─────────────────────┐
+                                                              │   Groq AI Engine    │
                                                               │ Recommendation Eng. │
                                                               └─────────────────────┘
 ```
@@ -80,13 +80,13 @@ The platform is a **monorepo** containing a Next.js 14 frontend and a FastAPI ba
    └─▶ POST /api/v1/questionnaire → stored in PostgreSQL
    └─▶ Climate data fetched from OpenWeatherMap by user's city (cached Redis)
 
-6. RECOMMENDATION ENGINE (Claude API)
+6. RECOMMENDATION ENGINE (Groq AI Engine)
    └─▶ FastAPI builds structured prompt:
        - Skin analysis results
        - Questionnaire answers
        - Climate/AQI data
        - User profile (age, gender, skin tone)
-   └─▶ Claude API (claude-sonnet-4-6) returns:
+   └─▶ Groq LLM API returns:
        - 3 product recommendations per category
        - Ingredients to use / avoid
        - Morning & night skincare routine
@@ -128,7 +128,7 @@ questionnaire_responses
   current_products[], submitted_at
 
 recommendations
-  id, scan_id, user_id, claude_response{}, products[], routine{},
+  id, scan_id, user_id, ai_response{}, products[], routine{},
   lifestyle_changes[], dermatologist_approved, approved_by, created_at
 
 products
@@ -176,11 +176,11 @@ Protected route ──▶ middleware.ts checks session
 - **Model**: Gradient Boosting Classifier
 - **Purpose**: Cross-validate TF.js result; catch adversarial/poor lighting inputs
 
-### Recommendation Engine (Claude API)
-- **Model**: claude-sonnet-4-6
+### Recommendation Engine (Groq AI Engine)
+- **Model**: Llama-3.3-70b / DeepSeek-r1
 - **Prompt strategy**: Structured JSON context + chain-of-thought reasoning
 - **Output schema**: Validated with Pydantic before storage
-- **Fallback**: Pre-computed rule-based recommendations if Claude is unavailable
+- **Fallback**: Pre-computed rule-based recommendations if AI Engine is unavailable
 
 ---
 

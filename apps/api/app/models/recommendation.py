@@ -40,14 +40,14 @@ class Recommendation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # --- Phase 6 additions ---
     skin_score: Mapped[Optional[float]] = mapped_column(Float)              # 0–100 overall health
-    confidence_score: Mapped[Optional[float]] = mapped_column(Float)        # 0–1 Claude confidence
+    confidence_score: Mapped[Optional[float]] = mapped_column(Float)        # 0–1 AI Engine confidence
     estimated_monthly_cost_inr: Mapped[Optional[float]] = mapped_column(Float)
-    roadmap_json: Mapped[Optional[dict]] = mapped_column(JSONB)             # week-by-week roadmap
-    allergen_flags: Mapped[Optional[list]] = mapped_column(JSONB)           # flagged product names
+    roadmap_json: Mapped[Optional[dict]] = mapped_column(JSONB)             # 20-week week-by-week structure
+    allergen_flags: Mapped[Optional[list]] = mapped_column(JSONB)           # Ingredient conflict / allergen warnings
     requires_derm_review: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     feedback_rating: Mapped[Optional[int]] = mapped_column(Integer)         # 1–5
     feedback_text: Mapped[Optional[str]] = mapped_column(Text)
-    # Extra Claude output fields stored as JSON
+    # Extra AI Engine output fields stored as JSON
     metadata_json: Mapped[Optional[dict]] = mapped_column(JSONB)
     # ^ contains: lifestyle_tips, ingredients_to_use, ingredients_to_avoid,
     #             dermatologist_note, climate_insight, morning_routine, night_routine

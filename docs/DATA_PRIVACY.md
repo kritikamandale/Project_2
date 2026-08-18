@@ -83,7 +83,7 @@ Capture ──▶ On-device TF.js analysis ──▶ 512-dim feature vector + la
 | Processor | Data Shared | Purpose |
 |-----------|-------------|---------|
 | AWS S3 (Mumbai) | Temporary face image | Ephemeral storage during analysis |
-| Anthropic (Claude) | Skin analysis text results, questionnaire | Recommendation generation — no images sent |
+| AI LLM Engine | Skin analysis text results, questionnaire | Recommendation generation — no images sent |
 | Pinecone | Product text embeddings | Vector similarity search — no user data |
 | SendGrid | Email address | Transactional email |
 | Sentry | Error stack traces (no PII) | Error monitoring |
