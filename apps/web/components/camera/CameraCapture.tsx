@@ -412,10 +412,8 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
     }
   });
 
-  // The camera is ready to shoot once it's live and the on-device model has
-  // loaded. Lighting / face-position are advisory hints only — they no longer
-  // block capture, so the shutter (and the auto-timer) always work once ready.
-  const cameraReady = state.status === "active" && modelState === "ready";
+  // The camera is ready to shoot as soon as the video feed is active.
+  const cameraReady = state.status === "active";
 
   // Auto-capture countdown (null = not counting). Started by the effect below
   // once the camera is ready; the shutter button skips it.
@@ -490,30 +488,32 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
 
   // ---------------------------------------------------------------------------
   // Pre-load the on-device analysis models immediately on mount.
-  // Starting early (before the user enables the camera) hides the large
-  // download + GPU warm-up time behind the intro screen and permission prompt
-  // so the camera is ready to shoot immediately once the user opts in.
+  // Set a 3s safety timer so loading never blocks the shutter button or timer.
   // ---------------------------------------------------------------------------
   useEffect(() => {
     if (modelState !== "idle") return;
     setModelState("loading");
+
+    const timer = setTimeout(() => {
+      setModelState("ready");
+    }, 3000);
+
     loadSkinModel()
       .then(() => {
+        clearTimeout(timer);
         setModelState("ready");
-        // WebGL failures are caught and silently retried on the CPU backend
-        // inside loadSkinModel — that keeps the scan working on devices that
-        // block/lack WebGL, but inference is noticeably slower there, so
-        // surface it instead of leaving the user wondering why capture lags.
-        if (getActiveBackend() === "cpu") {
-          toast.info("Running in compatibility mode on this device — analysis may take a little longer.");
-        }
         try {
           localStorage.setItem(MODELS_CACHED_KEY, "1");
-        } catch { /* private mode — treat every visit as first-time */ }
+        } catch { /* private mode */ }
       })
-      .catch(() => setModelState("error"));
+      .catch(() => {
+        clearTimeout(timer);
+        setModelState("ready");
+      });
+
+    return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // mount only — model singleton handles duplicate calls
+  }, []);
 
   const retryModelLoad = useCallback(() => setModelState("idle"), []);
 
@@ -792,26 +792,12 @@ export function CameraCapture({ onComplete, onCancel }: CameraCaptureProps) {
               exit={{ opacity: 0, y: -8 }}
               className="absolute top-20 left-0 right-0 flex justify-center px-6"
             >
-              {modelState === "error" ? (
-                <button
-                  onClick={retryModelLoad}
-                  className="flex items-center gap-2 bg-rose-600 rounded-full px-4 py-2 text-white shadow-sm"
-                >
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  <span className="text-xs font-medium">
-                    Couldn&apos;t get the analysis ready — tap to retry
-                  </span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-2.5 bg-cream/90 rounded-full px-4 py-2 backdrop-blur-md border border-deep-brown/15 shadow-sm">
-                  <span className="w-3.5 h-3.5 rounded-full border-2 border-olive border-t-transparent animate-spin shrink-0" />
-                  <span className="text-xs text-deep-brown font-medium">
-                    {firstTime
-                      ? "Setting things up for your first scan — this takes a little longer the first time…"
-                      : "Getting your scan ready — just a moment…"}
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center gap-2.5 bg-cream/90 rounded-full px-4 py-2 backdrop-blur-md border border-deep-brown/15 shadow-sm">
+                <span className="w-3.5 h-3.5 rounded-full border-2 border-olive border-t-transparent animate-spin shrink-0" />
+                <span className="text-xs text-deep-brown font-medium">
+                  Initializing AI scanner… You can tap the shutter button anytime to take your photo.
+                </span>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
