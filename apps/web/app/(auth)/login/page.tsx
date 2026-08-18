@@ -116,10 +116,26 @@ function LoginPageInner() {
       }
 
       // Validate callbackUrl is a safe relative path to prevent open redirect.
-      // Must start with "/" and not "//" (protocol-relative URLs).
       const safeCallback =
         callbackUrl && /^\/(?!\/)/.test(callbackUrl) ? callbackUrl : null;
-      const dest = safeCallback ?? config.dashboardPath;
+
+      let dest = safeCallback ?? config.dashboardPath;
+
+      // If user role has incomplete onboarding, route them directly into the 3-step pipeline
+      if (activeRole === "user" && !safeCallback) {
+        try {
+          const res = await fetch("/api/proxy/onboarding/status");
+          if (res.ok) {
+            const data = await res.json();
+            if (data.onboarding_status !== "completed" && data.next_path) {
+              dest = data.next_path;
+            }
+          }
+        } catch {
+          /* Fallback to dashboard / middleware gate */
+        }
+      }
+
       router.push(dest);
       router.refresh();
     });

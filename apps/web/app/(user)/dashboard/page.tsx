@@ -215,6 +215,123 @@ function greeting() {
   return "Good evening";
 }
 
+function OnboardingPathwayStepper({ qDone, hasScan }: { qDone: boolean; hasScan: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-cream border border-olive/20 rounded-2xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-r from-butter/25 via-cream to-nude/20"
+    >
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-deep-brown/10 pb-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 bg-olive/10 text-olive rounded-full px-3 py-1 text-xs font-sans font-bold uppercase tracking-widest mb-2 border border-olive/20">
+            <Sparkles className="w-3.5 h-3.5" /> 3-Step Guided Skincare Journey
+          </div>
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-deep-brown">
+            Your Skin Analysis Pathway
+          </h2>
+          <p className="font-sans text-xs sm:text-sm text-deep-brown/70 mt-1">
+            Follow these 3 steps in sequence to get your customized diagnosis & 20-week routine.
+          </p>
+        </div>
+
+        <Button
+          size="default"
+          className="bg-olive hover:bg-olive/90 text-cream font-sans font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs shrink-0"
+          asChild
+        >
+          <Link href={!qDone ? "/onboarding/questionnaire" : !hasScan ? "/onboarding/scan" : "/results"}>
+            {!qDone ? "START STEP 1: QUESTIONNAIRE →" : !hasScan ? "START STEP 2: FACE SCAN →" : "VIEW RECOMMENDATIONS (STEP 3) →"}
+          </Link>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Step 1 */}
+        <div className={`p-4 rounded-xl border transition-all ${
+          qDone ? "bg-butter/20 border-olive/30" : "bg-cream border-deep-brown/20 ring-2 ring-olive/20 shadow-xs"
+        }`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-sans text-[11px] font-bold uppercase tracking-widest text-olive">STEP 1</span>
+            {qDone ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-olive bg-olive/10 px-2 py-0.5 rounded-full border border-olive/20">
+                <Check className="w-3 h-3" /> Completed
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-deep-brown bg-butter px-2.5 py-0.5 rounded-full border border-deep-brown/10">
+                Action Required
+              </span>
+            )}
+          </div>
+          <h3 className="font-serif font-bold text-lg text-deep-brown flex items-center gap-2">
+            <ClipboardList className="w-4.5 h-4.5 text-olive shrink-0" /> 1. Lifestyle Questionnaire
+          </h3>
+          <p className="font-sans text-xs text-deep-brown/70 mt-1 leading-relaxed">
+            Tell us about your skin concerns, climate exposure, and daily habits.
+          </p>
+          <Link href="/onboarding/questionnaire" className="inline-flex items-center gap-1 text-xs font-bold text-olive hover:underline mt-3">
+            {qDone ? "Review Answers →" : "Fill Questionnaire →"}
+          </Link>
+        </div>
+
+        {/* Step 2 */}
+        <div className={`p-4 rounded-xl border transition-all ${
+          hasScan ? "bg-butter/20 border-olive/30" : qDone ? "bg-cream border-deep-brown/20 ring-2 ring-olive/20 shadow-xs" : "bg-cream/50 border-deep-brown/10 opacity-75"
+        }`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-sans text-[11px] font-bold uppercase tracking-widest text-olive">STEP 2</span>
+            {hasScan ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-olive bg-olive/10 px-2 py-0.5 rounded-full border border-olive/20">
+                <Check className="w-3 h-3" /> Completed
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-deep-brown/60 bg-cream px-2 py-0.5 rounded-full border border-deep-brown/10">
+                {qDone ? "Ready for Scan" : "Next Up"}
+              </span>
+            )}
+          </div>
+          <h3 className="font-serif font-bold text-lg text-deep-brown flex items-center gap-2">
+            <Camera className="w-4.5 h-4.5 text-olive shrink-0" /> 2. AI Face Camera Scan
+          </h3>
+          <p className="font-sans text-xs text-deep-brown/70 mt-1 leading-relaxed">
+            10-second on-device camera analysis detecting acne, dark spots & texture.
+          </p>
+          <Link href="/onboarding/scan" className="inline-flex items-center gap-1 text-xs font-bold text-olive hover:underline mt-3">
+            {hasScan ? "Retake Face Scan →" : "Take Face Scan →"}
+          </Link>
+        </div>
+
+        {/* Step 3 */}
+        <div className={`p-4 rounded-xl border transition-all ${
+          hasScan ? "bg-butter/20 border-olive/30 ring-2 ring-olive/20 shadow-xs" : "bg-cream/50 border-deep-brown/10 opacity-75"
+        }`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-sans text-[11px] font-bold uppercase tracking-widest text-olive">STEP 3</span>
+            {hasScan ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-olive bg-olive/10 px-2 py-0.5 rounded-full border border-olive/20">
+                <Sparkles className="w-3 h-3" /> Ready
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-deep-brown/40 bg-cream px-2 py-0.5 rounded-full border border-deep-brown/10">
+                Locked
+              </span>
+            )}
+          </div>
+          <h3 className="font-serif font-bold text-lg text-deep-brown flex items-center gap-2">
+            <FlaskConical className="w-4.5 h-4.5 text-olive shrink-0" /> 3. Tailored Routine & Plan
+          </h3>
+          <p className="font-sans text-xs text-deep-brown/70 mt-1 leading-relaxed">
+            Personalized 20-week skincare roadmap & recommended product regimen.
+          </p>
+          <Link href={hasScan ? "/results" : "#"} className={`inline-flex items-center gap-1 text-xs font-bold ${hasScan ? "text-olive hover:underline" : "text-deep-brown/40 pointer-events-none"} mt-3`}>
+            View Recommendations →
+          </Link>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [summary, setSummary] = useState<ProgressSummaryResponse | null>(null);
@@ -255,6 +372,7 @@ export default function DashboardPage() {
   const isOverdue = summary?.is_rescan_overdue ?? false;
   const improvedCount = summary?.conditions.filter((c) => c.status === "improved").length ?? 0;
   const totalConditions = summary?.conditions.length ?? 0;
+  const hasScan = skinScore != null;
 
   const nextScanLabel = isOverdue
     ? "Overdue"
@@ -267,21 +385,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-cream text-deep-brown p-4 sm:p-6 lg:p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Pending Questionnaire Reminder Banner */}
-        {qStatus === "pending" && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-butter/30 border border-deep-brown/15 text-deep-brown font-sans">
-            <div className="flex items-center gap-3">
-              <ClipboardList className="w-5 h-5 text-olive shrink-0" />
-              <div>
-                <p className="font-bold text-sm">Lifestyle Questionnaire Pending</p>
-                <p className="text-xs text-deep-brown/70">Complete your lifestyle profile to personalize your AI skin recommendations.</p>
-              </div>
-            </div>
-            <Button size="sm" className="bg-olive hover:bg-olive/90 text-cream font-sans font-bold text-xs rounded-lg shrink-0" asChild>
-              <Link href="/questionnaire">Go to Questionnaire &rarr;</Link>
-            </Button>
-          </div>
-        )}
         {/* ── Greeting Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -307,12 +410,15 @@ export default function DashboardPage() {
               className="bg-butter hover:bg-butter/90 text-deep-brown font-sans font-bold text-sm px-6 h-11 rounded-xl border border-deep-brown/10 shadow-sm"
               asChild
             >
-              <Link href="/scan">
+              <Link href="/onboarding/scan">
                 <Camera className="w-4 h-4 mr-2" /> ANALYSE MY SKIN →
               </Link>
             </Button>
           </div>
         </motion.div>
+
+        {/* ── 3-Step Guided Skincare Stepper Card ── */}
+        <OnboardingPathwayStepper qDone={qStatus === "done"} hasScan={hasScan} />
 
         {/* ── Error Banner ── */}
         {error && (

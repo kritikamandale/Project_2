@@ -148,11 +148,19 @@ export default auth((req: NextRequest & { auth: any }) => {
     return NextResponse.redirect(new URL(access.redirectTo!, req.url));
   }
 
-  // Role-based access verified — allow navigation for logged-in users
+  // First-time onboarding gate for regular USER accounts:
+  // Redirect un-onboarded users accessing /dashboard directly to their active step.
+  if (userRole === "USER") {
+    const onboardingStatus: string = (session.user as any).onboardingStatus ?? "not_started";
+    if (onboardingStatus !== "completed") {
+      const activeStep = ONBOARDING_STEP_PATH[onboardingStatus] ?? "/onboarding/questionnaire";
+      if (pathname === "/dashboard") {
+        return NextResponse.redirect(new URL(activeStep, req.url));
+      }
+    }
+  }
 
   // Forward role / user-id to downstream RSC / route handlers on the REQUEST
-  // (previous code set them on the response, where server components can't read
-  // them and where they leaked the user's id/role to the browser on every hit).
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-user-role", userRole);
   requestHeaders.set("x-user-id", (session.user as any).id ?? "");
